@@ -1123,3 +1123,67 @@ quantisation error rises smoothly with K (0.110 to 0.118), with negligible paddi
 CNN dips also occurred under *different* scale rules, one in OCP and one in fit. Given the
 ~10x model-to-model spread of F24, single-model variance is the most economical
 explanation. It should not be reported as a property of MXFP4.
+
+---
+
+# Firming up the claims (E13-E15)
+
+## F41. The mantissa effect, now exact rather than sampled
+
+The exhaustive campaign was repeated for `e3m2` on the same ResNet8, giving two complete
+enumerations of the same network under two formats -- 638,624 and 483,904 injections, no
+sampling error in either:
+
+| format | mantissa | special codes | model SDC | element SDC | scale SDC | element non-finite |
+|---|---|---|---|---|---|---|
+| `e4m3` | 3 | 2 | 0.4171 | 0.4003 | 0.9442 | 0.0127 |
+| `e3m2` | 2 | 0 | **0.1079** | **0.0785** | 0.7978 | **0.0000** |
+
+Element faults are **5.1x** less damaging in `e3m2`, exactly. The zero in the last column is
+now a statement about the whole fault space rather than a sample: across all 483,904 bits,
+**no** `e3m2` fault produced a non-finite value, as a format with no special codes requires.
+Scale faults remain dominant under both formats (10.2x over element faults in `e3m2`), and
+the sampled campaign again covered the truth (estimate 0.1070, interval
+[0.0964, 0.1186], truth 0.1079) -- a second independent validation of the sampling.
+
+## F42. RepVGG with three seeds: the ordering holds on a third architecture
+
+RepVGG-A0 previously rested on a single trained model, which F24's variance result made
+uncomfortable. Retrained three times on GPU (91.45% top-1, matching the CPU model to 0.01
+points):
+
+| format | mantissa | special codes | element SDC | element non-finite | scale/element |
+|---|---|---|---|---|---|
+| `e5m2` | 2 | 8 | 0.0583 +- 0.0082 | 0.0538 | 5.1x |
+| `e4m3` | 3 | 2 | 0.0107 +- 0.0052 | 0.0069 | 28.7x |
+| `e3m2` | 2 | 0 | **0.0012 +- 0.0005** | **0.0000** | **232x** |
+
+Both mechanisms are visible at once. `e5m2` is worst and almost all of its failures are
+non-finite (0.0538 of 0.0583, i.e. 92%), the F18 pathway. Among the rest, `e3m2` beats
+`e4m3` by 8.9x with zero non-finite events, the F37 mantissa effect. The shared-scale ratio
+reaches 232x in `e3m2`, simply because its element rate is so low -- the scale is then
+almost the only way to break the network.
+
+## F43. Activations barely matter on the larger models
+
+Activation campaigns, previously run only on ResNet8, extended to both larger models
+(2000 per-inference injections each):
+
+| model | element | scale | weight/activation, element | weight/activation, scale |
+|---|---|---|---|---|
+| ResNet8 | 0.0032 | 0.1532 | 5.3x | 1.2x |
+| RepVGG-A0 | 0.0005 | 0.0484 | 9.3x | 2.4x |
+| ViT | **0.0000** | **0.0000** | unbounded | unbounded |
+
+On the transformer **not one of 2000 activation faults changed its own inference** (95%
+intervals [0, 0.0020] for element and [0, 0.0688] for scale), and RepVGG is close behind. A
+transient fault in one activation value of one inference is therefore a minor concern on
+these models compared with a persistent weight fault, which is exposed to every inference
+and, at the scale site, corrupts $K$ values at once. The ratio column is reported as
+unbounded rather than as a number, since the denominator is zero.
+
+The likely reason is dilution plus renormalisation: one corrupted value among an
+inference's activations passes through many mixing layers, and in the transformer every
+block re-normalises its input. Note this does **not** contradict F32, where LayerNorm failed
+to mask *weight* faults -- a weight fault perturbs every position that weight touches, on
+every inference, whereas an activation fault perturbs a single value once.
