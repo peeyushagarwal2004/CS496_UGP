@@ -1,0 +1,22 @@
+# virtualenv and caches
+.venv/
+__pycache__/
+*.pyc
+
+# CIFAR-10, re-downloadable
+data/
+
+# trained weights: large binaries, reproducible from mxfi.train + the logged seed.
+# the per-epoch accuracy logs ARE kept, since they are the training record.
+checkpoints/*.pt
+!checkpoints/*.log.json
+
+# run logs and the single-runner lock
+logs/*.log
+logs/sweep.lock
+logs/STOP*
+
+# LaTeX build products
+docs/*.aux
+docs/*.log
+docs/*.out
