@@ -20,3 +20,4 @@ logs/STOP*
 docs/*.aux
 docs/*.log
 docs/*.out
+docs/figures/*.png
