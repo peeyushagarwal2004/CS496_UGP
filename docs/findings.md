@@ -1296,29 +1296,222 @@ gain is real variance reduction and not a shifted estimate. The predictor also t
 it was developed on the ViT and reaches AUC 0.9889 here, on a different architecture and
 format, over the complete fault space.
 
-## F47. But it pays only when failures are rare, and that limit is intrinsic
+## F47. It pays most where failures are rare, but it always pays
 
 The same procedure on the same model under e4m3, where the true rate is 0.4171:
 
 | stratum | share | true failure rate |
 |---|---|---|
-| low | 35.0% | 0.2367 |
-| middle | 44.3% | 0.4331 |
-| high | 20.8% | 0.6873 |
+| low | 10.0% | **0.0000** |
+| middle | 28.2% | 0.0083 |
+| high | 61.9% | 0.6706 |
 
-AUC falls to 0.7046 and the variance ratio to **1.0--1.1x**: no useful gain. The strata are
-no longer separated because two in five of *all* faults cause a failure, so there is no
-small region to concentrate on.
+AUC is 0.8819 and the variance ratio 2.1--2.3x: a real but much smaller gain than
+e3m2's 7x. The reason is visible in the shares. At a failure rate of 0.42 the high
+stratum swallows 62% of the fault space instead of 14%, so there is far less to
+concentrate on, even though the predictor still isolates a stratum of 10% that
+contains no failures at all.
 
-The reason is structural rather than a tuning problem. `margin_shift` is a first-order
-estimate -- it asks what fraction of the decision margin a perturbation consumes, assuming
-the margin moves linearly with the weight. That approximation discriminates well when
-failures are rare and sit near the threshold, and saturates when most perturbations are
-large enough to flip a prediction regardless. No first-order severity measure will separate
-strata in the saturated regime.
+The trend is the useful part: the gain grows as the failure rate falls, which is
+the same direction as the need, since a campaign measuring a low rate is the one
+that needs many injections for a given relative precision. A campaign measuring
+40% already gets a tight interval from a few thousand uniform injections.
 
-This is a useful limit rather than a disappointment, because it points the same way as the
-need: a campaign measuring a **low** failure rate is exactly the one that needs many
-injections for a given relative precision, and that is the regime where the method delivers
-7x. A campaign measuring a 40% failure rate already gets a tight interval from a few
-thousand uniform injections and needs no help.
+**Correction.** The first version of this finding reported no gain at all on e4m3
+(AUC 0.705, ratio 1.0-1.1x) and explained it as a structural saturation of the
+first-order severity measure. That was an artefact: the e4m3 ground truth was
+recorded from a different trained copy of ResNet8 than the one scoring the faults
+(see F50). Matched, the null result disappears. The structural explanation was
+wrong and is withdrawn -- what remains is a smaller gain, for the ordinary reason
+that a common failure leaves less room for stratification.
+
+---
+
+# Closing the last open question (E16-E17)
+
+F44 concluded *by elimination* that the sensitivity difference between formats must
+be alignment, having ruled out the weight, activation and gradient marginals.
+Elimination is only as good as the list, and the list turned out to be wrong.
+
+## F48. It is not alignment. It is the margin of the hardest image
+
+Alignment can be destroyed without touching either marginal: permute which
+position's activation vector meets which position's gradient vector,
+$\tilde G=\sum_p a^{(p)}(g^{(\pi(p))})^{\!\top}$, and every $a_i$ and every $g_o$ still
+contributes exactly the same multiset of values. On the ViT's 25 Linear layers, 50
+images, 4 permutations each:
+
+| format | tail of $G$ | tail of $\tilde G$ | alignment gain |
+|---|---|---|---|
+| `e5m2` | 11.40 | 11.14 | 1.02x |
+| `e3m2` | 11.40 | 11.17 | 1.02x |
+| `e4m3` | 11.28 | 11.32 | 1.00x |
+| `e2m3` | 11.34 | 11.33 | 1.00x |
+| `e2m1` | 11.39 | 11.38 | 1.00x |
+
+Destroying the alignment moves the tail by at most $2\%$, and the gain is the same
+for every format (spread $1.02$x). Alignment is refuted.
+
+The reason F44 went wrong is visible in hindsight: *every* quantity it measured was
+a shape statistic, a matrix divided by its own rms, and shape is format-invariant
+here (spread $1.00$x). What varies is a scale. Splitting
+$s=|\partial m/\partial w|\,\mathrm{rms}/m$ into its two factors, over 200 images, the
+same definition and images as E11:
+
+| format | median $s$ | 99th pct $s$ | median $\lvert g\rvert\,\mathrm{rms}$ | 99th pct | smallest margin | SDC |
+|---|---|---|---|---|---|---|
+| `e5m2` | 0.0121 | 0.141 | 0.0077 | 0.073 | 0.2330 | 0.0040 |
+| `e3m2` | 0.0121 | 0.140 | 0.0077 | 0.073 | 0.2271 | 0.0041 |
+| `e4m3` | 0.1241 | 2.012 | 0.0076 | 0.073 | 0.0174 | 0.0329 |
+| `e2m3` | 0.0489 | 1.107 | 0.0075 | 0.071 | 0.0197 | 0.0236 |
+| `e2m1` | 0.1178 | 3.121 | 0.0081 | 0.077 | 0.0070 | 0.0500 |
+
+The median $s$ column reproduces F45 to three decimals, so this is the same
+quantity F45 drew its conclusion from. Its spread across formats is $10.29$x, and
+$22.24$x at the 99th percentile. **With the margin divided out the spread is
+$1.08$x at both.** The gradient field is the same in every format; the margin of
+the closest-to-the-boundary image among the 200 varies by $33$x, and since E11
+defines $s$ as a maximum over images, that one image raises $s$ for every weight
+in the network at once.
+
+A second mechanism does hold, for a different question. Among the per-position
+terms $x_p=a_i^{(p)}g_o^{(p)}$ that build one weight's gradient, the most sensitive
+weights have coherence $|\sum_p x_p|/\sum_p|x_p| = 0.843$, against $0.466$ for
+randomly chosen weights and $0.124$ for terms independent in sign. So *within* a
+network, a weight is sensitive because its positions agree rather than because any
+one of them is large -- but this too is identical across formats (0.843-0.845).
+
+## F49. That margin belongs to the evaluation set, not to the network
+
+If near-ties are the mechanism, a statistic of the margin alone should predict
+vulnerability -- no gradients, no injections, one forward pass. Tested against
+fifteen networks (3 seeds x 5 formats) whose failure rates came from campaigns
+already run:
+
+| margins measured on | $1/\text{min margin}$ | mean $1/m$ | $m$ at the 0.1st pct |
+|---|---|---|---|
+| the campaigns' own 200 images | **+0.983** | +0.971 | -0.858 |
+| 2000 fresh images | +0.209 | +0.295 | -0.331 |
+
+(Spearman against the measured failure rate.) The predictor is nearly perfect on
+the images the campaign scored and worthless on fresh ones. Separating the two
+sources of variation explains why:
+
+| varying | on fresh images | on the campaign's images |
+|---|---|---|
+| seeds, within a format | **+1.000** in all 5 formats | +1.000 in 4 of 5 |
+| formats, within a seed | -0.100, +0.600, -0.500 | +1.000, +1.000, +0.600 |
+
+The seed-to-seed component of vulnerability is a real property of the trained
+network and generalises to data it has never seen. The format-to-format component,
+on this model at 200 evaluation images, is a property of the **(network,
+evaluation set) pair**. Quantising to a different element format nudges the
+logits slightly; whether that nudge parks one of the 200 images on a decision
+boundary is luck of the sample, and when it does the campaign's rate rises --
+truthfully for those images, but not durably.
+
+This does not touch F46-F47: value-aware sampling estimates *a given campaign's*
+rate against that campaign's own ground truth, and a $7$x variance reduction is a
+$7$x variance reduction whatever the rate means. What it qualifies is the
+interpretation -- F45's "sensitivity predicts vulnerability" holds within an
+evaluation set and should not be read as a property of the format, and any
+cross-format ranking measured on one small image set inherits the same doubt.
+
+---
+
+# What the campaigns were actually measured on (E18)
+
+## F50. Two exhaustive campaigns, two different networks
+
+Training is not bit-reproducible across machines, and the same model name refers to
+different weights on each. Of the 24 checkpoints that exist both on this laptop and
+on the cluster, **none** has identical weights -- accuracies agree to a few tenths
+of a percent, so nothing looks wrong.
+
+Whether a recorded campaign belongs to the checkpoint in hand is testable rather
+than assumable: replay a sample of its faults and compare outcomes. Over 300
+recorded faults each:
+
+| exhaustive campaign | agrees with checkpoint A | agrees with checkpoint B |
+|---|---|---|
+| e3m2, 483,904 faults | 253/300 | **300/300** |
+| e4m3, 638,624 faults | **300/300** | 202/300 |
+
+The two campaigns were recorded from **two different trained networks**. So the
+comparison F45 quoted as the exhaustive confirmation of the mantissa effect --
+element rates $0.0785$ for e3m2 against $0.4003$ for e4m3, a factor of five -- puts
+one network's e3m2 next to another network's e4m3. Given that model-to-model spread
+was already measured at about ten times the injection uncertainty (F31), a
+five-fold gap between two different networks carries no information about the
+format.
+
+Two guards now exist: `tools/verify_ground_truth.py` performs the replay test, and
+E15 runs it automatically and refuses to score a campaign that its checkpoint did
+not produce. The first version of F47 was wrong for exactly this reason.
+
+## F51. The mantissa effect is real -- the metric used to confirm it was not
+
+Redone properly: one fault list of 1500 element faults per format, replayed against nine
+class-balanced image sets of 200 images (the set every earlier campaign used, plus eight
+disjoint ones), on each of the two networks separately. The design is paired within a
+format, so fold-to-fold variation carries no fault-sampling noise. On network A's original
+200 images the e4m3 rate comes out 0.4087 against its exhaustive 0.4003, confirming the
+setup reproduces the reference it should.
+
+Under the SDC definition used throughout this study -- a fault counts as failing if **any**
+of the 200 inferences changes -- the two formats are indistinguishable:
+
+| network | e3m2 | e4m3 | ratio | per-fold ratio |
+|---|---|---|---|---|
+| A | 0.2152 | 0.2214 | **1.03x** | 0.34x -- 2.58x |
+| B | 0.1623 | 0.1504 | **0.93x** | 0.47x -- 2.14x |
+
+The same faults on the same folds, scored by the **per-inference** rate -- what fraction of
+the 200 inferences each fault actually corrupts -- say the opposite:
+
+| network | e3m2 | e4m3 | ratio | e4m3 spread across folds |
+|---|---|---|---|---|
+| A | 0.00202 | 0.01124 | **5.57x** | 1.27x |
+| B | 0.00129 | 0.00987 | **7.64x** | 1.15x |
+
+Two independently trained networks agree on a factor of $5.6$--$7.6$, and the per-inference
+rate barely moves across image sets where the any-image rate moved sixfold. So F45's
+mantissa effect is real and roughly the size it claimed; what was wrong was the metric used
+to confirm it, and the fact that the confirmation compared two different networks (F50).
+
+## F52. The any-image SDC metric is the confound
+
+`sdc` asks whether a fault corrupts *at least one* of $n$ inferences. That quantity grows
+with $n$ and saturates towards 1, so it is not a property of the fault at all beyond a
+point -- it is mostly a question of whether the image set contains something near a decision
+boundary. The consequences, on the folds above:
+
+| network | format | any-image spread | mean CI width | spread / CI | per-inference spread |
+|---|---|---|---|---|---|
+| A | e3m2 | 0.1233 -- 0.3593 | 0.0405 | **5.8x** | 2.38x |
+| A | e4m3 | 0.1227 -- 0.4087 | 0.0406 | **7.0x** | **1.27x** |
+| B | e3m2 | 0.0467 -- 0.4207 | 0.0340 | **11.0x** | 7.52x |
+| B | e4m3 | 0.0713 -- 0.2080 | 0.0355 | **3.8x** | **1.15x** |
+
+And the fold's own closest-to-the-boundary image predicts its any-image rate: Spearman
+$+0.80$ and $+0.83$ on network A, $+0.92$ and $+0.93$ on network B -- F49's mechanism seen
+at the level of whole image sets rather than networks. The Wilson interval is not wrong; it
+answers a narrower question than it appears to, covering the uncertainty from sampling
+*faults* while the choice of evaluation images is a second and larger source that no
+injection count reduces.
+
+This also explains F49 rather than contradicting it. The sensitivity $s$ carries $1/\min m$,
+which is a near-tie detector; the any-image metric is a near-tie amplifier; so $s$ predicts
+that metric well and predicts nothing about fresh data. Under the per-inference rate the
+whole chain is better behaved.
+
+**What to report.** The per-inference rate, as the primary number. The any-image rate is
+meaningful only for a stated input distribution and a stated $n$, and two campaigns should
+never be compared under it unless both used the same images. Every rate quoted elsewhere in
+these findings is an any-image rate at $n=200$, and the comparisons among them inherit this
+caveat -- the ones that survive it are those resting on the non-finite pathway, which does
+not depend on the evaluation set.
+
+**Scope.** F46-F47's variance reductions estimate the any-image rate, since that is what the
+exhaustive campaigns recorded. The machinery carries over unchanged to the per-inference
+rate, but the numbers would have to be re-derived.
