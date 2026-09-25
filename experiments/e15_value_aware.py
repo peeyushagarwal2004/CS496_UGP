@@ -171,6 +171,10 @@ def main() -> None:
     p.add_argument("--model", default="resnet8_w16")
     p.add_argument("--fmt", default="e3m2")
     p.add_argument("--block-size", type=int, default=32)
+    p.add_argument("--train-seed", type=int, default=0,
+                   help="which trained copy; must be the one the campaign used")
+    p.add_argument("--verify", type=int, default=200,
+                   help="recorded faults to replay as a checkpoint check")
     p.add_argument("--device", default="cpu")
     p.add_argument("--reps", type=int, default=400)
     p.add_argument("--budgets", nargs="*", type=int, default=[500, 1000, 3000])
@@ -189,9 +193,37 @@ def main() -> None:
           f"true rate {d.sdc.mean():.6f}")
 
     dev = setup_device(a.device)
-    net, _ = load_trained(a.model)
+    net, _ = load_trained(a.model, seed=a.train_seed)
     mx = MXModel(to_deploy(net).to(dev), cfg).quantize_weights()
-    xs = campaign_subset(n_per_class=20, download=False).tensors[0]
+    ds = campaign_subset(n_per_class=20, download=False)
+    xs = ds.tensors[0]
+
+    # The same model name means different weights on different machines, and
+    # scoring one network's faults against another's recorded outcomes measures
+    # nothing. Replay a sample of the campaign and refuse to continue if the
+    # checkpoint in hand did not produce it.
+    if a.verify:
+        from mxfi.campaign import Evaluator
+        from mxfi.faults import Fault
+        from mxfi.sampling import FaultSite
+        ev = Evaluator(ds, device=dev)
+        golden = ev.golden(mx.module)
+        rng = np.random.default_rng(0)
+        chk = d.iloc[rng.choice(len(d), min(a.verify, len(d)), replace=False)]
+        ok = 0
+        for _, r in chk.iterrows():
+            idx = ((int(r.row), int(r.blk), int(r.lane)) if r.site == "element"
+                   else (int(r.row), int(r.blk)))
+            with mx.fault(FaultSite(r.tensor, Fault(r.site, idx, int(r.bit)))):
+                preds, _ = ev.predict(mx.module)
+            ok += int(bool((preds != golden.predictions).sum() > 0) == bool(r.sdc))
+        frac = ok / len(chk)
+        print(f"ground-truth check: {ok}/{len(chk)} replayed faults agree ({frac:.3f})")
+        if frac < 0.98:
+            raise SystemExit(
+                f"this campaign was not recorded from {a.model} train-seed "
+                f"{a.train_seed}; pass the --train-seed that produced it")
+
     sens, rms = sensitivities(mx, xs, dev)
 
     score = score_faults(d.reset_index(drop=True), mx, sens, rms, a.block_size)

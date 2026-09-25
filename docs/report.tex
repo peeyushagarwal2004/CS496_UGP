@@ -143,9 +143,12 @@ and bit~7 (overflow past the float32 range) never leave a prediction intact.}
 \paragraph{Exhaustive ground truth.} Flipping all $638{,}624$ bits of ResNet8's MXFP8 weight
 storage gives a true SDC rate of $0.4171$. The ordinary $3000$-injection campaign returned
 $0.4270$ with interval $[0.4094,0.4448]$: $2.4\%$ off in relative terms, interval containing
-the truth. Repeating the enumeration under e3m2 gives a second exact reference on the same
-network ($483{,}904$ injections, rate $0.1079$) and a second confirmation of the sampling
-(estimate $0.1070$, interval $[0.0964,0.1186]$). Exactly, under e4m3 element faults corrupt
+the truth. Repeating the enumeration under e3m2 gives a second exact reference
+($483{,}904$ injections, rate $0.1079$) and a second confirmation of the sampling
+(estimate $0.1070$, interval $[0.0964,0.1186]$). The two enumerations turned out to have
+been recorded from two different trained copies of ResNet8, which is why they are used
+below as two separate references and never as a comparison between formats. Exactly,
+under e4m3 element faults corrupt
 at $0.4003$ and scale faults at $0.9442$, with $3.27$ against $49.89$ of $200$ inferences
 corrupted. Vulnerability runs opposite to layer size: the $3584$-bit stem is the most
 fragile layer at $0.853$, the $304{,}128$-bit final convolution the most robust at $0.289$,
@@ -173,14 +176,24 @@ and its cause is the sensitivity $s_i=|\partial m/\partial w_i|\,
 \mathrm{rms}/m$, with $m$ the margin between the top two logits: a perturbation of
 $\delta\cdot\mathrm{rms}$ flips a prediction when $s_i\delta>1$, and computing $s$ by
 backpropagation reproduces the probe with correlation $+0.998$. Across the five formats
-$s$ predicts the failure rate at $r=+0.925$. Two things it is \emph{not}. The tail of $s$
-is not inherited from the tails of the weights, activations or output gradients, which
-agree across formats to within $3\%$ while $s$ differs $14$-fold at the 99th percentile.
-And it is not mantissa width, which correlates at $-0.251$ once MXFP4 is included -- e2m1
-has the fewest mantissa bits and the highest failure rate. Within the four 6- and 8-bit
-formats the 2-mantissa pair is genuinely $6$--$8\times$ safer, confirmed exactly by
-enumerating one ResNet8's entire fault space under both ($0.0785$ against $0.4003$), but
-that is a correlate of the group rather than a rule.
+$s$ predicts the failure rate at $r=+0.925$. It is \emph{not} mantissa width, which
+correlates at $-0.251$ once MXFP4 is included -- e2m1 has the fewest mantissa bits and the
+highest failure rate.
+
+Pressed further, $s$ turns out to measure something narrower than it promises.
+Decomposing it into its two factors over $200$ images, the gradient magnitude
+$|\partial m/\partial w|\,\mathrm{rms}$ agrees across all five formats to within $1.08\times$
+at both the median and the 99th percentile; the whole $10.3$-fold spread in $s$, and
+$22.2$-fold at the 99th percentile, comes from the margin in its denominator, because $s$ is
+defined as a maximum over images and the closest-to-the-boundary image varies $33$-fold.
+Alignment, the remaining candidate after the weight, activation and gradient marginals were
+ruled out, is refuted directly: permuting which position's activation meets which position's
+gradient preserves both marginals exactly and moves the tail by at most $2\%$, identically in
+every format. And the margin that does the work belongs to the evaluation set rather than to
+the network. Measured on the campaigns' own $200$ images, $1/\min m$ ranks fifteen networks
+by failure rate at Spearman $+0.98$; measured on $2000$ fresh images it ranks them at
+$+0.21$. Split by source of variation, the seed-to-seed component generalises perfectly
+($+1.000$ in all five formats) and the format-to-format component does not.
 
 \begin{figure}[t]
 \centering
@@ -218,7 +231,7 @@ independently trained models is about ten times the uncertainty contributed by $
 injections, so a reliability figure quoted from one trained model is far less certain than
 its injection count suggests.
 
-\section{Two problems with the proposed methodology}
+\section{Three problems with the proposed methodology}
 
 \paragraph{The severity measure, and a replacement.} The plan scores an element fault by
 $d=|\log_2|v'|-\log_2|v||$. Over $39{,}337$ element faults its rank correlation with observed
@@ -243,13 +256,12 @@ on a pilot and Neyman-allocate the rest. Under e3m2, where the true rate is $0.1
 low stratum holds $38.6\%$ of the fault space and \emph{no} failures, the high stratum
 $14.2\%$ of the space at rate $0.744$, and the estimator's variance falls by $7.0\times$ at
 a budget of $3000$ -- the same precision a uniform campaign reaches at $21{,}007$
-injections, with both estimators unbiased. Under e4m3, where the rate is $0.417$, the same
-procedure gains nothing ($1.0$--$1.1\times$, AUC $0.705$). The limit is structural:
-$\mathrm{margin\_shift}$ is a first-order estimate of how much of the margin a perturbation
-consumes, which discriminates near the decision threshold and saturates once most
-perturbations cross it regardless. That places the gain where it is needed, since a campaign
-measuring a low failure rate is the one that needs many injections for a given relative
-precision.
+injections, with both estimators unbiased. Under e4m3, where the rate is $0.417$, the gain
+falls to $2.1$--$2.3\times$ (AUC $0.882$): the predictor still isolates a stratum of $10\%$
+of the fault space containing no failures at all, but the high stratum now swallows $62\%$ of
+the space instead of $14\%$, leaving much less to concentrate on. The gain therefore grows as
+the failure rate falls, which is the same direction as the need, since a campaign measuring a
+low rate is the one that needs many injections for a given relative precision.
 
 \paragraph{The standard scale rule manufactures a trend.} Because the largest representable
 element lies below the top of the binade the OCP rule aligns to, the block maximum is
@@ -259,16 +271,52 @@ on RepVGG-A0 under the OCP rule, but is flat ($1.04$ and $1.48$) under a rule th
 clip. The apparent best block size for reliability is an artefact of the scale rule, so every
 result obtained under it needs a non-clipping control.
 
+\paragraph{The usual SDC definition hides the effect it is used to measure.} A fault is
+conventionally counted as causing SDC if \emph{any} of the $n$ evaluated inferences changes
+its prediction. That quantity grows with $n$ and saturates, so beyond a point it measures
+whether the evaluation set contains an input near a decision boundary rather than anything
+about the fault. Replaying one fixed list of $1500$ element faults against nine
+class-balanced sets of $200$ images, on each of two independently trained ResNet8s, the
+any-image rate moves from $0.123$ to $0.359$ and from $0.123$ to $0.409$ on one network --
+$5.8$ and $7.0$ times the width of the Wilson interval that $1500$ injections earns, and
+ranked by each set's smallest margin at Spearman $+0.80$ to $+0.93$. Under it, e3m2 and e4m3
+are indistinguishable ($1.03\times$ and $0.93\times$) and their order reverses from one image
+set to the next. Scored instead by the per-inference rate -- what fraction of the $n$
+inferences each fault corrupts -- the same faults on the same folds give $5.57\times$ and
+$7.64\times$ between the two formats, with the e4m3 figure varying only $1.15$--$1.27\times$
+across image sets. The mantissa effect is real and roughly the size first claimed; the
+any-image metric was destroying it. The per-inference rate belongs in the primary column, and
+two campaigns should not be compared under the any-image rate unless both scored the same
+images.
+
+A related trap is worth stating because it cost this study a wrong result. Training is not
+bit-reproducible across machines, and of $24$ checkpoints carrying identical names on two
+machines here, none had identical weights while all agreed on accuracy to within a few tenths
+of a point. Replaying $300$ recorded faults per campaign showed the two exhaustive
+enumerations had been recorded from two \emph{different} networks, so the five-fold gap they
+appeared to establish between e3m2 and e4m3 compared one network with another. A campaign's
+outcomes should be checked against the checkpoint scoring them before they are used as ground
+truth; the check costs a few hundred replays.
+
 \section{Status}
 
 The study covers three architecture families and answers all five objectives. Design
-guidance follows directly: prefer element formats without NaN/Inf codes, protect the
-shared scale before anything else, harden weights before activations, and measure the
-sensitivity $s$ of the quantised network rather than inferring robustness from a format's
-field widths -- two formats of identical width and accuracy differ by an order of
-magnitude. Value-aware sampling built on the replacement severity measure cuts the injections needed for a given precision by seven times where failures are rare, and by nothing where they are common. The gap is scale: everything is CIFAR-10, because ImageNet is not available on
-the hardware I can reach. One question stays open -- why the sensitivity tail differs at
-all between quantised networks whose weight, activation and gradient distributions are
-indistinguishable.
+guidance follows directly: prefer element formats without NaN/Inf codes, protect the shared
+scale before anything else, harden weights before activations, and expect a coarser mantissa
+to help -- e3m2 corrupts $5.6$--$7.6\times$ fewer inferences than e4m3 on two independently
+trained networks -- while not reading that as a rule about field widths, since MXFP4 has the
+fewest mantissa bits and the highest failure rate. Value-aware sampling built on the
+replacement severity measure cuts the injections needed for a given precision by seven times
+where failures are rare and by about two where they are common.
+
+The open question of why two quantised networks of equal accuracy differ in sensitivity is
+now closed, and the answer is a caution rather than a mechanism: the gradient field is the
+same in every format to within $8\%$, the difference is the margin of the hardest evaluation
+image, and that margin is a property of the evaluation set rather than of the network. Two
+gaps remain. Everything is CIFAR-10, because ImageNet is not available on the hardware I can
+reach. And every rate reported here except the per-inference comparisons is an any-image rate
+at $n=200$, so the cross-format comparisons that rest on it should be re-measured per
+inference before they are relied on -- the ones resting on the non-finite pathway are
+unaffected, since special codes do not depend on the evaluation set.
 
 \end{document}
