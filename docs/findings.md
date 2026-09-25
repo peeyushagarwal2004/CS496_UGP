@@ -1187,3 +1187,69 @@ inference's activations passes through many mixing layers, and in the transforme
 block re-normalises its input. Note this does **not** contradict F32, where LayerNorm failed
 to mask *weight* faults -- a weight fault perturbs every position that weight touches, on
 every inference, whereas an activation fault perturbs a single value once.
+
+---
+
+# Correcting F37 (E14)
+
+## F44. The sensitivity tail is not inherited from any marginal tail
+
+For a linear layer the gradient factorises as
+$\partial m/\partial W[o,i]=\sum_p a_i^{(p)} g_o^{(p)}$, so a heavy tail in the sensitivity
+$s$ should trace back to a heavy tail in the activations, in the output gradients, or in the
+stored weights. Measuring each separately as an outlier ratio (max / rms) over the
+evaluation set:
+
+| format | mantissa | stored weights | activations | output gradients |
+|---|---|---|---|---|
+| `e5m2` | 2 | 2.90 | 13.20 | 158.8 |
+| `e3m2` | 2 | 2.90 | 13.20 | 158.8 |
+| `e4m3` | 3 | 2.90 | 13.29 | 164.6 |
+| `e2m3` | 3 | 3.10 | 13.25 | 162.4 |
+| `e2m1` | 1 | 2.53 | 13.57 | 155.6 |
+
+All three agree to within **1.01-1.03x** across formats, while the sensitivity tail itself
+differs by **14x** at the 99th percentile (F38). None of the marginal distributions explains
+it. What differs must be the *alignment* -- which particular (input, output) pairs line up
+constructively for particular weights -- and that is a property of the specific quantised
+function, not of any summary statistic of its parts. The working hypothesis in F38, that
+coarse mantissas round away outlier weights, is refuted: the weight outlier ratio is
+identical across formats.
+
+## F45. It is sensitivity that predicts vulnerability, not mantissa width
+
+F37 claimed mantissa width tracks vulnerability. Extending the comparison to all five
+formats shows that claim was an artefact of the subset it was drawn from:
+
+| format | mantissa | accuracy | median $s$ | perturbation-driven SDC |
+|---|---|---|---|---|
+| `e5m2` | 2 | 0.8174 | 0.0122 | 0.0040 |
+| `e3m2` | 2 | 0.8173 | 0.0121 | 0.0041 |
+| `e4m3` | 3 | 0.8193 | 0.1249 | 0.0329 |
+| `e2m3` | 3 | 0.8190 | 0.0492 | 0.0236 |
+| **`e2m1`** | **1** | 0.8108 | **0.1187** | **0.0500** |
+
+| predictor | correlation with perturbation-driven SDC |
+|---|---|
+| median sensitivity $s$ | **+0.925** |
+| mantissa bits | **-0.251** |
+
+`e2m1` has the fewest mantissa bits and the highest failure rate, which breaks the
+monotone reading. Within the four 6- and 8-bit formats the 2-mantissa pair really is
+6-8x safer than the 3-mantissa pair -- that part stands, and is confirmed exhaustively on
+ResNet8 (element rates 0.0785 against 0.4003) -- but mantissa width is a **correlate that
+holds inside that group and fails outside it**, not the cause.
+
+**So the design guidance changes.** "Prefer coarser mantissas" is not supportable; MXFP4 is
+the coarsest format tested and among the most vulnerable. What is supportable is:
+
+1. avoid element formats carrying NaN/Inf codes, which is a property of the format and
+   holds everywhere tested;
+2. for everything else, **measure $s$ on the quantised network** -- it takes one
+   backpropagation pass per image and predicts the failure rate at $r=+0.93$ across formats
+   and $+0.998$ against a direct perturbation probe -- rather than inferring robustness from
+   the format's field widths.
+
+This also sharpens F39's caveat. Severity is not a property of the number system, and
+neither is robustness: two formats of identical width and accuracy differ by an order of
+magnitude, and the only reliable way to know which is which is to measure the network.

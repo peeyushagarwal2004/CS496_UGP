@@ -164,21 +164,23 @@ isolates this: the non-finite rate is a property of the format, varying under $2
 $35$-fold change in capacity with no correlation against model size, while the benefit a
 format draws from capacity falls with its number of special codes (Figure~2, left).
 
-\emph{Mantissa width, through sensitivity.} A second mechanism appears among formats with no
+\emph{Sensitivity, and what it is not.} A second mechanism appears among formats with no
 special codes at all. Perturbing a single weight by a fixed multiple of the layer RMS -- a
 probe containing no bit patterns -- separates the quantised networks completely: at $1.5$
-RMS the 2-mantissa networks never flipped a prediction in $1500$ trials, while the
-3-mantissa ones flipped $2$--$5\%$ of the time. The fragility therefore belongs to the
-network, not to the encoding. Its cause is the sensitivity
-$s_i=|\partial m/\partial w_i|\,\mathrm{rms}/m$, where $m$ is the margin between the top two
-logits: a perturbation of $\delta\cdot\mathrm{rms}$ should flip a prediction when
-$s_i\delta>1$, and computing $s$ by backpropagation reproduces the measured probe with
-correlation $+0.998$. Mean margins, logit spreads and mean gradients agree across formats to
-three digits; only the \emph{tail} of $s$ differs, by a factor $14$ at the 99th percentile.
-Coarse mantissas suppress that tail, so the finer format is the fragile one -- the opposite
-of what per-fault severity suggests. The effect is large and exact: enumerating the whole
-fault space of one ResNet8 under both formats gives element rates of $0.4003$ (e4m3) against
-$0.0785$ (e3m2).
+RMS the e3m2 and e5m2 networks never flipped a prediction in $1500$ trials, while e4m3
+flipped $2$--$5\%$ of the time. The fragility belongs to the network, not the encoding,
+and its cause is the sensitivity $s_i=|\partial m/\partial w_i|\,
+\mathrm{rms}/m$, with $m$ the margin between the top two logits: a perturbation of
+$\delta\cdot\mathrm{rms}$ flips a prediction when $s_i\delta>1$, and computing $s$ by
+backpropagation reproduces the probe with correlation $+0.998$. Across the five formats
+$s$ predicts the failure rate at $r=+0.925$. Two things it is \emph{not}. The tail of $s$
+is not inherited from the tails of the weights, activations or output gradients, which
+agree across formats to within $3\%$ while $s$ differs $14$-fold at the 99th percentile.
+And it is not mantissa width, which correlates at $-0.251$ once MXFP4 is included -- e2m1
+has the fewest mantissa bits and the highest failure rate. Within the four 6- and 8-bit
+formats the 2-mantissa pair is genuinely $6$--$8\times$ safer, confirmed exactly by
+enumerating one ResNet8's entire fault space under both ($0.0785$ against $0.4003$), but
+that is a correlate of the group rather than a rule.
 
 \begin{figure}[t]
 \centering
@@ -244,11 +246,13 @@ result obtained under it needs a non-clipping control.
 \section{Status}
 
 The study covers three architecture families and answers all five objectives. Design
-guidance follows directly: prefer element formats without NaN/Inf codes, expect coarser
-mantissas to be more fault-tolerant at equal accuracy, protect the shared scale before
-anything else, and harden weights before activations. The gap is scale -- everything is
-CIFAR-10, because ImageNet is not available on the hardware I can reach. One question stays
-open: why coarse quantisation suppresses the sensitivity tail. The measurements localise it
-precisely, but the cause is not yet established.
+guidance follows directly: prefer element formats without NaN/Inf codes, protect the
+shared scale before anything else, harden weights before activations, and measure the
+sensitivity $s$ of the quantised network rather than inferring robustness from a format's
+field widths -- two formats of identical width and accuracy differ by an order of
+magnitude. The gap is scale: everything is CIFAR-10, because ImageNet is not available on
+the hardware I can reach. One question stays open -- why the sensitivity tail differs at
+all between quantised networks whose weight, activation and gradient distributions are
+indistinguishable.
 
 \end{document}
