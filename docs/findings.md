@@ -795,7 +795,9 @@ methodology, not a quirk of this sweep.
 This is not an estimate and carries no confidence interval. Run on an A100 at ~170
 injections/s (~1.1 h). Raw: `results/e06.csv.gz`.
 
-## F25. The sampling methodology is validated
+## F53. The sampling methodology is validated
+
+*(Renumbered: this and F54 were written as F25 and F26, numbers the multi-seed width sweep had already used. The F23 and F24 in that block and in the 3-of-5-seeds block are deliberate revisions of the same findings, not collisions.)*
 
 | | value |
 |---|---|
@@ -810,7 +812,7 @@ injections estimate the true rate with the stated interval. That assumption is n
 *verified* rather than asserted, on the one model where checking it is affordable. This is
 the ground-truth validation the drafts ask for.
 
-## F26. The site asymmetry, measured exactly
+## F54. The site asymmetry, measured exactly
 
 | site | n | SDC rate | images corrupted | non-finite |
 |---|---|---|---|---|
@@ -1504,6 +1506,11 @@ This also explains F49 rather than contradicting it. The sensitivity $s$ carries
 which is a near-tie detector; the any-image metric is a near-tie amplifier; so $s$ predicts
 that metric well and predicts nothing about fresh data. Under the per-inference rate the
 whole chain is better behaved.
+
+This is the same confound F26 found in the width sweep, where near-tie count explained the
+e4m3 w=32 anomaly at Spearman $0.89$ over 39 cells. F26 diagnosed it for one anomaly; the
+folds above show it governs cross-format comparison in general, and the per-inference rate
+measures the effect F26's tie-robust metrics were reaching for.
 
 **What to report.** The per-inference rate, as the primary number. The any-image rate is
 meaningful only for a stated input distribution and a stated $n$, and two campaigns should
