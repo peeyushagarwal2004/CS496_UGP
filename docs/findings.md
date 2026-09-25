@@ -1253,3 +1253,72 @@ the coarsest format tested and among the most vulnerable. What is supportable is
 This also sharpens F39's caveat. Severity is not a property of the number system, and
 neither is robustness: two formats of identical width and accuracy differ by an order of
 magnitude, and the only reliable way to know which is which is to measure the network.
+
+---
+
+# The value-aware campaign (E15)
+
+E12 showed `margin_shift` ranks faults well. Ranking is not the goal; spending fewer
+injections for the same answer is, which is what the project plan wanted from value-aware
+sampling. Because the exhaustive campaigns recorded the outcome of *every* fault, any
+sampling strategy can be replayed against known ground truth hundreds of times without a
+single further inference. Strategies are compared on RMSE against the true rate at equal
+budget; the variance ratio converts directly into "how many uniform injections would buy
+the same precision".
+
+The predictor is nearly free, which is the economic argument: the sensitivities need one
+backpropagation pass per evaluation image, and each fault then costs a table lookup.
+Measuring a fault costs a forward pass over the whole evaluation set.
+
+## F46. Seven times fewer injections, where failures are rare
+
+ResNet8, e3m2, 483,904 exhaustively measured faults, true rate 0.1079. Scoring the entire
+fault space and splitting it at `margin_shift` of 0.1 and 1.0:
+
+| stratum | share of fault space | true failure rate |
+|---|---|---|
+| low, $<0.1$ | 38.6% | **0.0000** |
+| middle, $0.1$--$1$ | 47.2% | 0.0044 |
+| high, $>1$ | 14.2% | **0.7439** |
+
+The low stratum contains **no failures at all** among 186,000 faults, and the high stratum
+holds almost all of them in 14% of the space. Neyman allocation over these three strata,
+with 20% of the budget spent on a pilot to estimate them:
+
+| budget | RMSE uniform | RMSE value-aware | variance ratio | equivalent uniform budget |
+|---|---|---|---|---|
+| 500 | 0.01354 | 0.00508 | **7.1x** | 3,552 |
+| 1000 | 0.01005 | 0.00389 | **6.7x** | 6,691 |
+| 3000 | 0.00533 | 0.00201 | **7.0x** | 21,007 |
+
+Both estimators are unbiased (bias below $2\times10^{-4}$ at the largest budget), so the
+gain is real variance reduction and not a shifted estimate. The predictor also transfers:
+it was developed on the ViT and reaches AUC 0.9889 here, on a different architecture and
+format, over the complete fault space.
+
+## F47. But it pays only when failures are rare, and that limit is intrinsic
+
+The same procedure on the same model under e4m3, where the true rate is 0.4171:
+
+| stratum | share | true failure rate |
+|---|---|---|
+| low | 35.0% | 0.2367 |
+| middle | 44.3% | 0.4331 |
+| high | 20.8% | 0.6873 |
+
+AUC falls to 0.7046 and the variance ratio to **1.0--1.1x**: no useful gain. The strata are
+no longer separated because two in five of *all* faults cause a failure, so there is no
+small region to concentrate on.
+
+The reason is structural rather than a tuning problem. `margin_shift` is a first-order
+estimate -- it asks what fraction of the decision margin a perturbation consumes, assuming
+the margin moves linearly with the weight. That approximation discriminates well when
+failures are rare and sit near the threshold, and saturates when most perturbations are
+large enough to flip a prediction regardless. No first-order severity measure will separate
+strata in the saturated regime.
+
+This is a useful limit rather than a disappointment, because it points the same way as the
+need: a campaign measuring a **low** failure rate is exactly the one that needs many
+injections for a given relative precision, and that is the regime where the method delivers
+7x. A campaign measuring a 40% failure rate already gets a tight interval from a few
+thousand uniform injections and needs no help.

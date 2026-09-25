@@ -235,6 +235,22 @@ carries a caveat the original formulation hides: severity is not a property of t
 system, since the same flip in the same format behaves very differently in two networks of
 equal accuracy.
 
+\paragraph{What the replacement buys, and where it stops paying.} A better ranking is only
+worth having if it saves injections, so both exhaustive campaigns were re-used as ground
+truth and the sampling strategies replayed against them offline: score the whole fault
+space, split it at $\mathrm{margin\_shift}$ of $0.1$ and $1$, spend a fifth of the budget
+on a pilot and Neyman-allocate the rest. Under e3m2, where the true rate is $0.108$, the
+low stratum holds $38.6\%$ of the fault space and \emph{no} failures, the high stratum
+$14.2\%$ of the space at rate $0.744$, and the estimator's variance falls by $7.0\times$ at
+a budget of $3000$ -- the same precision a uniform campaign reaches at $21{,}007$
+injections, with both estimators unbiased. Under e4m3, where the rate is $0.417$, the same
+procedure gains nothing ($1.0$--$1.1\times$, AUC $0.705$). The limit is structural:
+$\mathrm{margin\_shift}$ is a first-order estimate of how much of the margin a perturbation
+consumes, which discriminates near the decision threshold and saturates once most
+perturbations cross it regardless. That places the gain where it is needed, since a campaign
+measuring a low failure rate is the one that needs many injections for a given relative
+precision.
+
 \paragraph{The standard scale rule manufactures a trend.} Because the largest representable
 element lies below the top of the binade the OCP rule aligns to, the block maximum is
 clipped, and smaller blocks mean more maxima and more clipping. Injecting an identical set of
@@ -250,7 +266,7 @@ guidance follows directly: prefer element formats without NaN/Inf codes, protect
 shared scale before anything else, harden weights before activations, and measure the
 sensitivity $s$ of the quantised network rather than inferring robustness from a format's
 field widths -- two formats of identical width and accuracy differ by an order of
-magnitude. The gap is scale: everything is CIFAR-10, because ImageNet is not available on
+magnitude. Value-aware sampling built on the replacement severity measure cuts the injections needed for a given precision by seven times where failures are rare, and by nothing where they are common. The gap is scale: everything is CIFAR-10, because ImageNet is not available on
 the hardware I can reach. One question stays open -- why the sensitivity tail differs at
 all between quantised networks whose weight, activation and gradient distributions are
 indistinguishable.
