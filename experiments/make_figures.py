@@ -83,21 +83,41 @@ def fig_per_bit(d: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def capacity_frame() -> pd.DataFrame | None:
+    """Per-inference element rate against capacity, per seed, from the E19 rescore.
+
+    The width-sweep summary only kept the any-image rate, which F52 showed is
+    governed by the evaluation set; the rescored table carries the per-inference
+    rate for every seed of every width, so the figure is built from that instead.
+    """
+    resc, sweep = RESULTS / "e19_per_inference_rates.csv", RESULTS / "width_sweep_multiseed.csv"
+    if not (resc.exists() and sweep.exists()):
+        return None
+    d = pd.read_csv(resc)
+    d = d[(d.exp == "e01") & (d.site == "element") & (d.K == 32)
+          & (d.scale_mode == "ocp") & d.model.str.match(r"resnet8_w\d+$")]
+    d = d.assign(width=d.model.str.extract(r"_w(\d+)$").astype(int))
+    params = (pd.read_csv(sweep).groupby("width").params.first())
+    d = d.join(params, on="width").dropna(subset=["params"])
+    return d.rename(columns={"per_inference": "rate"})
+
+
 def fig_capacity(w: pd.DataFrame) -> None:
-    """Element SDC against parameter count, ten seeds per width."""
+    """Per-inference element rate against parameter count, every seed per width."""
     fig, ax = plt.subplots(figsize=(3.5, 2.6))
     for fmt in ("e3m2", "e4m3", "e5m2"):
         g = w[w.fmt == fmt]
         for _, s in g.groupby("seed"):                     # every seed, faint
             s = s.sort_values("params")
-            ax.plot(s.params, s.element_sdc, color=FMT_COLOR[fmt],
+            ax.plot(s.params, s.rate, color=FMT_COLOR[fmt],
                     lw=0.6, alpha=0.25, zorder=1)
-        m = g.groupby("params").element_sdc.mean().sort_index()
+        m = g.groupby("params").rate.mean().sort_index()
         ax.plot(m.index, m.values, color=FMT_COLOR[fmt], lw=2, zorder=2, label=fmt)
         ax.annotate(fmt, (m.index[-1], m.values[-1]), textcoords="offset points",
                     xytext=(5, -1), fontsize=7.5, color=INK2, va="center")
     ax.set_xscale("log"); ax.set_yscale("log")
-    ax.set_xlabel("parameters"); ax.set_ylabel("element SDC rate")
+    ax.set_xlabel("parameters")
+    ax.set_ylabel("inferences corrupted per element fault")
     ax.set_title("Capacity helps least where\nNaN/Inf codes exist",
                  loc="left", color=INK)
     ax.set_xlim(right=ax.get_xlim()[1] * 2.2)
@@ -172,9 +192,9 @@ def main() -> None:
         fig_per_bit(d); made.append("fig1_per_bit")
         fig_layers(d); made.append("fig3_layers")
 
-    w = RESULTS / "width_sweep_multiseed.csv"
-    if w.exists():
-        fig_capacity(pd.read_csv(w)); made.append("fig2_capacity")
+    cap = capacity_frame()
+    if cap is not None and len(cap):
+        fig_capacity(cap); made.append("fig2_capacity")
 
     sv = RESULTS / "e12_vit_small_severity_metrics.csv"
     if sv.exists():
