@@ -156,16 +156,27 @@ so a uniform campaign spends $48\%$ of its budget on the most robust layer.
 
 \paragraph{Accuracy does not predict reliability, for two separate reasons.} On the
 transformer every format except MXFP4 lands within $0.2$ points of fp32 accuracy, so e5m2
-and e3m2 differ by $0.01$ points -- and their element SDC rates are $0.0730\pm0.0089$ and
-$0.0041\pm0.0047$, a factor of $17.8$. Two independent mechanisms produce such gaps.
+and e3m2 differ by $0.01$ points -- and the fraction of inferences their element faults
+corrupt is $0.0690\,[0.0598,0.0782]$ against $0.00003\,[0.00001,0.00004]$. Rescoring all
+$119$ campaigns this way, $1{,}441{,}528$ recorded faults over eight models, the ordering
+e3m2 $<$ e4m3 $<$ e5m2 holds on $8$ of $8$ models with disjoint intervals throughout,
+against $3$ of $8$ under the any-image rate. An earlier conclusion that the ranking reverses
+between architectures, and should never be quoted from one model, does not survive: what
+varied between those campaigns was which evaluation images sat near a decision boundary, not
+the architecture. Two independent mechanisms produce the gaps themselves.
 
 \emph{Special codes.} Only formats owning NaN/Inf codes can produce a non-finite value, and
 nothing downstream absorbs one. On the transformer $94\%$ of e5m2's element failures were
 non-finite events, and on RepVGG $92\%$, against none for e3m2 in any campaign or in the
-$483{,}904$-fault exhaustive enumeration. Training ResNet8 at five widths, ten seeds each,
-isolates this: the non-finite rate is a property of the format, varying under $20\%$ across a
-$35$-fold change in capacity with no correlation against model size, while the benefit a
-format draws from capacity falls with its number of special codes (Figure~2, left).
+$483{,}904$-fault exhaustive enumeration; per inference the share rises to $96.9\%$, since
+the metric counts how much damage each fault does and a NaN corrupts every inference it
+touches. Training ResNet8 at five widths, ten seeds each, isolates this: the non-finite rate
+is a property of the format, varying under $20\%$ across a $35$-fold change in capacity with
+no correlation against model size, while the benefit a format draws from capacity falls with
+its number of special codes (Figure~2, left). Per inference that dose-response is nearly
+exact -- over a $35$-fold capacity range the format with no special codes improves
+$25\times$, the one with two improves $1.5\times$, and the one with eight does not improve
+measurably ($0.96\times$).
 
 \emph{Sensitivity, and what it is not.} A second mechanism appears among formats with no
 special codes at all. Perturbing a single weight by a fixed multiple of the layer RMS -- a
@@ -176,7 +187,7 @@ and its cause is the sensitivity $s_i=|\partial m/\partial w_i|\,
 \mathrm{rms}/m$, with $m$ the margin between the top two logits: a perturbation of
 $\delta\cdot\mathrm{rms}$ flips a prediction when $s_i\delta>1$, and computing $s$ by
 backpropagation reproduces the probe with correlation $+0.998$. Across the five formats
-$s$ predicts the failure rate at $r=+0.925$. It is \emph{not} mantissa width, which
+$s$ predicts the failure rate at $r=+0.925$, and this is the one headline the change of metric leaves untouched: on perturbation-driven element faults the correlation is $+0.928$ against both the any-image and the per-inference rate, unchanged to three decimals. It is \emph{not} mantissa width, which
 correlates at $-0.251$ once MXFP4 is included -- e2m1 has the fewest mantissa bits and the
 highest failure rate.
 
@@ -200,9 +211,9 @@ $+0.21$. Split by source of variation, the seed-to-seed component generalises pe
 \includegraphics[width=0.49\linewidth]{figures/fig2_capacity.pdf}
 \hfill
 \includegraphics[width=0.49\linewidth]{figures/fig4_severity.pdf}
-\caption{Left: element SDC against parameter count, ten independently trained models per
-width drawn faintly behind each mean. Capacity helps least for the format with the most
-NaN/Inf codes. Right: how well each severity measure ranks the faults that actually failed.
+\caption{Left: the fraction of inferences an element fault corrupts, against parameter
+count, with every independently trained model drawn faintly behind each mean. Capacity
+helps least for the format with the most NaN/Inf codes, and not at all for e5m2. Right: how well each severity measure ranks the faults that actually failed.
 The measure proposed in the project plan falls below the chance diagonal;
 $\mathrm{margin\_shift}$ reaches AUC $0.990$.}
 \end{figure}
@@ -211,7 +222,13 @@ $\mathrm{margin\_shift}$ reaches AUC $0.990$.}
 faults by $2.4\times$ on ResNet8 (exhaustive, e4m3), $28.7\times$ on RepVGG-A0 and
 $12.1\times$ on the transformer, and they corrupt $16$--$50$ of $200$ inferences each. Where
 the element rate is very low the ratio becomes extreme -- $232\times$ for e3m2 on RepVGG --
-because the scale is then almost the only way to break the network. Scale faults also
+because the scale is then almost the only way to break the network. Per inference the
+dominance is larger still and never reverses on any model or format: $13\times$ for e4m3 on
+ResNet8-w16, of order $10^3$ for e3m2 on RepVGG and the transformer, where the denominator is
+statistically indistinguishable from zero and the ratio should be read as a lower bound. Only
+for e5m2 does it shrink, to $2.6\times$, because that format's element faults already corrupt
+everything through the NaN pathway. This is the most robust design conclusion in the study.
+Scale faults also
 produce non-finite outputs at $7$--$13\%$ \emph{for every format}, including those with no
 special element codes, because the E8M0 scale has its own NaN code and an MSB worth $128$
 exponent steps.
@@ -263,13 +280,18 @@ the space instead of $14\%$, leaving much less to concentrate on. The gain there
 the failure rate falls, which is the same direction as the need, since a campaign measuring a
 low rate is the one that needs many injections for a given relative precision.
 
-\paragraph{The standard scale rule manufactures a trend.} Because the largest representable
-element lies below the top of the binade the OCP rule aligns to, the block maximum is
-clipped, and smaller blocks mean more maxima and more clipping. Injecting an identical set of
-faults at every block size, element-side SDC varies by a factor $2.21$ on ResNet8 and $7.25$
-on RepVGG-A0 under the OCP rule, but is flat ($1.04$ and $1.48$) under a rule that cannot
-clip. The apparent best block size for reliability is an artefact of the scale rule, so every
-result obtained under it needs a non-clipping control.
+\paragraph{The standard scale rule distorts the block-size trend.} Because the largest
+representable element lies below the top of the binade the OCP rule aligns to, the block
+maximum is clipped, and smaller blocks mean more maxima and more clipping. Injecting an
+identical set of faults at every block size, element-side any-image SDC varies by a factor
+$2.21$ on ResNet8 and $7.25$ on RepVGG-A0 under the OCP rule against $1.04$ and $1.48$ under
+a rule that cannot clip -- a $4.9$-fold difference in spread on RepVGG that made the trend
+look manufactured. Per inference the two rules differ by only $1.24\times$ ($5.76$ against
+$4.66$), and on ResNet8 the non-clipping rule gives the \emph{larger} spread. What the
+per-inference data show under both rules is a genuine monotone effect, larger blocks
+corrupting fewer inferences, whose mechanism this study does not establish. So a
+non-clipping control remains necessary -- the OCP rule really does distort the trend it is
+measured under -- but the trend itself is not an artefact.
 
 \paragraph{The usual SDC definition hides the effect it is used to measure.} A fault is
 conventionally counted as causing SDC if \emph{any} of the $n$ evaluated inferences changes
@@ -312,11 +334,16 @@ where failures are rare and by about two where they are common.
 The open question of why two quantised networks of equal accuracy differ in sensitivity is
 now closed, and the answer is a caution rather than a mechanism: the gradient field is the
 same in every format to within $8\%$, the difference is the margin of the hardest evaluation
-image, and that margin is a property of the evaluation set rather than of the network. Two
-gaps remain. Everything is CIFAR-10, because ImageNet is not available on the hardware I can
-reach. And every rate reported here except the per-inference comparisons is an any-image rate
-at $n=200$, so the cross-format comparisons that rest on it should be re-measured per
-inference before they are relied on -- the ones resting on the non-finite pathway are
-unaffected, since special codes do not depend on the evaluation set.
+image, and that margin is a property of the evaluation set rather than of the network. That re-measurement has since been carried out. Because every campaign recorded how many
+inferences each fault corrupted, all $119$ of them -- $1{,}441{,}528$ faults over eight
+models -- could be rescored per inference without a single new injection. Three claims come
+out stronger: the format ranking now holds on $8$ of $8$ models rather than $3$ of $8$, the
+capacity dose-response matches special-code count almost exactly, and the sensitivity result
+is unchanged to three decimals. One comes out weaker: the block-size trend is real under both
+scale rules rather than manufactured by one of them. And one is withdrawn: the ranking does
+not reverse between architectures.
+
+One gap remains. Everything is CIFAR-10, because ImageNet is not available on the hardware I
+can reach.
 
 \end{document}

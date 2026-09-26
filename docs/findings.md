@@ -1522,3 +1522,116 @@ not depend on the evaluation set.
 **Scope.** F46-F47's variance reductions estimate the any-image rate, since that is what the
 exhaustive campaigns recorded. The machinery carries over unchanged to the per-inference
 rate, but the numbers would have to be re-derived.
+
+---
+
+# Every campaign rescored per inference (E19)
+
+F52 established that the any-image SDC rate saturates in the number of evaluation
+images and mostly reports whether that set holds a near-tie. Applying the lesson
+needed no new injections: `run_campaign` has always recorded `changed` and
+`change_rate` per fault, so all 119 campaigns -- 1,441,528 recorded faults across
+8 models -- already carried their own per-inference rate, and only the summaries
+drew on the any-image column. Intervals differ by necessity: Wilson for the
+any-image proportion, and the standard error of a mean of per-fault proportions for
+the per-inference rate.
+
+## F55. The format ordering holds on every model per inference, and on three of eight otherwise
+
+Element faults, $K=32$, OCP rule, averaged over the available seeds:
+
+| model | seeds | e3m2 | e4m3 | e5m2 | any-image order | per-inference order |
+|---|---|---|---|---|---|---|
+| RepVGG-A0 | 3 | 0.00001 | 0.00688 | 0.05381 | holds | holds |
+| ResNet8 | 1 | 0.00332 | 0.01699 | 0.07801 | **reversed** | holds |
+| ResNet8-w8 | 5 | 0.01003 | 0.02005 | 0.08143 | **reversed** | holds |
+| ResNet8-w16 | 5 | 0.00180 | 0.01374 | 0.07831 | holds | holds |
+| ResNet8-w24 | 4 | 0.00121 | 0.01210 | 0.07585 | **reversed** | holds |
+| ResNet8-w32 | 4 | 0.00060 | 0.01354 | 0.07934 | **reversed** | holds |
+| ResNet8-w48 | 4 | 0.00035 | 0.01302 | 0.07812 | **reversed** | holds |
+| ViT | 3 | 0.00003 | 0.01258 | 0.06897 | holds | holds |
+
+$\text{e3m2} < \text{e4m3} < \text{e5m2}$ holds in **8 of 8** models per inference and
+**3 of 8** under the any-image rate. The 95% intervals are disjoint between all three
+formats on every model; the narrowest separation is ResNet8-w8, where e3m2 is
+$0.01003\,[0.00925,0.01081]$ against e4m3 $0.02005\,[0.01584,0.02425]$.
+
+F17 -- "the format ranking's direction reverses across architectures, never quote it
+from one model" -- was therefore a metric artefact. The ranking is stable across
+every architecture, width and seed measured here. The warning it issued was sound
+advice for the wrong reason: what varied was not the architecture but which
+evaluation images sat near a boundary.
+
+## F56. Shared-scale dominance survives, and grows where the element rate is low
+
+| model | format | scale/element, any-image | scale/element, per inference |
+|---|---|---|---|
+| RepVGG-A0 | e3m2 | 200.7x | **8424x** |
+| ViT | e3m2 | 72.6x | **3212x** |
+| ResNet8-w48 | e3m2 | 7.2x | 434x |
+| ResNet8-w16 | e4m3 | 4.6x | 13.3x |
+| ResNet8-w16 | e5m2 | 3.3x | 2.6x |
+
+The direction never reverses, on any model or format, under either metric. The ratio
+grows enormously for e3m2 because its element rate per inference is near zero -- the
+RepVGG figure divides by $0.00001\,[0.00000,0.00003]$ and should be read as a lower
+bound of order $10^3$, not a point estimate. For e5m2 the ratio shrinks below the
+any-image figure, because that format's element faults already corrupt everything
+through the NaN pathway. "Protect the shared scale first" is the most robust design
+conclusion in the study.
+
+## F57. The block-size story is weaker than F15 claimed
+
+F15 held that OCP clipping *fabricates* a block-size trend absent under a
+non-clipping rule. Element faults, e4m3:
+
+| model | rule | K8 | K16 | K32 | K64 | spread |
+|---|---|---|---|---|---|---|
+| RepVGG-A0 | ocp | 0.01535 | 0.01000 | 0.00267 | 0.00334 | 5.76x |
+| RepVGG-A0 | fit | 0.01272 | 0.00872 | 0.00273 | 0.00341 | 4.66x |
+| ResNet8 | ocp | 0.02408 | 0.02082 | 0.01592 | 0.01360 | 1.77x |
+| ResNet8 | fit | 0.01931 | 0.01541 | 0.01411 | 0.01348 | 1.43x |
+
+Under the any-image rate the two rules differed by $4.9\times$ in spread on RepVGG
+($7.25$ against $1.48$); per inference they differ by $1.24\times$ ($5.76$ against
+$4.66$), and on ResNet8 the non-clipping rule shows the *larger* spread. So the
+per-inference data carry a genuine, monotone block-size effect -- larger blocks
+corrupt fewer inferences -- present under **both** scale rules, and the sharp
+OCP-versus-fit contrast that F15 rested on is specific to the any-image metric.
+
+What survives of F15: the OCP rule does distort the any-image trend, and a
+non-clipping control is still worth running. What does not: the conclusion that the
+apparent block-size effect is entirely an artefact. Its mechanism is not established
+here and should not be asserted.
+
+## F58. The capacity dose-response sharpens into a clean match with special-code count
+
+Ratio of the widest model to the narrowest, ResNet8 w8 through w48 (a $35\times$
+parameter range); below $1$ means capacity helps:
+
+| format | special codes | any-image | per inference |
+|---|---|---|---|
+| e3m2 | 0 | 0.11x | **0.04x** (25x better) |
+| e4m3 | 2 | 0.13x | **0.65x** |
+| e5m2 | 8 | 0.27x | **0.96x** (no benefit) |
+
+Per inference the mechanism is almost exact: the format with no special codes gains
+$25\times$ from a $35\times$ increase in capacity, the format with eight gains
+nothing measurable. F29's dose-response is confirmed and considerably sharper than
+the any-image version. Consistently, $96.9\%$ of e5m2's per-inference element
+damage is non-finite -- capacity absorbs perturbations and cannot absorb a NaN.
+
+## F59. F45's sensitivity result is metric-invariant
+
+The one headline that needed no revision. Perturbation-driven element faults on the
+ViT (non-finite events excluded), three seeds:
+
+| predictor | vs any-image rate | vs per-inference rate |
+|---|---|---|
+| median sensitivity $s$ | **+0.928** | **+0.928** |
+| mantissa bits | -0.248 | -0.225 |
+
+Both correlations are unchanged to three decimals, and e2m1 keeps the highest
+perturbation-driven rate despite having the fewest mantissa bits. Separating the two
+mechanisms is what makes this robust: once the NaN pathway is excluded, what is left
+is perturbation damage, and that is governed by sensitivity under either metric.
