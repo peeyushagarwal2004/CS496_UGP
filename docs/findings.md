@@ -1635,3 +1635,70 @@ Both correlations are unchanged to three decimals, and e2m1 keeps the highest
 perturbation-driven rate despite having the fewest mantissa bits. Separating the two
 mechanisms is what makes this robust: once the NaN pathway is excluded, what is left
 is perturbation damage, and that is governed by sensitivity under either metric.
+
+---
+
+# Value-aware sampling, re-derived for the per-inference rate (E20)
+
+F46 and F47 measured what value-aware sampling buys for the any-image rate. F52
+concluded that rate should not be the one quoted, and F55-F59 re-derived every other
+headline claim on the per-inference rate; this is that re-derivation for sampling
+efficiency, since F46-F47 were the one result left on the old metric.
+
+The per-inference rate is a mean of per-fault proportions rather than a proportion
+itself, so the estimator changes and not just its target: a stratum's variance is
+$\sigma_k^2$, estimated from the pilot rather than assumed as $p(1-p)$, and Neyman
+allocation follows $n_k\propto w_k\sigma_k$. `margin_shift` is recomputed against a
+continuous target, so Spearman's $\rho$ replaces AUC.
+
+## F60. The per-inference rate is heavily zero-inflated, which changes the problem
+
+On ResNet8 under e3m2, $89.2\%$ of the $483{,}904$ exhaustively measured faults
+corrupt exactly **zero** of the $200$ inferences; among the remaining $10.8\%$ the
+mean corruption is $0.081$ (about $16$ images) and the maximum is $1.0$ (every
+image). Estimating a mean under this distribution is a different problem from
+estimating the any-image proportion: almost all of the variance lives in a small,
+identifiable fraction of the space, so a stratification that finds that fraction
+should pay off far more than one built for a Bernoulli target.
+
+## F61. Quantile stratification finds it: 57-120x, on both formats
+
+Applying F46's fixed cuts ($\mathrm{margin\_shift}$ at $0.1$ and $1$) to the new
+target gives a modest gain, similar in kind to F46-F47 but smaller in degree
+because those cuts were tuned for the any-image target, not this one:
+
+| format | fixed cuts, variance ratio | rank correlation of the score |
+|---|---|---|
+| e3m2 | 6.8--8.3x | $\rho=+0.526$ |
+| e4m3 | 1.5--1.8x | $\rho=+0.699$ |
+
+Stratifying instead at quantiles of the score itself -- six strata at the $50$th,
+$75$th, $90$th, $97$th and $99.5$th percentiles, free because the score is already
+computed over the whole space -- gives a very different result:
+
+| format | quantile cuts, variance ratio (budgets 500/1000/3000) | equivalent uniform budget at 3000 |
+|---|---|---|
+| e3m2 | 120x / 102x / 115x | 346,106 |
+| e4m3 | 64x / 83x / 57x | 171,165 |
+
+Both estimators are unbiased at every budget on both formats (bias two orders of
+magnitude below the estimate, e.g. $-0.000005$ against a mean of $0.0088$ for
+e3m2), so the gain is real variance reduction. Note the reversal from F46-F47:
+there the any-image gain was large on e3m2 (7x) and small on e4m3 (2.3x), tracking
+the any-image failure rate; here quantile stratification gives a large gain on
+**both** formats, because both share the same zero-inflated shape once the target
+is a mean rather than a proportion.
+
+**Why quantile cuts and not fixed ones.** The rank correlation with the
+per-inference rate is only moderate ($\rho=0.53$-$0.70$), well below the $0.99$ AUC
+`margin_shift` achieved against the any-image target -- so as a rank predictor it
+is weaker here. What it needs to do is different, though: not separate the classes
+well everywhere, but isolate the thin high-value tail, and its top few percentiles
+do that even at moderate overall correlation. Fixed cuts chosen for a different
+target and a different distribution shape do not find that tail as well as letting
+the data's own quantiles locate it.
+
+**Scope.** This supersedes F46-F47 as sampling guidance -- report the per-inference
+gain, quantile-stratified, as the headline number for value-aware sampling. F46-F47
+remain correct as a measurement of the any-image rate, which is the quantity they
+were computed for, but that quantity is no longer the one to plan a campaign around.

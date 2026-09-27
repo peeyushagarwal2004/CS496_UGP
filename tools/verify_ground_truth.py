@@ -21,13 +21,33 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from mxfi.campaign import Evaluator
+from mxfi.campaign import Evaluator, Golden
 from mxfi.data import campaign_subset
 from mxfi.faults import Fault
 from mxfi.models import to_deploy
 from mxfi.sampling import FaultSite
 from mxfi.torch_mx import MXConfig, MXModel
 from mxfi.train import load_trained, setup_device
+
+AGREEMENT_FLOOR = 0.98
+
+
+def replay_agreement(mx: MXModel, ev: Evaluator, golden: Golden, d: pd.DataFrame,
+                     n: int, rng: np.random.Generator) -> float:
+    """Fraction of `n` sampled recorded faults whose outcome the model reproduces.
+
+    Shared by this tool and by any analysis that consumes a recorded campaign as
+    ground truth, so the two checks cannot drift apart.
+    """
+    pick = d.iloc[rng.choice(len(d), min(n, len(d)), replace=False)]
+    agree = 0
+    for _, r in pick.iterrows():
+        idx = ((int(r.row), int(r.blk), int(r.lane)) if r.site == "element"
+               else (int(r.row), int(r.blk)))
+        with mx.fault(FaultSite(r.tensor, Fault(r.site, idx, int(r.bit)))):
+            preds, _ = ev.predict(mx.module)
+        agree += int(bool((preds != golden.predictions).sum() > 0) == bool(r.sdc))
+    return agree / len(pick)
 
 
 def main() -> None:
@@ -43,9 +63,6 @@ def main() -> None:
     a = p.parse_args()
 
     d = pd.read_csv(a.csv)
-    rng = np.random.default_rng(0)
-    pick = d.iloc[rng.choice(len(d), min(a.n, len(d)), replace=False)]
-
     dev = setup_device(a.device)
     net, state = load_trained(a.model, seed=a.train_seed)
     mx = MXModel(to_deploy(net).to(dev),
@@ -54,22 +71,15 @@ def main() -> None:
     golden = ev.golden(mx.module)
     print(f"{a.model} train-seed {a.train_seed}: checkpoint acc {state['acc']:.4f}, "
           f"golden acc on the subset {golden.accuracy:.4f}")
-    print(f"replaying {len(pick)} of {len(d):,} recorded faults from {Path(a.csv).name}")
+    print(f"replaying {min(a.n, len(d))} of {len(d):,} recorded faults "
+          f"from {Path(a.csv).name}")
 
-    agree = 0
-    for _, r in pick.iterrows():
-        idx = ((int(r.row), int(r.blk), int(r.lane)) if r.site == "element"
-               else (int(r.row), int(r.blk)))
-        site = FaultSite(r.tensor, Fault(r.site, idx, int(r.bit)))
-        with mx.fault(site):
-            preds, _ = ev.predict(mx.module)
-        agree += int(bool((preds != golden.predictions).sum() > 0) == bool(r.sdc))
-
-    frac = agree / len(pick)
-    print(f"\nagreement with the recorded outcome: {agree}/{len(pick)} = {frac:.3f}")
-    print("  a matched checkpoint agrees on essentially every fault;" if frac > 0.98
+    frac = replay_agreement(mx, ev, golden, d, a.n, np.random.default_rng(0))
+    print(f"\nagreement with the recorded outcome: {frac:.3f}")
+    print("  a matched checkpoint agrees on essentially every fault;"
+          if frac > AGREEMENT_FLOOR
           else "  MISMATCH: these outcomes were not recorded from this checkpoint;")
-    print(f"  recorded rate {pick.sdc.mean():.4f} over this sample")
+    print(f"  recorded any-image rate {d.sdc.mean():.4f} over the whole campaign")
 
 
 if __name__ == "__main__":
