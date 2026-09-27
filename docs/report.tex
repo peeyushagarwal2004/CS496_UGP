@@ -280,6 +280,25 @@ the space instead of $14\%$, leaving much less to concentrate on. The gain there
 the failure rate falls, which is the same direction as the need, since a campaign measuring a
 low rate is the one that needs many injections for a given relative precision.
 
+\paragraph{That measurement used the metric this report argues against.} F46's gain
+was computed for the any-image rate, before Section~4's finding that the any-image rate is
+not the one to plan around. Re-derived for the per-inference rate -- itself a mean of
+per-fault proportions rather than a proportion, so a stratum's variance must be estimated by
+the pilot rather than assumed as $p(1-p)$ -- the picture changes twice. First, the target
+is heavily zero-inflated: $89.2\%$ of ResNet8's e3m2 faults corrupt \emph{no} inference at
+all, so almost every quantity is decided by a thin high-value tail. Second, stratifying at
+quantiles of $\mathrm{margin\_shift}$ -- six strata at the $50$th through $99.5$th
+percentiles, free since the score already covers the whole space -- finds that tail far
+better than fixed cuts chosen for the earlier, Bernoulli target: the variance ratio reaches
+$120\times$ on e3m2 and, notably, $57$--$83\times$ on e4m3, where the any-image analysis had
+found almost no gain. Both estimators stay unbiased at every budget on both formats. The
+rank correlation of the score with the per-inference rate is only moderate ($\rho=0.53$ and
+$0.70$), well below the $0.99$ AUC it reached against the any-image target, so what makes the
+quantile scheme work is not that the score separates the whole space well, but that its
+extreme percentiles isolate the tail that holds nearly all the variance. This is the
+sampling-efficiency number to plan a campaign around; the fixed-cut result above is retained
+as the measurement it was, of a target this report no longer recommends reporting.
+
 \paragraph{The standard scale rule distorts the block-size trend.} Because the largest
 representable element lies below the top of the binade the OCP rule aligns to, the block
 maximum is clipped, and smaller blocks mean more maxima and more clipping. Injecting an
@@ -328,8 +347,8 @@ scale before anything else, harden weights before activations, and expect a coar
 to help -- e3m2 corrupts $5.6$--$7.6\times$ fewer inferences than e4m3 on two independently
 trained networks -- while not reading that as a rule about field widths, since MXFP4 has the
 fewest mantissa bits and the highest failure rate. Value-aware sampling built on the
-replacement severity measure cuts the injections needed for a given precision by seven times
-where failures are rare and by about two where they are common.
+replacement severity measure, quantile-stratified against the per-inference rate, cuts the
+injections needed for a given precision by $57$--$120	imes$ on both formats measured.
 
 The open question of why two quantised networks of equal accuracy differ in sensitivity is
 now closed, and the answer is a caution rather than a mechanism: the gradient field is the
