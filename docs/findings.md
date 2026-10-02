@@ -2032,19 +2032,33 @@ compared with (replay-verified, 100/100, for RepVGG and ResNet8). Raw:
 
 ## F69. Per inference, a fault in an activation does about as much damage as one in a weight
 
-Per-inference rate, e4m3, element site:
+Per-inference rate at the element site, in both NaN-coded formats (activation interval:
+bootstrap over the 100 images; reproduced by `experiments/e24_cifar100.py`):
 
-| model | weight | activation [95% CI] | weight / activation | activation faults non-finite |
-|---|---|---|---|---|
-| ResNet8 | 0.0170 | 0.0122 [0.0075, 0.0182] | 1.4x | 0.80% |
-| RepVGG-A0 | 0.0048 | 0.0075 [0.0049, 0.0103] | 0.64x | 0.72% |
-| ViT | 0.0122 | 0.0114 [0.0080, 0.0148] | 1.07x | 1.11% |
-| ResNet8, CIFAR-100 | 0.0173 | 0.0136 [0.0081, 0.0206] | 1.3x | 0.64% |
-| RepVGG-A0, CIFAR-100 | 0.0105 | 0.0171 [0.0098, 0.0258] | 0.61x | 0.70% |
-| ViT, CIFAR-100 | 0.0097 | 0.0323 [0.0181, 0.0497] | 0.30x | 0.98% |
+| model | format | weight | activation [95% CI] | weight / activation | activation faults non-finite |
+|---|---|---|---|---|---|
+| ResNet8 | e4m3 | 0.0170 | 0.0122 [0.0077, 0.0182] | 1.4x | 0.80% |
+| RepVGG-A0 | e4m3 | 0.0048 | 0.0075 [0.0049, 0.0101] | 0.64x | 0.72% |
+| ViT | e4m3 | 0.0122 | 0.0114 [0.0080, 0.0150] | 1.07x | 1.11% |
+| ResNet8 | e5m2 | 0.0780 | 0.0359 [0.0302, 0.0421] | 2.2x | 3.41% |
+| RepVGG-A0 | e5m2 | 0.0549 | 0.0378 [0.0319, 0.0442] | 1.45x | 3.57% |
+| ViT | e5m2 | 0.0659 | 0.0486 [0.0420, 0.0554] | 1.36x | 4.73% |
+| ResNet8, CIFAR-100 | e4m3 | 0.0173 | 0.0136 [0.0082, 0.0205] | 1.3x | 0.64% |
+| RepVGG-A0, CIFAR-100 | e4m3 | 0.0105 | 0.0171 [0.0096, 0.0258] | 0.61x | 0.70% |
+| ViT, CIFAR-100 | e4m3 | 0.0097 | 0.0323 [0.0186, 0.0487] | 0.30x | 0.98% |
+| ResNet8, CIFAR-100 | e5m2 | 0.0782 | 0.0612 [0.0492, 0.0743] | 1.28x | 4.18% |
+| RepVGG-A0, CIFAR-100 | e5m2 | 0.0565 | 0.0600 [0.0464, 0.0754] | 0.94x | 3.78% |
+| ViT, CIFAR-100 | e5m2 | 0.0856 | 0.0997 [0.0798, 0.1239] | 0.86x | 6.05% |
 
-At the scale site the two are within $0.9$--$1.1\times$ of each other on every CIFAR-10 model
-(ResNet8 1.08x, RepVGG 0.91x, ViT 0.98x), and $0.88$--$1.67\times$ on CIFAR-100.
+Across both formats and both datasets the ratio stays within $0.3$--$2.2\times$, against
+F43's $5$--$9\times$ and "unbounded". At the scale site it is $0.86$--$1.67\times$
+throughout. Under e4m3 the two are statistically indistinguishable on CIFAR-10. Under e5m2
+weights come out $1.4$--$2.2\times$ worse on CIFAR-10, because a smaller share of activation
+faults reaches a special code ($3.4$--$4.7\%$, against the $5.4$--$7.7\%$ of weight faults
+F68 enumerated) -- e5m2 has eight special codes, and which of them an element is one flip
+from depends on its value distribution, which differs between weights and activations. On
+CIFAR-100 that advantage disappears ($0.86$--$1.28\times$), as lower margins add
+perturbation damage to both.
 
 **This withdraws F43 and the activation half of F12 and F13.** F43's "on the transformer not
 one of 2000 activation faults changed its own inference" and F13's "zero non-finite outputs
@@ -2072,7 +2086,7 @@ holds. CIFAR-100 is the nearest affordable substitute: ten times the classes and
 the images per class, so networks sit much closer to their decision boundaries -- the
 property F48-F49 found to govern sensitivity. All three architectures were retrained on it
 with the CIFAR-10 recipes unchanged (`c100_run.sh`): the ViT and RepVGG-A0 with three seeds
-each, ResNet8 with one. Every campaign scores 200 images, 2 per class, so per-inference rates
+each, and ResNet8 with three. Every campaign scores 200 images, 2 per class, so per-inference rates
 have the same resolution as on CIFAR-10. Analysis: `experiments/e24_cifar100.py` ->
 `results/e24_cifar100_vs_cifar10.csv`.
 
@@ -2087,12 +2101,12 @@ smaller margins; it is not a measurement of DeiT on ImageNet.
   $1.5$ pp on RepVGG and $1.1$ pp on ResNet8 -- while their element rates differ by up to
   $1000\times$ (below).
 * **The format ordering (F55).** e3m2 < e4m3 < e5m2 per inference on every network: 3/3 ViT
-  seeds, 3/3 RepVGG seeds, 1/1 ResNet8.
+  seeds, 3/3 RepVGG seeds, 3/3 ResNet8 seeds.
 * **Scale dominance (F56).** Scale faults outweigh element faults in every format on every
   network, from $1.7\times$ (ViT, e5m2, where element faults are already NaN-dominated) to
   $3600\times$ (RepVGG, e3m2).
 * **The NaN pathway is the mechanism (F18, F67).** In e4m3/e5m2, non-finite outputs carry
-  $97$--$99\%$ of element damage on the ViT, $97.5$--$99.9\%$ on RepVGG and $74$--$94\%$ on
+  $97$--$99\%$ of element damage on the ViT, $97.5$--$99.9\%$ on RepVGG and $73$--$93\%$ on
   ResNet8, the same pattern as on CIFAR-10.
 
 ## F71. A harder task raises the perturbation floor, so the format gap narrows
@@ -2103,7 +2117,7 @@ Mean element per-inference rate over seeds, CIFAR-10 -> CIFAR-100:
 |---|---|---|---|---|
 | ViT | 2.7e-5 -> 6.1e-4 (**22x**) | 0.0126 -> 0.0114 (0.9x) | 0.069 -> 0.077 (1.1x) | 461x -> 19x |
 | RepVGG-A0 | 1.4e-5 -> 5.6e-5 (**3.9x**) | 0.0069 -> 0.0081 (1.2x) | 0.054 -> 0.057 (1.05x) | 476x -> 144x |
-| ResNet8 (CIFAR-10: five width-16 seeds) | 1.8e-3 -> 5.5e-3 (**3.0x**) | 0.0137 -> 0.0173 (1.3x) | 0.078 -> 0.078 (1.0x) | 7.6x -> 3.2x |
+| ResNet8 (CIFAR-10: five width-16 seeds) | 1.8e-3 -> 5.7e-3 (**3.2x**) | 0.0137 -> 0.0169 (1.2x) | 0.078 -> 0.082 (1.05x) | 7.6x -> 3.0x |
 
 The formats without special codes become $3$--$22\times$ more vulnerable; the NaN-dominated
 formats barely move, because a NaN corrupts every inference however wide the margins are.
@@ -2128,7 +2142,7 @@ the guarded one):
 |---|---|---|---|
 | ViT (3 seeds) | 96.6--99.5% | >= 24--41x | >= 63--168x |
 | RepVGG-A0 (3 seeds) | 94.0--99.96% | >= 13--208x | >= 166--1387x |
-| ResNet8 | 75--95% | >= 3.6x | >= 16x |
+| ResNet8 (3 seeds) | 75--95% | >= 3.5--5.0x | >= 13--16x |
 
 Smaller than on CIFAR-10 (F68: up to 4100x), for F71's reason: the guard removes the NaN
 pathway and leaves the perturbation floor, and that floor is higher on the harder task.

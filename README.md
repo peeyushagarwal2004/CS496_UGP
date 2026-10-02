@@ -28,7 +28,7 @@ results at lower margins; it is not an ImageNet measurement.
 | covered | detail |
 |---|---|
 | models | ResNet8 (78k, 87.0%), RepVGG-A0 (7.0M, 91.4%, 3 seeds), a DeiT-Tiny-width ViT (2.7M, 81.9%, 3 seeds), ResNet8 at 5 widths × 10 seeds |
-| datasets | CIFAR-10; CIFAR-100 for the ViT (47–49%, 3 seeds), RepVGG-A0 (70–71%, 3 seeds) and ResNet8 (58%) |
+| datasets | CIFAR-10; CIFAR-100 for the ViT (47–49%, 3 seeds), RepVGG-A0 (70–71%, 3 seeds) and ResNet8 (58%, 3 seeds) |
 | formats | e4m3, e5m2 (MXFP8), e3m2, e2m3 (MXFP6), e2m1 (MXFP4); E8M0 scale |
 | block sizes | 8, 16, 32, 64; OCP scale rule and a non-clipping control |
 | tensors | weights and activations |
@@ -55,8 +55,9 @@ happens to contain a near-tie image, and it hid the format effect entirely (F52)
    29–4100× on RepVGG and the ViT, to roughly e3m2's level, and 4–53× on ResNet8 (F68).
 3. **Protect the shared scale first.** Scale faults outweigh element faults on every
    model and format, per inference by 13× to ~1000× (F56).
-4. **Per fault, activations are as vulnerable as weights** (F69): 0.6–1.4× per inference,
-   because ~1% of faults in either land on a NaN code. An earlier "weights 5–9× worse"
+4. **Per fault, activations are about as vulnerable as weights** (F69): weight/activation
+   0.3–2.2× per inference across e4m3/e5m2 and both datasets, because in either the faults
+   that land on a special code do most of the damage. An earlier "weights 5–9× worse"
    (F43) was a codec bug that turned NaN into zero at every re-quantised layer.
 5. **Sensitivity, not mantissa width**, predicts perturbation damage (ρ = +0.93, F59);
    its cross-format spread is the margin of the hardest evaluation image (F48–F49).

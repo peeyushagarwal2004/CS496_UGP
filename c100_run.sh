@@ -4,7 +4,8 @@
 # its last epoch, and a campaign whose output already exists is skipped.
 #
 #   lane A (GPU 1): the ViT, seeds 0-2      -- the DeiT stand-in
-#   lane B (GPU 0): RepVGG-A0 seeds 0-2, then ResNet8 seed 0
+#   lane B (GPU 0): RepVGG-A0 seeds 0-2, then ResNet8 seeds 0-2
+#   lane C (GPU 1): activation faults under e5m2 (E04)
 #
 # Run on the cluster:  (nohup ./c100_run.sh A > logs/c100_A.log 2>&1 &)
 #                      (nohup ./c100_run.sh B > logs/c100_B.log 2>&1 &)
@@ -68,8 +69,19 @@ case "$1" in
        train repvgg_a0_c100 "$s" 30 --lr 0.1
        campaigns repvgg_a0_c100 "$s" e5m2 e4m3 e3m2
      done
-     train resnet8_c100 0 60 --lr 0.1
-     campaigns resnet8_c100 0 e5m2 e4m3 e3m2 ;;
-  *) echo "usage: $0 A|B"; exit 1 ;;
+     for s in 0 1 2; do
+       train resnet8_c100 "$s" 60 --lr 0.1
+       campaigns resnet8_c100 "$s" e5m2 e4m3 e3m2
+     done ;;
+  C) # activation faults under the other NaN-coded format, for the models trained here
+     export CUDA_VISIBLE_DEVICES=1
+     for m in vit_small repvgg_a0 vit_small_c100 repvgg_a0_c100 resnet8_c100; do
+       check_stop
+       [ -f "results/e04_${m}_activations_e5m2-K32-ocp-wa.csv" ] && continue
+       echo "[$m] e04 e5m2 $(date '+%m-%d %H:%M')"
+       $PY -m experiments.e04_activations --model "$m" --fmt e5m2 --images 100 --n 4000 \
+           --device cuda 2>&1 | grep -aE "overall|element|scale|Error|Trace" | head -6
+     done ;;
+  *) echo "usage: $0 A|B|C"; exit 1 ;;
 esac
 echo "LANE_$1_DONE $(date '+%m-%d %H:%M')"

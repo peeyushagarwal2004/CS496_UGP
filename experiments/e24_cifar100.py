@@ -14,7 +14,8 @@ This script sets each CIFAR-100 result beside its CIFAR-10 counterpart:
 2. per-inference element and scale rates per format, per seed (E01) -- does the
    format ordering hold, and does the scale still dominate?
 3. how much element damage is non-finite -- is the NaN pathway still the mechanism?
-4. the NaN read guard (E23), and weights against activations (E04).
+4. the NaN read guard (E23), and weights against activations (E04), in both
+   NaN-coded formats, written to `results/e04_corrected_summary.csv`.
 
 Run::
 
@@ -118,20 +119,46 @@ def main() -> None:
                       "reduction_at_least"]].to_string(index=False,
                                                        float_format=lambda v: f"{v:.4g}"))
 
-    print("\n=== weights vs activations, e4m3, per inference (E04 vs E01, seed 0) ===")
-    for c10, c100 in PAIRS:
-        for model in (c10, c100):
-            a = RESULTS / f"e04_{model}_activations_e4m3-K32-ocp-wa.csv"
-            if not a.exists():
-                continue
-            d = pd.read_csv(a)
-            w = el[(el.model == model) & (el.fmt == "e4m3") & (el.seed == 0)]
-            act = d[d.site == "element"].corrupted.mean()
-            if len(w):
-                wr = float(w.per_inference.iloc[0])
-                ratio = f"{wr / act:.1f}x" if act > 0 else f"no activation fault of {len(d)} corrupted"
-                print(f"  {model:>16}: weight {wr:.5f}  activation {act:.5f}  ({ratio})")
     print(f"\nwrote {RESULTS / 'e24_cifar100_vs_cifar10.csv'}")
+    weights_vs_activations()
+
+
+E04 = re.compile(r"^e04_(?P<model>[a-z0-9_]+)_activations_(?P<fmt>e\dm\d)-K32-ocp-wa\.csv$")
+
+
+def weights_vs_activations(boot: int = 2000) -> None:
+    """Per-inference damage of a weight fault against an activation fault (F69).
+
+    Each E04 campaign is set against the seed-0 E01 weight campaign of the same
+    model and format. The activation interval is a bootstrap over images, since a
+    few near-tie images carry much of the activation damage.
+    """
+    rows = []
+    for path in sorted(RESULTS.glob("e04_*_activations_*-K32-ocp-wa.csv")):
+        m = E04.match(path.name)
+        wpath = RESULTS / f"e01_{m['model']}_{m['fmt']}-K32-ocp-w-n3000.csv" if m else None
+        if not m or not wpath.exists():
+            continue
+        a, w = pd.read_csv(path), pd.read_csv(wpath)
+        w["r"] = w.changed / IMAGES
+        rng = np.random.default_rng(0)
+        for site in ("element", "scale"):
+            g, ws = a[a.site == site], w[w.site == site]
+            per = g.groupby("image").corrupted.agg(["sum", "size"]).to_numpy()
+            idx = rng.integers(0, len(per), (boot, len(per)))
+            bs = per[idx, 0].sum(1) / per[idx, 1].sum(1)
+            act = g.corrupted.mean()
+            rows.append({"model": m["model"], "fmt": m["fmt"], "site": site, "n_act": len(g),
+                         "act": act, "act_lo": np.percentile(bs, 2.5),
+                         "act_hi": np.percentile(bs, 97.5), "act_nonfinite": g.nonfinite.mean(),
+                         "weight": ws.r.mean(),
+                         "weight_over_act": ws.r.mean() / act if act > 0 else np.inf})
+    t = pd.DataFrame(rows)
+    out = RESULTS / "e04_corrected_summary.csv"
+    t.to_csv(out, index=False)
+    print("\n=== weights vs activations, per inference (E04 vs E01, seed 0) ===")
+    print(t.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    print(f"\nwrote {out}")
 
 
 if __name__ == "__main__":

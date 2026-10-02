@@ -12,8 +12,8 @@
 \setlength{\intextsep}{8pt}
 
 \title{\vspace{-1.2cm}Reliability of Microscaling-Format Neural Networks under Bit Faults}
-\author{Peeyush\thanks{Replace with your full name and roll number.}}
-\date{22 September 2026}
+\author{Peeyush Agarwal}
+\date{2 October 2026}
 
 \begin{document}
 \maketitle
@@ -234,17 +234,18 @@ produce non-finite outputs at $7$--$13\%$ \emph{for every format}, including tho
 special element codes, because the E8M0 scale has its own NaN code and an MSB worth $128$
 exponent steps.
 
-\paragraph{Per fault, activations are as vulnerable as weights.} On the comparable
-per-inference rate an element fault does $0.6$--$1.4\times$ as much damage in a weight as in
-an activation on the three CIFAR-10 models, and a scale fault $0.9$--$1.1\times$, for the same
-reason: about $1\%$ of faults in either land on a NaN code. An earlier version found weights
+\paragraph{Per fault, activations are about as vulnerable as weights.} On the comparable
+per-inference rate an element fault does $0.6$--$2.2\times$ as much damage in a weight as in
+an activation across e4m3 and e5m2 on the three CIFAR-10 models, and a scale fault
+$0.9$--$1.6\times$, for the same reason: in either, the faults that land on a special code
+do most of the damage. An earlier version found weights
 $5$--$9\times$ worse; its codec mapped NaN inputs to zero, so every re-quantised layer erased
 the NaN an activation fault had produced. What separates the two is exposure: a weight fault persists, an activation fault
 lasts one inference.
 
 \paragraph{A harder task.} Retrained on CIFAR-100 (ViT $47$--$49\%$, RepVGG $70$--$71\%$),
 every headline replicates: equal-accuracy formats, the ordering e3m2 $<$ e4m3 $<$ e5m2 on all
-seven networks, scale dominance, and NaN codes carrying $94$--$100\%$ of e4m3/e5m2 element
+nine networks, scale dominance, and NaN codes carrying $94$--$100\%$ of e4m3/e5m2 element
 damage on the larger models. What changes is the floor: lower margins make the formats
 without special codes $3$--$22\times$ more vulnerable while e4m3 and e5m2 barely move, so
 the e4m3/e3m2 gap on the transformer shrinks from $461\times$ to $19\times$.
