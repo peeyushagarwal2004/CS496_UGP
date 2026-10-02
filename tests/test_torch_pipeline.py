@@ -354,6 +354,22 @@ def test_checkpoint_names_are_seed_aware():
     assert len({checkpoint_stem("resnet8_w8", s) for s in range(5)}) == 5
 
 
+def test_cifar100_models_are_named_and_sized_apart():
+    """A `_c100` name selects CIFAR-100, a 100-class head, and its own checkpoint."""
+    from mxfi.data import dataset_of
+    from mxfi.models import build_model
+    from mxfi.train import checkpoint_stem
+    assert dataset_of("vit_small") == "cifar10"
+    assert dataset_of("vit_small_c100") == "cifar100"
+    assert checkpoint_stem("vit_small_c100") == "vit_small_cifar100"
+    assert checkpoint_stem("vit_small_c100", 2) == "vit_small_s2_cifar100"
+    assert checkpoint_stem("vit_small", 2) == "vit_small_s2_cifar10"
+    for name in ("resnet8_c100", "repvgg_a0_c100", "vit_small_c100"):
+        with torch.no_grad():
+            assert build_model(name).eval()(torch.zeros(2, 3, 32, 32)).shape == (2, 100)
+    assert build_model("resnet8")(torch.zeros(1, 3, 32, 32)).shape == (1, 10)
+
+
 # ------------------------------------------------------------------- ViT
 
 def test_vit_geometry_and_layers():

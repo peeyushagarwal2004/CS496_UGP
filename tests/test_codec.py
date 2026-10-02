@@ -212,9 +212,10 @@ def test_all_zero_block():
     assert np.array_equal(q.decode(), np.zeros((2, 32), np.float32))
 
 
-def test_nonfinite_input_is_sanitised():
+def test_nonfinite_input_is_not_sanitised():
+    """Non-finite values propagate rather than being laundered into finite ones."""
     x = np.array([[np.nan, np.inf, -np.inf, 1.0] * 8], np.float32)
-    assert np.all(np.isfinite(quantize_dequantize(x, "e4m3", 32)))
+    assert np.isnan(quantize_dequantize(x, "e4m3", 32)).all()
 
 
 # --------------------------------------------------------- shape / blocking
@@ -273,3 +274,19 @@ def test_copy_is_deep():
     c.scales[0, 0] ^= 0xFF
     assert q.codes[0, 0, 0] != c.codes[0, 0, 0]
     assert q.scales[0, 0] != c.scales[0, 0]
+
+
+@pytest.mark.parametrize("fmt", ["e4m3", "e5m2", "e3m2", "e2m1"])
+def test_nan_input_makes_its_block_nan_and_only_its_block(fmt):
+    """A NaN input must survive re-quantisation, as the OCP conversion implies.
+
+    Mapping it to zero instead silently erased every NaN that reached an
+    activation-quantised layer, which hid the NaN pathway from activation faults.
+    """
+    x = np.linspace(-1, 1, 64, dtype=np.float32).reshape(1, 64)
+    x[0, 5] = np.nan
+    out = quantize(x, fmt, block_size=32).decode()
+    assert np.isnan(out[0, :32]).all()
+    assert np.isfinite(out[0, 32:]).all()
+    clean = quantize(np.nan_to_num(x), fmt, block_size=32).decode()
+    assert np.array_equal(out[0, 32:], clean[0, 32:])

@@ -40,7 +40,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from mxfi.data import campaign_subset
+from mxfi.data import campaign_images
 from mxfi.faults import fault_space, inject
 from mxfi.models import to_deploy
 from mxfi.sampling import FaultSite, bit_population, sample_uniform
@@ -72,7 +72,7 @@ def main() -> None:
     mx = MXModel(to_deploy(net).to(dev), cfg).quantize_weights()
     mx.enable_activation_quantisation()
 
-    ds = campaign_subset(n_per_class=10, download=False)
+    ds = campaign_images(a.model, 100)
     xs, ys = ds.tensors
     rng = np.random.default_rng(a.seed)
     picks = rng.choice(len(xs), size=a.images, replace=False)

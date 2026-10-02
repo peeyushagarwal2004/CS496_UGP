@@ -21,7 +21,7 @@ import pandas as pd
 import torch
 
 from mxfi.codec import headroom
-from mxfi.data import cifar10_loaders
+from mxfi.data import dataset_of, loaders
 from mxfi.formats import get_format
 from mxfi.models import to_deploy
 from mxfi.torch_mx import MXConfig, MXModel
@@ -49,7 +49,7 @@ def main() -> None:
     print(f"checkpoint: epoch {state['epoch']}, fp32 test acc {state['acc']:.4f}")
 
     folded = to_deploy(net).to(dev)
-    _, test = cifar10_loaders(download=False)
+    _, test = loaders(dataset_of(a.model), download=False)
 
     fp32 = evaluate_accuracy(folded, test, dev)
     print(f"fp32 (BN-folded) accuracy: {fp32:.4f}\n")

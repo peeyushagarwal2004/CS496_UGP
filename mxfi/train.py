@@ -1,4 +1,4 @@
-"""Train a CIFAR-10 reference model to convergence on CPU.
+"""Train a CIFAR-10 or CIFAR-100 reference model (CIFAR-100: a `_c100` model name).
 
 Kept deliberately plain -- the study is about what faults do to a trained
 network, not about squeezing the last point of accuracy out of it.  What does
@@ -23,7 +23,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from .data import cifar10_loaders
+from .data import C100_SUFFIX, dataset_of, loaders
 from .models import MODELS, build_model, count_parameters
 
 __all__ = ["train", "evaluate_accuracy", "load_trained", "checkpoint_stem",
@@ -53,9 +53,13 @@ def checkpoint_stem(model: str, seed: int = 0) -> str:
     """Checkpoint file stem for a (model, training seed) pair.
 
     Seed 0 keeps the original unsuffixed name, so every checkpoint trained
-    before seeds were tracked stays loadable unchanged.
+    before seeds were tracked stays loadable unchanged. The dataset is the
+    suffix: ``vit_small_c100`` seed 1 is ``vit_small_s1_cifar100``.
     """
-    return f"{model}_cifar10" if seed == 0 else f"{model}_s{seed}_cifar10"
+    dataset = dataset_of(model)
+    if model.endswith(C100_SUFFIX):
+        model = model[: -len(C100_SUFFIX)]
+    return f"{model}_{dataset}" if seed == 0 else f"{model}_s{seed}_{dataset}"
 
 
 @torch.no_grad()
@@ -76,7 +80,7 @@ def train(model: str = "resnet8", epochs: int = 60, batch_size: int = 128,
           seed: int = 0, workers: int = 0, out: Path | None = None,
           resume: bool = True, device: str = "cpu", optimizer: str = "sgd",
           label_smoothing: float = 0.0) -> dict:
-    """Train a CIFAR-10 model, checkpointing after every epoch."""
+    """Train a model on its dataset, checkpointing after every epoch."""
     torch.manual_seed(seed)
     out = Path(out) if out else CHECKPOINT_DIR
     out.mkdir(parents=True, exist_ok=True)
@@ -84,7 +88,7 @@ def train(model: str = "resnet8", epochs: int = 60, batch_size: int = 128,
     log_path = out / f"{checkpoint_stem(model, seed)}.log.json"
     arch = model
 
-    train_loader, test_loader = cifar10_loaders(batch_size, workers)
+    train_loader, test_loader = loaders(dataset_of(arch), batch_size, workers)
     device = setup_device(device)
     model = build_model(arch).to(device)
     # transformers do not train under the SGD recipe that suits these CNNs
@@ -133,7 +137,8 @@ def train(model: str = "resnet8", epochs: int = 60, batch_size: int = 128,
         torch.save({"model": model.state_dict(), "optimizer": opt.state_dict(),
                     "scheduler": sched.state_dict(), "epoch": epoch,
                     "best_acc": best, "acc": acc, "history": history,
-                    "config": {"arch": arch, "epochs": epochs,
+                    "config": {"arch": arch, "dataset": dataset_of(arch),
+                               "epochs": epochs,
                                "batch_size": batch_size, "lr": lr,
                                "seed": seed, "optimizer": optimizer,
                                "label_smoothing": label_smoothing}}, ckpt_path)
@@ -168,7 +173,7 @@ def load_trained(model: str = "resnet8", path: Path | None = None,
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Train a CIFAR-10 model")
+    p = argparse.ArgumentParser(description="Train a CIFAR-10/100 model")
     p.add_argument("--model", default="resnet8", choices=sorted(MODELS))
     p.add_argument("--epochs", type=int, default=60)
     p.add_argument("--batch-size", type=int, default=128)

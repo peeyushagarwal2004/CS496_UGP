@@ -126,7 +126,7 @@ sampling error.
 \paragraph{Setup.} CIFAR-10 with ResNet8 ($78$k parameters, $87.0\%$ top-1), RepVGG-A0
 ($7.0$M, $91.5\%$, three seeds) and a vision transformer ($2.7$M, DeiT-Tiny width, $81.9\%$,
 three seeds), plus ResNet8 at five widths from $20$k to $692$k with ten independently
-trained models each. Formats e4m3, e5m2, e3m2, e2m3, e2m1, block sizes $8$--$64$. The
+trained models each; the three architectures were also retrained on CIFAR-100. Formats e4m3, e5m2, e3m2, e2m3, e2m1, block sizes $8$--$64$. The
 evaluation set is a fixed class-balanced subset of $200$ test images; campaigns use $3000$
 injections unless stated otherwise.
 
@@ -164,10 +164,7 @@ and e3m2 differ by $0.01$ points -- and the fraction of inferences their element
 corrupt is $0.0690\,[0.0598,0.0782]$ against $0.00003\,[0.00001,0.00004]$. Rescoring all
 $119$ campaigns this way, $1{,}441{,}528$ recorded faults over eight models, the ordering
 e3m2 $<$ e4m3 $<$ e5m2 holds on $8$ of $8$ models with disjoint intervals throughout,
-against $3$ of $8$ under the any-image rate. An earlier conclusion that the ranking reverses
-between architectures, and should never be quoted from one model, does not survive: what
-varied between those campaigns was which evaluation images sat near a decision boundary, not
-the architecture. Two independent mechanisms produce the gaps themselves.
+against $3$ of $8$ under the any-image rate. Two independent mechanisms produce the gaps.
 
 \emph{Special codes.} Only formats owning NaN/Inf codes can produce a non-finite value, and
 nothing downstream absorbs one. On the transformer $94\%$ of e5m2's element failures were
@@ -187,10 +184,9 @@ cuts the element per-inference rate by at least $29$--$4100\times$ (95\% bound, 
 each), to roughly the level of e3m2; on ResNet8, by $4$--$53\times$.
 
 \emph{Sensitivity, and what it is not.} A second mechanism appears among formats with no
-special codes at all. Perturbing a single weight by a fixed multiple of the layer RMS -- a
-probe containing no bit patterns -- separates the quantised networks completely: at $1.5$
-RMS the e3m2 and e5m2 networks never flipped a prediction in $1500$ trials, while e4m3
-flipped $2$--$5\%$ of the time. The fragility belongs to the network, not the encoding,
+special codes at all. Perturbing single weights by $1.5$ layer-RMS, a probe with no bit
+patterns, never flipped a prediction of the e3m2 and e5m2 networks in $1500$ trials but
+flipped e4m3's $2$--$5\%$ of the time. The fragility belongs to the network, not the encoding,
 and its cause is the sensitivity $s_i=|\partial m/\partial w_i|\,
 \mathrm{rms}/m$, with $m$ the margin between the top two logits: a perturbation of
 $\delta\cdot\mathrm{rms}$ flips a prediction when $s_i\delta>1$, and computing $s$ by
@@ -206,10 +202,8 @@ $|\partial m/\partial w|\,\mathrm{rms}$ agrees across all five formats to within
 at both the median and the 99th percentile; the whole $10.3$-fold spread in $s$, and
 $22.2$-fold at the 99th percentile, comes from the margin in its denominator, because $s$ is
 defined as a maximum over images and the closest-to-the-boundary image varies $33$-fold.
-Alignment, the remaining candidate after the weight, activation and gradient marginals were
-ruled out, is refuted directly: permuting which position's activation meets which position's
-gradient preserves both marginals exactly and moves the tail by at most $2\%$, identically in
-every format. And the margin that does the work belongs to the evaluation set rather than to
+Alignment is refuted by a permutation that preserves both marginals and moves the tail at
+most $2\%$. And the margin that does the work belongs to the evaluation set rather than to
 the network. Measured on the campaigns' own $200$ images, $1/\min m$ ranks fifteen networks
 by failure rate at Spearman $+0.98$; measured on $2000$ fresh images it ranks them at
 $+0.21$.
@@ -240,12 +234,20 @@ produce non-finite outputs at $7$--$13\%$ \emph{for every format}, including tho
 special element codes, because the E8M0 scale has its own NaN code and an MSB worth $128$
 exponent steps.
 
-\paragraph{Weights matter far more than activations.} On the comparable per-inference rate,
-element faults are $5.3\times$ more damaging in weights than activations on ResNet8 and
-$9.3\times$ on RepVGG; on the transformer \emph{none} of $2000$ activation faults changed
-its own inference (interval $[0,0.0020]$). A transient fault in one activation value is a
-minor concern next to a persistent weight fault, which every inference reads and which, at
-the scale site, corrupts $K$ values at once.
+\paragraph{Per fault, activations are as vulnerable as weights.} On the comparable
+per-inference rate an element fault does $0.6$--$1.4\times$ as much damage in a weight as in
+an activation on the three CIFAR-10 models, and a scale fault $0.9$--$1.1\times$, for the same
+reason: about $1\%$ of faults in either land on a NaN code. An earlier version found weights
+$5$--$9\times$ worse; its codec mapped NaN inputs to zero, so every re-quantised layer erased
+the NaN an activation fault had produced. What separates the two is exposure: a weight fault persists, an activation fault
+lasts one inference.
+
+\paragraph{A harder task.} Retrained on CIFAR-100 (ViT $47$--$49\%$, RepVGG $70$--$71\%$),
+every headline replicates: equal-accuracy formats, the ordering e3m2 $<$ e4m3 $<$ e5m2 on all
+seven networks, scale dominance, and NaN codes carrying $94$--$100\%$ of e4m3/e5m2 element
+damage on the larger models. What changes is the floor: lower margins make the formats
+without special codes $3$--$22\times$ more vulnerable while e4m3 and e5m2 barely move, so
+the e4m3/e3m2 gap on the transformer shrinks from $461\times$ to $19\times$.
 
 \paragraph{Block size, and how much one model can be trusted.} Raising $K$ from $8$ to $64$
 cuts the storage share of scale bits from $11.1\%$ to $1.7\%$ while a scale fault's SDC rate
@@ -313,11 +315,9 @@ $7.64\times$ between the two formats, with the e4m3 figure varying only $1.15$--
 across image sets. The mantissa effect is real; the any-image metric was destroying it,
 and the per-inference rate belongs in the primary column.
 
-A related trap cost this study a wrong result. Training is not bit-reproducible across
-machines: of $24$ same-named checkpoints on two machines none had identical weights, though
-all agreed on accuracy to a few tenths of a point, and the two exhaustive enumerations turned
-out to come from two \emph{different} networks. Replaying a few hundred recorded faults
-against the checkpoint before using a campaign as ground truth catches this.
+A related trap: training is not bit-reproducible across machines, and the two exhaustive
+enumerations turned out to come from two \emph{different} networks of equal accuracy.
+Replaying a few hundred recorded faults against the checkpoint catches this.
 
 \section{The plan's two open design choices}
 \label{sec:choices}
@@ -360,20 +360,15 @@ have.
 The study covers three architecture families, answers all five objectives, and settles both
 of the plan's open design choices. Design guidance follows directly: prefer element formats
 without NaN/Inf codes, or guard the special codes on read; protect the shared scale before
-anything else; harden weights before activations; and expect a coarser mantissa to help --
+anything else, in weights and activations alike; and expect a coarser mantissa to help --
 e3m2 corrupts $5.6$--$7.6\times$ fewer inferences than e4m3 on two independently trained
-networks -- though not as a rule about field widths, since MXFP4 fares worst. For campaigns: inject single-bit faults, score
+networks -- though not by field width: MXFP4 ranks worst on CIFAR-10, best on CIFAR-100. For campaigns: inject single-bit faults, score
 them per inference, and stratify on exact per-code enumeration of the decoded change,
 weighted by sensitivity where a gradient is available, for $57$--$120\times$ fewer
 injections at a given precision.
 
-Why equal-accuracy networks differ in sensitivity is closed with a caution rather than a
-mechanism: the difference is the margin of the hardest evaluation image, a property of the
-evaluation set. Rescoring all $119$ campaigns per inference, with no new injections,
-strengthened three claims (the format ranking, now on $8$ of $8$ models; the capacity
-dose-response; the sensitivity result), weakened two (the block-size trend is real under
-both scale rules; the sign bit is worst only for perturbation damage), and withdrew one (the
-ranking does not reverse between architectures). One gap remains: everything is CIFAR-10,
-because ImageNet is not available on the hardware I can reach.
+Re-measurement revised several earlier claims -- the ranking does not reverse between
+architectures, weights are not more vulnerable than activations, the sign bit is worst only
+for perturbation damage -- and \texttt{docs/findings.md} records each. ImageNet is unavailable here, so CIFAR-100 stands in: a harder task, not ImageNet.
 
 \end{document}
