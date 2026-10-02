@@ -49,8 +49,8 @@ happens to contain a near-tie image, and it hid the format effect entirely (F52)
    produce non-finite outputs, and model capacity absorbs perturbations but never a NaN:
    over a 35× capacity range the format with no special codes improves 25×, the one with
    eight not at all (F58). Prefer element formats without NaN/Inf codes — or guard them:
-   decoding special element codes as zero on read cuts element damage 4.4× (e4m3) and
-   36× (e5m2) on ResNet8 (F68).
+   decoding special element codes as zero on read cuts element damage by at least
+   29–4100× on RepVGG and the ViT, to roughly e3m2's level, and 4–53× on ResNet8 (F68).
 3. **Protect the shared scale first.** Scale faults outweigh element faults on every
    model and format, per inference by 13× to ~1000× (F56).
 4. **Weights before activations**: 5–9× more damaging per inference (F43).

@@ -181,9 +181,10 @@ its number of special codes (Figure~2, left). Per inference that dose-response i
 exact -- over a $35$-fold capacity range the format with no special codes improves
 $25\times$, the one with two improves $1.5\times$, and the one with eight does not improve
 measurably ($0.96\times$). The pathway is cheap to close: decoding special element codes
-as zero on read turns each such fault into an ordinary single-weight perturbation, which on
-ResNet8 cuts the whole element per-inference rate $4.4\times$ under e4m3 and $36\times$
-under e5m2.
+as zero on read turns each such fault into an ordinary single-weight perturbation. On
+RepVGG and the transformer, where those faults carry $97$--$100\%$ of element damage, this
+cuts the element per-inference rate by at least $29$--$4100\times$ (95\% bound, three seeds
+each), to roughly the level of e3m2; on ResNet8, by $4$--$53\times$.
 
 \emph{Sensitivity, and what it is not.} A second mechanism appears among formats with no
 special codes at all. Perturbing a single weight by a fixed multiple of the layer RMS -- a
