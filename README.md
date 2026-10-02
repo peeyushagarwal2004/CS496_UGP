@@ -19,14 +19,16 @@ finding, with its numbers, caveats and later corrections, is in
 
 ## Status
 
-Complete for CIFAR-10. All five objectives of the plan (O1–O5) are answered, and both
-of its open design choices are settled empirically (E21, E22). The one part of the plan
-not carried out is DeiT on ImageNet: ImageNet is not available on any machine this
-project can reach.
+Complete. All five objectives of the plan (O1–O5) are answered, and both of its open
+design choices are settled empirically (E21, E22). DeiT on ImageNet was not possible —
+ImageNet is not available on any machine this project can reach — so CIFAR-100 stands in
+for it (E24): the same three architectures retrained on a harder task. That tests the
+results at lower margins; it is not an ImageNet measurement.
 
 | covered | detail |
 |---|---|
-| models | ResNet8 (78k, 87.0%), RepVGG-A0 (7.0M, 91.4%, 3 seeds), a DeiT-Tiny-width ViT on CIFAR-10 (2.7M, 81.9%, 3 seeds), ResNet8 at 5 widths × 10 seeds |
+| models | ResNet8 (78k, 87.0%), RepVGG-A0 (7.0M, 91.4%, 3 seeds), a DeiT-Tiny-width ViT (2.7M, 81.9%, 3 seeds), ResNet8 at 5 widths × 10 seeds |
+| datasets | CIFAR-10; CIFAR-100 for the ViT (47–49%, 3 seeds), RepVGG-A0 (70–71%, 3 seeds) and ResNet8 (58%) |
 | formats | e4m3, e5m2 (MXFP8), e3m2, e2m3 (MXFP6), e2m1 (MXFP4); E8M0 scale |
 | block sizes | 8, 16, 32, 64; OCP scale rule and a non-clipping control |
 | tensors | weights and activations |
@@ -34,7 +36,7 @@ project can reach.
 | ground truth | two exhaustive campaigns on ResNet8-w16 (483,904 and 638,624 faults) |
 | scale | 119 sampled campaigns, 1.44M recorded faults, all rescored per inference |
 
-209 tests, all passing.
+214 tests, all passing.
 
 ## Headline results
 
@@ -53,7 +55,9 @@ happens to contain a near-tie image, and it hid the format effect entirely (F52)
    29–4100× on RepVGG and the ViT, to roughly e3m2's level, and 4–53× on ResNet8 (F68).
 3. **Protect the shared scale first.** Scale faults outweigh element faults on every
    model and format, per inference by 13× to ~1000× (F56).
-4. **Weights before activations**: 5–9× more damaging per inference (F43).
+4. **Per fault, activations are as vulnerable as weights** (F69): 0.6–1.4× per inference,
+   because ~1% of faults in either land on a NaN code. An earlier "weights 5–9× worse"
+   (F43) was a codec bug that turned NaN into zero at every re-quantised layer.
 5. **Sensitivity, not mantissa width**, predicts perturbation damage (ρ = +0.93, F59);
    its cross-format spread is the margin of the hardest evaluation image (F48–F49).
 6. **The plan's severity metric fails** (AUC 0.435, scores the sign bit — the worst bit
@@ -66,20 +70,24 @@ happens to contain a near-tie image, and it hid the format effect entirely (F52)
 8. **Enumerate, don't learn** (F65–F66): exact per-code enumeration of the decoded change
    gives 48–65× variance reduction with no injections; TreeFI-style intervals learned
    from a pilot do no better than uniform sampling.
+9. **It all replicates on CIFAR-100** (F70–F72), with one shift: lower margins make the
+   NaN-free formats 3–22× more vulnerable while e4m3/e5m2 barely move, so the format gap
+   narrows (ViT e4m3/e3m2: 461× → 19×).
 
 ## Layout
 
 | path | contents |
 |---|---|
 | `mxfi/` | the library: formats, codec, fault model, sampling, statistics, PyTorch wrapper, models, training, campaign runner |
-| `experiments/` | one script per experiment, `e00`–`e23`; each docstring states the question and the run command |
-| `tools/` | GPU patches, fast-injection verifier, and `verify_ground_truth` (checks a recorded campaign belongs to a checkpoint) |
+| `experiments/` | one script per experiment, `e00`–`e24`; each docstring states the question and the run command |
+| `tools/` | GPU patches, fast-injection verifier, and `verify_ground_truth` / `verify_e01` (check a recorded campaign belongs to a checkpoint) |
 | `results/` | every campaign CSV and summary |
 | `docs/` | report, findings, figures |
 | `*.sh` | the long-running sweep drivers (laptop and cluster) |
 
 The core (`formats`, `codec`, `faults`, `sampling`, `stats`) is **pure numpy**; only
-`torch_mx`, `models`, `vit`, `data`, `train` and `campaign` need torch.
+`torch_mx`, `models`, `vit`, `data`, `train` and `campaign` need torch. A model name
+ending in `_c100` (e.g. `vit_small_c100`) selects CIFAR-100.
 
 ## Setup
 

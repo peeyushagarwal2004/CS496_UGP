@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 from mxfi.campaign import Evaluator, run_campaign, summarise
-from mxfi.data import campaign_subset
+from mxfi.data import campaign_images
 from mxfi.models import to_deploy
 from mxfi.sampling import sample_uniform
 from mxfi.stats import binomial_rate
@@ -41,7 +41,8 @@ def main() -> None:
     p.add_argument("--block-size", type=int, default=32)
     p.add_argument("--scale-mode", default="ocp", choices=("ocp", "fit"))
     p.add_argument("--n", type=int, default=3000, help="injections")
-    p.add_argument("--images", type=int, default=20, help="per class (10 classes)")
+    p.add_argument("--images", type=int, default=200,
+                   help="evaluation images in total, split evenly over the classes")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--device", default="cpu")
     p.add_argument("--train-seed", type=int, default=0,
@@ -63,7 +64,7 @@ def main() -> None:
     folded = to_deploy(net).to(dev)
     mx = MXModel(folded, cfg).quantize_weights()
 
-    ds = campaign_subset(n_per_class=a.images, download=False)
+    ds = campaign_images(a.model, a.images)
     ev = Evaluator(ds, device=dev)
     golden = ev.golden(mx.module)
     print(f"config {cfg.label()} | subset {golden.n} images | "

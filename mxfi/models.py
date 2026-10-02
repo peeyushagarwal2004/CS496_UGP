@@ -281,6 +281,19 @@ MODELS = {"resnet8": ResNet8, "repvgg_a0": RepVGG_A0,
 MODELS.update({f"resnet8_w{w}": _resnet8_width(w) for w in (8, 16, 24, 32, 48, 64)})
 
 
+def _c100(make):
+    """The same architecture with a 100-class head, for CIFAR-100."""
+    def build(num_classes: int = 100) -> nn.Module:
+        return make(num_classes=num_classes)
+    build.__name__ = f"{getattr(make, '__name__', 'model')}_c100"
+    return build
+
+
+# CIFAR-100 stands in for ImageNet; the suffix also selects the dataset (mxfi.data)
+MODELS.update({f"{k}_c100": _c100(MODELS[k])
+               for k in ("resnet8", "resnet8_w16", "repvgg_a0", "vit_small")})
+
+
 def build_model(name: str, **kw) -> nn.Module:
     """Construct a model by registry name."""
     if name not in MODELS:

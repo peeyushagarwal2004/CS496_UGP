@@ -37,7 +37,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from .formats import ElementFormat, decode_e8m0, encode_e8m0, get_format
+from .formats import E8M0_NAN, ElementFormat, decode_e8m0, encode_e8m0, get_format
 
 __all__ = ["MXTensor", "quantize", "quantize_dequantize", "headroom",
            "SCALE_MODES"]
@@ -184,7 +184,13 @@ def quantize(x: np.ndarray, fmt: str | ElementFormat = "e4m3",
             # smallest scale that provably cannot clip the block maximum
             exp = np.ceil(np.log2(amax / fmt.max_normal))
     exp = np.where(amax > 0, exp, 0.0)                      # all-zero block
-    scales = encode_e8m0(np.clip(exp, -127, 127).astype(np.int32))
+    scales = encode_e8m0(np.clip(np.nan_to_num(exp), -127, 127).astype(np.int32))
+    # a NaN anywhere in a block makes its maximum NaN, so the OCP conversion
+    # (Algorithm 1 of the MX paper: shared scale from max|V|, NaN not clamped)
+    # yields a NaN scale and the whole block decodes to NaN. Mapping NaN to zero
+    # instead would silently stop a NaN from propagating through any layer whose
+    # input is re-quantised -- which is what activation quantisation does.
+    scales = np.where(np.isnan(blocks).any(axis=-1), np.uint8(E8M0_NAN), scales)
 
     # -- elements: divide out the (clamped) scale, then round onto the alphabet
     scaled = blocks / decode_e8m0(scales)[..., None]

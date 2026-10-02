@@ -222,6 +222,10 @@ not an approximation.
 **Objective O4 as written does not specify this normalisation. It must, or the
 weight-vs-activation comparison is not meaningful.**
 
+> **Revised by F69.** The normalisation argument stands; the activation numbers in this
+> table do not. They were measured with a codec that erased NaN at the next layer. Corrected,
+> ResNet8's element rates are 0.0170 (weight) and 0.0122 (activation), 1.4x, and overall 1.0x.
+
 ## F13. The shared scale dominates in *both* tensor types
 
 Element faults are 5.3x worse in weights than activations, but scale faults are nearly
@@ -238,6 +242,10 @@ corruption. Bit 7 (sign) is again the worst element bit, consistent with F3.
 
 **Design consequence:** protecting shared scales pays regardless of which tensor is being
 hardened. That is the single most actionable result the project has produced.
+
+> **Revised by F69.** "Zero non-finite outputs ... clamped by the next ReLU" was the codec
+> mapping NaN to zero. With NaN propagating, 0.8% of activation element faults go non-finite
+> and the element rate is 0.0122, not 0.0032. Scale dominance in both tensor types stands.
 
 ## F14. Block size: the O3 trade, measured (scale side)
 
@@ -1195,6 +1203,11 @@ block re-normalises its input. Note this does **not** contradict F32, where Laye
 to mask *weight* faults -- a weight fault perturbs every position that weight touches, on
 every inference, whereas an activation fault perturbs a single value once.
 
+> **Withdrawn by F69.** Measured with a codec that erased NaN at the next layer. With NaN
+> propagating, activation and weight faults do comparable damage per inference on all three
+> models (weight/activation 0.64--1.4x on CIFAR-10), and the ViT's activation element rate is
+> 0.0114, not zero.
+
 ---
 
 # Correcting F37 (E14)
@@ -1992,3 +2005,130 @@ and still remove the failure mode, at the cost of a comparator on the read path.
 guarded special code still costs one weight (it reads as zero), which is why the
 guarded rate is not exactly zero; what is left is the damage of an ordinary
 single-weight perturbation.
+
+---
+
+# Activation faults rescored with NaN propagation (codec fix)
+
+Every activation campaign (E04, behind F12, F13 and F43) was run with a codec that mapped a
+NaN input to zero. An activation-quantised layer re-encodes its input, so a NaN created by an
+activation fault was erased by the *next* layer: the NaN pathway, which carries most weight
+damage in formats with special codes (F67, F68), was switched off for activations only.
+Activations are not special here -- enumeration on ResNet8 gives the same share of
+special-code faults in activation storage (1.1--1.4% across ten images) as in weights
+(1.24%) -- yet E04 recorded **zero** non-finite outputs in every campaign on every model.
+
+The OCP conversion does not clamp NaN: the shared scale is taken from the block maximum, so a
+NaN anywhere in a block makes the scale NaN and the whole block NaN (Algorithm 1 of the MX
+paper). `mxfi.codec.quantize` now does exactly that, and a test pins it. Weight campaigns are
+unaffected, since trained weights contain no NaN to re-encode; only E04 runs with activation
+quantisation.
+
+All six activation campaigns were rerun with the fix, on all 100 evaluation images rather
+than 25 (4000 faults each), each on the checkpoint that produced the weight campaign it is
+compared with (replay-verified, 100/100, for RepVGG and ResNet8). Raw:
+`results/e04_*_activations_e4m3-K32-ocp-wa.csv`; summary `results/e04_corrected_summary.csv`
+(activation interval: bootstrap over images, since a few near-tie images carry much of it).
+
+## F69. Per inference, a fault in an activation does about as much damage as one in a weight
+
+Per-inference rate, e4m3, element site:
+
+| model | weight | activation [95% CI] | weight / activation | activation faults non-finite |
+|---|---|---|---|---|
+| ResNet8 | 0.0170 | 0.0122 [0.0075, 0.0182] | 1.4x | 0.80% |
+| RepVGG-A0 | 0.0048 | 0.0075 [0.0049, 0.0103] | 0.64x | 0.72% |
+| ViT | 0.0122 | 0.0114 [0.0080, 0.0148] | 1.07x | 1.11% |
+| ResNet8, CIFAR-100 | 0.0173 | 0.0136 [0.0081, 0.0206] | 1.3x | 0.64% |
+| RepVGG-A0, CIFAR-100 | 0.0105 | 0.0171 [0.0098, 0.0258] | 0.61x | 0.70% |
+| ViT, CIFAR-100 | 0.0097 | 0.0323 [0.0181, 0.0497] | 0.30x | 0.98% |
+
+At the scale site the two are within $0.9$--$1.1\times$ of each other on every CIFAR-10 model
+(ResNet8 1.08x, RepVGG 0.91x, ViT 0.98x), and $0.88$--$1.67\times$ on CIFAR-100.
+
+**This withdraws F43 and the activation half of F12 and F13.** F43's "on the transformer not
+one of 2000 activation faults changed its own inference" and F13's "zero non-finite outputs
+... clamped by the next ReLU" were both the codec erasing NaN; the dilution-and-renormalisation
+explanation offered in F43 was an explanation of an artefact. What survives is F12's
+*methodological* point -- compare per inference, never per campaign -- and F13's design
+consequence that the shared scale dominates in both tensor types (scale/element: 14x in
+activations, 11x in weights, on ResNet8).
+
+**What it means for design.** Per fault, activations and weights are equally dangerous, and
+for the same reason: about 1% of faults in either land on a special code and destroy the
+inference. The difference between them is exposure, not vulnerability: a weight fault
+persists and is read by every inference until the word is rewritten, an activation fault
+lives for one inference. Which to protect first therefore depends on how long each is
+resident and how many bits each occupies on a given accelerator, not on the per-fault
+damage measured here. The NaN read guard of F68 applies to both, since it acts where any
+element code is decoded.
+
+---
+
+# CIFAR-100 as the ImageNet stand-in (E24)
+
+The plan's transformer study was DeiT on ImageNet, which no machine this project can reach
+holds. CIFAR-100 is the nearest affordable substitute: ten times the classes and a tenth of
+the images per class, so networks sit much closer to their decision boundaries -- the
+property F48-F49 found to govern sensitivity. All three architectures were retrained on it
+with the CIFAR-10 recipes unchanged (`c100_run.sh`): the ViT and RepVGG-A0 with three seeds
+each, ResNet8 with one. Every campaign scores 200 images, 2 per class, so per-inference rates
+have the same resolution as on CIFAR-10. Analysis: `experiments/e24_cifar100.py` ->
+`results/e24_cifar100_vs_cifar10.csv`.
+
+Caveat on the substitute: the 2.7M-parameter ViT reaches only $47$--$49\%$ trained from
+scratch (RepVGG-A0 $70$--$71\%$, ResNet8 $58\%$). This tests the results on a harder task with
+smaller margins; it is not a measurement of DeiT on ImageNet.
+
+## F70. Every headline replicates on CIFAR-100
+
+* **Matched accuracy, different reliability (F1/F32).** Quantised accuracy at K=32 (seed 0):
+  e2m3/e3m2/e4m3/e5m2 within $0.01$ pp of each other on the ViT ($48.08$--$48.09\%$), within
+  $1.5$ pp on RepVGG and $1.1$ pp on ResNet8 -- while their element rates differ by up to
+  $1000\times$ (below).
+* **The format ordering (F55).** e3m2 < e4m3 < e5m2 per inference on every network: 3/3 ViT
+  seeds, 3/3 RepVGG seeds, 1/1 ResNet8.
+* **Scale dominance (F56).** Scale faults outweigh element faults in every format on every
+  network, from $1.7\times$ (ViT, e5m2, where element faults are already NaN-dominated) to
+  $3600\times$ (RepVGG, e3m2).
+* **The NaN pathway is the mechanism (F18, F67).** In e4m3/e5m2, non-finite outputs carry
+  $97$--$99\%$ of element damage on the ViT, $97.5$--$99.9\%$ on RepVGG and $74$--$94\%$ on
+  ResNet8, the same pattern as on CIFAR-10.
+
+## F71. A harder task raises the perturbation floor, so the format gap narrows
+
+Mean element per-inference rate over seeds, CIFAR-10 -> CIFAR-100:
+
+| model | e3m2 (no special codes) | e4m3 | e5m2 | e4m3 / e3m2 gap |
+|---|---|---|---|---|
+| ViT | 2.7e-5 -> 6.1e-4 (**22x**) | 0.0126 -> 0.0114 (0.9x) | 0.069 -> 0.077 (1.1x) | 461x -> 19x |
+| RepVGG-A0 | 1.4e-5 -> 5.6e-5 (**3.9x**) | 0.0069 -> 0.0081 (1.2x) | 0.054 -> 0.057 (1.05x) | 476x -> 144x |
+| ResNet8 (CIFAR-10: five width-16 seeds) | 1.8e-3 -> 5.5e-3 (**3.0x**) | 0.0137 -> 0.0173 (1.3x) | 0.078 -> 0.078 (1.0x) | 7.6x -> 3.2x |
+
+The formats without special codes become $3$--$22\times$ more vulnerable; the NaN-dominated
+formats barely move, because a NaN corrupts every inference however wide the margins are.
+Scale rates rise too (e3m2: ViT $0.088\to0.127$, RepVGG $0.12\to0.20$, ResNet8 $0.19\to0.27$),
+the scale doing perturbation damage $K$ values at a time. This is F48-F49's margin mechanism
+seen at the level of a whole task: lower margins raise perturbation damage and leave the NaN
+pathway untouched. The practical reading is that the advantage of special-code-free formats,
+while still large, is smallest exactly on the harder tasks real deployments face.
+
+Among formats without special codes the ordering does **not** carry over. On CIFAR-10 the
+ViT ranks e3m2 < e2m3 < e2m1; on CIFAR-100 it ranks e2m1 < e2m3 $\approx$ e3m2, on all three
+seeds (e2m1 $1.4$--$2.3\times10^{-4}$ against e3m2 $2.8\times10^{-4}$--$1.0\times10^{-3}$).
+This is what F45 predicts -- perturbation damage follows network sensitivity, not mantissa
+width -- and a further reason not to rank these formats by field widths.
+
+## F72. The NaN read guard still works, against a higher floor
+
+E23 on every CIFAR-100 network (reduction = unguarded element rate over a 95% upper bound on
+the guarded one):
+
+| model | special faults' share of element damage | reduction, e4m3 | reduction, e5m2 |
+|---|---|---|---|
+| ViT (3 seeds) | 96.6--99.5% | >= 24--41x | >= 63--168x |
+| RepVGG-A0 (3 seeds) | 94.0--99.96% | >= 13--208x | >= 166--1387x |
+| ResNet8 | 75--95% | >= 3.6x | >= 16x |
+
+Smaller than on CIFAR-10 (F68: up to 4100x), for F71's reason: the guard removes the NaN
+pathway and leaves the perturbation floor, and that floor is higher on the harder task.

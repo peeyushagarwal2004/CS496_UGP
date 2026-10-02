@@ -137,7 +137,7 @@ def main() -> None:
     a = p.parse_args()
 
     from mxfi.campaign import Evaluator
-    from mxfi.data import campaign_subset
+    from mxfi.data import campaign_images
     from mxfi.models import to_deploy
     from mxfi.torch_mx import MXConfig, MXModel
     from mxfi.train import load_trained, setup_device
@@ -146,7 +146,7 @@ def main() -> None:
     cfg = MXConfig(fmt=a.fmt, block_size=a.block_size)
     net, _ = load_trained(a.model, seed=a.train_seed)
     mx = MXModel(to_deploy(net).to(dev), cfg).quantize_weights()
-    ev = Evaluator(campaign_subset(n_per_class=IMAGES // 10, download=False), device=dev)
+    ev = Evaluator(campaign_images(a.model, IMAGES), device=dev)
     golden = ev.golden(mx.module)
 
     def changed(preds) -> int:
