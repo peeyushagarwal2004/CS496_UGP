@@ -846,6 +846,11 @@ The sign bit is the single most damaging element bit in the entire fault space -
 than every exponent bit -- and the drafts' severity metric scores it as **zero damage**
 (F3). This is now exact rather than sampled, which closes that argument.
 
+> **Revised by F67 (per inference).** This ranking is any-image. Per inference the sign
+> bit is still the worst bit for perturbation damage, in e3m2 and among finite faults in
+> e4m3, but in e4m3 it ranks seventh of eight overall: flips into the NaN code dominate,
+> and the sign bit is the one bit that can never produce one.
+
 ## F28. Per-layer vulnerability spans 3x, and it is not the largest layers
 
 | layer | bits | SDC |
@@ -1702,3 +1707,259 @@ the data's own quantiles locate it.
 gain, quantile-stratified, as the headline number for value-aware sampling. F46-F47
 remain correct as a measurement of the any-image rate, which is the quantity they
 were computed for, but that quantity is no longer the one to plan a campaign around.
+
+
+---
+
+# Single-bit versus multi-bit faults (E21)
+
+The plan adopted the single-bit flip and left its multi-bit H-model as an extension,
+listing the choice as an open one to settle empirically. Every campaign so far flipped
+exactly one bit. E21 measures what a second flip in the *same stored word* does -- the
+case the H-model's Poisson-binomial multiplicity term describes.
+
+Design: on each of two independently trained ResNet8-w16 networks (cluster train-seeds 0
+and 9) and in each of e3m2, e4m3 and e5m2, sample $1500$ element words and $500$ scale
+bytes uniformly and inject **every** single-bit and **every** double-bit pattern of each
+word -- $390{,}000$ injections in all, $200$ images each. Each injection records *which*
+images changed, not only how many, so a double flip can be compared exactly with the
+union of what its two single flips do. The single-bit rates reproduce the exhaustive
+campaign of the same network (e3m2, train-seed 0: element $0.00103$ against $0.00113$,
+scale $0.1875$ against $0.1887$), which validates the new multi-bit injection path.
+Raw: `results/e21_*_multibit.csv.gz`, summary `results/e21_multibit_summary.csv`.
+
+## F62. A second flip in the same word adds little
+
+Per-inference rate of a random single flip ($r_1$), a random double flip ($r_2$) and an
+adjacent double flip, both networks:
+
+| format | site | $r_1$ | $r_2$ | $r_2/r_1$ | adjacent / $r_1$ |
+|---|---|---|---|---|---|
+| e3m2 | element | 0.0010 / 0.0015 | 0.0016 / 0.0021 | 1.55 / 1.42 | 0.94 / 0.93 |
+| e4m3 | element | 0.0157 / 0.0170 | 0.0175 / 0.0204 | 1.11 / 1.20 | 1.10 / 1.13 |
+| e5m2 | element | 0.0759 / 0.0771 | 0.0787 / 0.0801 | 1.04 / 1.04 | 0.86 / 0.88 |
+| e3m2 | scale | 0.188 / 0.192 | 0.278 / 0.281 | 1.48 / 1.46 | 1.06 / 1.05 |
+| e4m3 | scale | 0.235 / 0.246 | 0.309 / 0.319 | 1.32 / 1.30 | 0.85 / 0.85 |
+| e5m2 | scale | 0.249 / 0.252 | 0.364 / 0.366 | 1.46 / 1.45 | 1.01 / 1.01 |
+
+A double flip corrupts $1.04$--$1.55\times$ as many inferences as a single flip, and an
+*adjacent* double -- the pattern a multi-cell upset produces in an un-interleaved word --
+$0.85$--$1.13\times$, i.e. about the same. The format ordering is unchanged under double
+flips (e3m2 < e4m3 < e5m2 on both sites and both networks), and so is scale dominance.
+
+## F63. Double flips are sub-additive, for two identifiable reasons
+
+A double flip does only $52$--$85\%$ of what the union of its two single flips does, and
+$36$--$46\%$ of scale doubles do *less* damage than the worse of their two singles. Two
+mechanisms account for it:
+
+* **A second flip moves a word off the NaN code.** On e4m3 and e5m2 elements, on both
+  networks, pairs in which one single flip would have produced a special value account
+  for $1.2$--$1.9\times$ the whole union-minus-pair gap: a special code is one bit
+  pattern, and flipping a second bit leaves it. The remaining pairs are super-additive on
+  balance, mostly through the reverse case -- $1.2$--$1.4\%$ of e4m3/e5m2 element doubles
+  reach a special code that neither single flip reaches -- so the non-finite *rate*
+  barely moves ($1.3$--$1.5\%$ to $1.6\%$ for e4m3).
+* **Scale bits of opposite value cancel.** $X\oplus(2^a+2^b)$ shifts $X$ by
+  $\pm(2^b-2^a)$ when the two bits differ. Adjacent scale bits 2 and 3 are the clearest
+  case: $0.21$ and $0.19$ singly on e3m2, $0.08$ together.
+
+So a multi-bit campaign cannot be synthesised from single-bit data by taking unions --
+per fault the union misses by as much as the rate itself on average ($0.001$ against a
+mean of $0.002$ for e3m2 elements, $0.04$ against $0.02$ for e4m3, $0.09$--$0.13$ against
+$0.28$--$0.37$ for scales) -- but F64 shows it does not need to be.
+
+## F64. Within-word multiplicity is never the first-order correction
+
+Under the H-model's independent flips with per-bit probability $p$, a word's expected
+damage is $\sum_b p(1-p)^{W-1}r_b + \sum_{a<b}p^2(1-p)^{W-2}r_{ab} + O(p^3)$. With the
+measured $r_b$ and $r_{ab}$, the double-flip term reaches $1\%$ of the total only at
+$p = 1.9$--$2.9\times10^{-3}$, and $10\%$ at $p\approx 2$--$3\times10^{-2}$, in every
+format, site and network.
+
+At $p=2\times10^{-3}$, ResNet8-w16's $484$k--$639$k weight bits already contain about
+$1000$--$1300$ flipped bits at once. Every campaign in this study, and in the
+fault-injection literature it follows, assumes one fault per inference, which holds only
+while $Np\ll1$, i.e. $p\lesssim10^{-6}$ here; at that rate the double-flip share is about
+$10^{-5}$. So the single-fault model fails through *accumulation across words* three
+orders of magnitude in $p$ before multiplicity *within* a word matters -- for any
+network larger than a few thousand words the ordering only gets more extreme, since the
+in-word share depends on $W$ and the accumulation on $N$.
+
+**Settled:** single-bit injection is sufficient. Independent multi-bit upsets are a
+second-order occurrence correction dominated by multi-word accumulation, and correlated
+adjacent upsets do within $\pm15\%$ of a single flip's damage per event, so a single-bit
+campaign also estimates a multi-cell-upset environment to that accuracy. The H-model's
+value is in the occurrence model (where flips land), not in a separate multi-bit campaign.
+
+---
+
+# Learned intervals versus exact enumeration (E22)
+
+The plan's second open design choice, inherited from TreeFI: characterise fault impact
+with *learned* value intervals -- a regression tree over decoded values, fitted to a
+pilot of measured injections, whose leaves become the sampling strata -- or with
+*exact* per-code enumeration, which MX makes possible because the element alphabet has
+at most 256 codes and the scale is a power of two. Enumeration gives the decoded change
+of every fault in closed form, $|v'-v| = |\mathrm{table}[c\oplus 2^b]-\mathrm{table}[c]|
+\cdot 2^{X-127}$, at no injection cost.
+
+If the tree were only approximating a representation-level severity, the question would
+answer itself: enumeration *is* that function, with zero approximation error. So E22
+tests the stronger version, in which the tree learns from measured network outcomes.
+Every arm is replayed against the two exhaustive campaigns, 400 times per budget, and
+scored by the variance of its per-inference estimate relative to uniform sampling (both
+networks verified against their campaigns, 200/200 replays). The tree sees site, bit
+position, $\log_2|v|$ and sign, optionally the layer; it gets a 20% uniform pilot and as
+many leaves as E20's score strata (6; 16 as a check).
+
+## F65. Exact enumeration wins by two orders of magnitude; learned intervals lose to uniform
+
+Variance ratio over uniform sampling, budgets 500 / 1000 / 3000, 6 leaves:
+
+| arm | e3m2 | e4m3 |
+|---|---|---|
+| learned tree (value) | 0.33 / 0.36 / 0.98 | 0.18 / 0.14 / 0.25 |
+| learned tree (value + layer) | 0.10 / 0.11 / 0.69 | 0.13 / 0.13 / 0.20 |
+| ... with proportional allocation | 0.80 / 0.90 / 0.84 | 0.82 / 0.97 / 0.86 |
+| **exact $\lvert\Delta v\rvert$ / rms enumeration** | **48 / 48 / 55** | **65 / 65 / 60** |
+| exact `margin_shift` (adds the gradient) | 99 / 127 / 114 | 74 / 83 / 74 |
+
+The learned tree never beats uniform sampling on either format, at any budget, with or
+without the layer as a feature, at 6 or 16 leaves (16 leaves: $0.11$--$0.92$ on e3m2,
+$0.15$--$0.19$ on e4m3). Exact
+enumeration of the decoded change alone -- table lookups and one RMS per layer, no
+gradient, no injections -- reduces variance $48$--$65\times$. Adding the gradient
+sensitivity (`margin_shift`, F61) roughly doubles that on e3m2 but adds only $15$--$30\%$
+on e4m3, so most of what value-aware sampling buys comes from enumerating the code
+table exactly, not from the network-specific sensitivity.
+
+The enumeration arms are unbiased to within $0.6\%$ of the truth at the largest budget,
+and the learned trees, which estimate from fresh draws only, to within $2.4\%$ (inside
+their much larger replay noise). Folding the tree's pilot back into the estimate, the
+cheaper and more natural thing to do, is not unbiased: the same draws then choose the
+strata and measure them, and the estimate comes out $9\%$ (e3m2) and $12$--$18\%$ (e4m3) low.
+
+## F66. Why learning fails: a pilot cannot see the tail, and the tail is discrete
+
+Two separate failures, separable because the replay can also give the tree the *whole*
+truth to learn from (an oracle no campaign could afford):
+
+**The pilot is too small for a zero-inflated target.** With $89\%$ of faults corrupting
+nothing (F60), a 100--600-fault pilot sees a handful of failures. The tree splits on
+them; leaves where the pilot saw none report zero variance, Neyman allocation starves
+them, and they turn out to hold variance after all. Allocating in proportion to leaf
+size instead removes the starvation and recovers $0.8$--$1.0\times$ -- uniform, i.e.
+the learned partition carries no usable information. The oracle tree shows the
+information is in the features on e3m2: fitted to the full truth it reaches
+$20$--$39\times$ at 6 leaves and $53$--$102\times$ at 16, comparable to `margin_shift`.
+Learning it is what costs more injections than it saves.
+
+**On e4m3 the tail is a set of discrete codes.** Even the oracle reaches only
+$0.5$--$0.7\times$ with Neyman allocation and $1.2$--$1.5\times$ proportionally. The
+reason is the NaN pathway: $1.27\%$ of e4m3's element faults ($7{,}853$ of $618{,}880$)
+are (code, bit) pairs that flip into a NaN code, and each corrupts every inference
+($r=1.000$), together carrying $77.6\%$ of all element damage and $52.2\%$ of all damage
+in the model. They are a property of specific bit patterns -- top-binade codes one flip
+from $\mathtt{S.1111.111}$ -- not of a value range, so a partition of value space
+spreads them thinly over every leaf. A code table identifies all of them exactly with
+$|\Delta v|=\infty$, which is why enumeration gains as much on e4m3 as on e3m2.
+
+**Settled:** for MX formats, characterise impact by exact per-code enumeration. It is
+free, exact, and isolates the special-code transitions that dominate the failure rate;
+learned intervals cost pilot injections and, on these targets, return less than uniform
+sampling. TreeFI's interval learning solves a problem -- an alphabet of $2^{32}$ values
+-- that MX does not have.
+
+---
+
+# F27 rescored per inference
+
+E19 rescored every format, site, block-size and capacity claim per inference, but not
+the per-bit ranking. Both exhaustive campaigns, per element bit, under both metrics,
+with the per-inference rate also restricted to faults whose output stayed finite:
+
+| bit | e3m2 any-image | e3m2 per inference | e4m3 any-image | e4m3 per inference | e4m3 per inference, finite only |
+|---|---|---|---|---|---|
+| 0 | 0.005 | 0.0001 | 0.130 | 0.0124 | 0.0007 |
+| 1 | 0.018 | 0.0002 | 0.212 | 0.0101 | 0.0013 |
+| 2 | 0.051 | 0.0006 | 0.314 | 0.0195 | 0.0021 |
+| 3 | 0.111 | 0.0015 | 0.421 | 0.0272 | 0.0034 |
+| 4 | 0.102 | 0.0014 | 0.532 | **0.0335** | 0.0052 |
+| 5 (e3m2 sign) | **0.184** | **0.0030** | 0.528 | 0.0157 | 0.0051 |
+| 6 | | | 0.474 | 0.0051 | 0.0045 |
+| 7 (e4m3 sign) | | | **0.593** | 0.0073 | **0.0073** |
+
+## F67. The sign bit is the worst bit for perturbation damage, not for total damage
+
+F27 survives where there are no special codes: in e3m2 the sign bit is the worst
+element bit under both metrics. In e4m3 it survives for perturbation damage only --
+among faults whose output stays finite the sign bit is still clearly worst ($0.0073$
+against $0.0052$) -- but per inference it ranks **seventh of eight**. The reason is
+the NaN pathway again. $1.27\%$ of e4m3's element faults flip a code into
+$\mathtt{S.1111.111}$; each corrupts every inference, and between them they carry
+$77.6\%$ of all element damage: $85$--$95\%$ of the damage done by every bit from 0 to
+4 is non-finite. A sign flip never changes the magnitude bits, so it
+is the one bit that can never reach the NaN code.
+
+The any-image metric hid this because it saturates: a sign flip changes *some* image
+in $59\%$ of cases, but changes few of them, while a NaN flip changes all $200$ and
+scores the same single unit.
+
+**What changes.** Figure 1 of the report is now drawn per inference and stacked by
+finite versus non-finite output. The critique of the plan's severity metric (F3, F39)
+stands in the form that matters -- it scores the worst perturbation bit as harmless
+-- but "the sign bit is the most damaging bit in the space" should not be quoted for
+a format with special codes. The design guidance is unchanged and sharpened: in a
+format with NaN codes the thing to protect against is not a bit position but one
+transition, into the NaN code, which every magnitude bit can make and the sign bit
+cannot. A read-side check that treats $\mathtt{S.1111.111}$ as zero would turn the faults
+behind $78\%$ of e4m3's element damage on this network into ordinary single-weight
+perturbations -- an implication of the measurement, not something tested here.
+
+Per inference the scale's bit profile also looks different from F27's any-image
+version, where every bit exceeded $0.87$. Scale bytes on this network lie in
+$114$--$120$, so bits 4--6 are always set and bit 3 almost never: flipping bit 3
+multiplies the block by $256$ ($0.75$ of inferences corrupted) and bit 7 overflows
+($0.98$), while flipping bits 4--6 divides the block towards zero and corrupts only
+$3.0\%$. Shrinking a block is mild; growing it is not.
+
+---
+
+# A read-side NaN guard (E23)
+
+F67 located most of e4m3's element damage in one transition, into the NaN code, and
+noted a defence it implies: decode any special element code as zero on read, so that
+a fault which would have produced NaN merely zeroes one weight. E23 tests it. Every
+element fault that lands on a special code is found by enumeration; $1000$ of them
+are injected twice, unguarded and guarded, on the network that produced the e4m3
+exhaustive campaign. The guard changes nothing for any other fault, so its effect on
+the whole space follows from the exhaustive campaign without further injections.
+
+## F68. Guarding the special codes removes the NaN pathway
+
+| | e4m3 | e5m2 |
+|---|---|---|
+| element faults landing on a special code | $7{,}853$ ($1.27\%$) | $47{,}105$ ($7.61\%$) |
+| per-inference rate of those faults, unguarded | $1.000$ | $0.9997$ |
+| ... guarded | $0.0064$ ($156\times$ lower) | $0.0024$ ($425\times$ lower) |
+| non-finite outputs, unguarded / guarded | $100\%$ / $0\%$ | $100\%$ / $0\%$ |
+
+On e4m3, with the exhaustive campaign supplying the rest of the space, the guard lowers
+the element per-inference rate from $0.01635$ to $0.00375$ (**$4.4\times$**) and the
+rate over all weight faults, scale included, from $0.0236$ to $0.0113$ ($2.1\times$),
+leaving the scale as the dominant site by an even wider margin.
+No exhaustive campaign exists for e5m2, but E21's single-bit sample on the same network
+(train-seed 9 on the cluster, the laptop's `resnet8_w16`) gives the whole-space figure
+instead -- it reproduces the e4m3 result, $4.5\times$ against $4.4\times$. On e5m2,
+where $7.6\%$ of element faults land on a special code, the element per-inference rate
+falls from $0.0771$ to $0.0022$, **$36\times$**. With the guard, the three formats'
+element rates on this network are $0.0015$ (e3m2, nothing to guard), $0.0022$ (e5m2) and
+$0.0037$ (e4m3) -- within $2.5\times$ of one another, where unguarded e5m2 was $51\times$
+e3m2.
+
+This turns F18 and F58's design rule -- prefer element formats without NaN/Inf codes --
+into a choice rather than a constraint: a format that needs its exponent range can keep
+it and still remove the failure mode, at the cost of a comparator on the read path.
+A guarded special code still costs a weight (it reads as zero), which is why the guarded
+rate is not zero; it is the damage of an ordinary single-weight perturbation.

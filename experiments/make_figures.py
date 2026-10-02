@@ -2,8 +2,8 @@
 
 Four figures, each chosen for the job its data does:
 
-1. per-bit vulnerability from the exhaustive campaign -- magnitude across an
-   ordered category, so bars, one series per panel;
+1. per-bit vulnerability from the exhaustive campaign, per inference -- magnitude
+   across an ordered category, so bars, stacked by finite vs NaN/Inf output;
 2. failure rate against model capacity -- change along a continuous variable,
    so lines, one per format, with every seed drawn faintly behind the mean;
 3. per-layer vulnerability against layer size -- a relationship between two
@@ -56,28 +56,38 @@ def _clean(ax):
 
 
 def fig_per_bit(d: pd.DataFrame) -> None:
-    """Exhaustive per-bit rates: one panel per fault site, one series each."""
+    """Exhaustive per-bit damage, per inference, split by whether the output stayed finite.
+
+    One panel per fault site. Each bar is the mean fraction of the 200 evaluated
+    inferences a fault at that bit corrupts, stacked into the part done by faults
+    whose output stayed finite and the part done by faults that produced NaN/Inf --
+    the split that explains why the sign bit, worst for perturbation damage, is not
+    the worst bit once the NaN pathway is counted.
+    """
     fig, axes = plt.subplots(1, 2, figsize=(6.6, 2.4))
+    d = d.assign(r=d.changed / 200)
     for ax, site, label in zip(axes, ("element", "scale"),
                                ("element code", "shared E8M0 scale")):
-        g = d[d.site == site].groupby("bit").sdc.mean()
-        bars = ax.bar(g.index, g.values, color=BLUE, width=0.68)
-        for b in bars:
-            b.set_linewidth(0)
+        g = d[d.site == site]
+        fin = g.r.where(~g.nonfinite, 0).groupby(g.bit).mean()
+        nan = g.r.where(g.nonfinite, 0).groupby(g.bit).mean()
+        for bars in (ax.bar(fin.index, fin.values, color=BLUE, width=0.68,
+                            label="output finite"),
+                     ax.bar(nan.index, nan.values, bottom=fin.values, color=ORANGE,
+                            width=0.68, label="NaN/Inf output")):
+            for bar in bars:
+                bar.set_linewidth(0)
+        top = (fin + nan).max()
+        ax.set_ylim(0, top * 1.25)
         ax.set_title(label, loc="left", color=INK)
         ax.set_xlabel("bit position (0 = least significant)")
-        ax.set_ylim(0, 1.22)
         ax.set_xticks(range(8))
         _clean(ax)
-        # label only the positions worth naming; a value alone where the bar is narrow
-        note = {"element": [(7, "sign bit")], "scale": [(3, ""), (7, "")]}
-        for bit, text in note[site]:
-            if bit in g.index:
-                txt = f"{text}\n{g[bit]:.3f}" if text else f"{g[bit]:.3f}"
-                ax.annotate(txt, (bit, g[bit]), textcoords="offset points",
-                            xytext=(0, 4), ha="center", va="bottom",
-                            fontsize=7, color=INK2)
-    axes[0].set_ylabel("SDC rate (exhaustive)")
+        if site == "element":
+            ax.annotate("sign bit", (7, fin[7] + nan[7]), textcoords="offset points",
+                        xytext=(0, 4), ha="center", va="bottom", fontsize=7, color=INK2)
+            ax.legend(loc="upper left")
+    axes[0].set_ylabel("inferences corrupted per fault")
     fig.tight_layout()
     fig.savefig(FIGS / "fig1_per_bit.pdf", bbox_inches="tight")
     plt.close(fig)

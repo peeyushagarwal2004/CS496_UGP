@@ -133,6 +133,44 @@ def test_blast_radius_shows_up_in_the_weights(net, K):
         assert int((lay.module.weight != clean).sum()) == K
 
 
+@pytest.mark.parametrize("site,index,mask", [
+    ("element", (1, 0, 3), 0b0000_0001),
+    ("element", (1, 0, 3), 0b1000_0100),
+    ("scale", (2, 1), 0b0000_0010),
+    ("scale", (2, 1), 0b0001_1000),
+])
+def test_word_fault_matches_the_whole_tensor_path(net, site, index, mask):
+    """A multi-bit word fault equals XOR-ing the stored word and re-decoding."""
+    mx = MXModel(fold_batchnorm(net), MXConfig()).quantize_weights()
+    name = "layer2.conv1"
+    lay = mx.layers[name]
+    ref = lay.mx.copy()
+    (ref.codes if site == "element" else ref.scales)[index] ^= np.uint8(mask)
+    want = torch.from_numpy(ref.decode()).reshape(lay.torch_shape)
+    clean = lay.module.weight.detach().clone()
+
+    with mx.word_fault(name, site, index, mask):
+        assert torch.equal(lay.module.weight, want)
+    assert torch.equal(lay.module.weight, clean)
+
+
+def test_single_bit_word_fault_equals_fault(net):
+    mx = MXModel(fold_batchnorm(net), MXConfig()).quantize_weights()
+    name, w = "layer1.conv1", mx.layers["layer1.conv1"].module.weight
+    with mx.fault(FaultSite(name, Fault("scale", (0, 0), 3))):
+        a = w.detach().clone()
+    with mx.word_fault(name, "scale", (0, 0), 1 << 3):
+        assert torch.equal(w, a)
+
+
+def test_word_fault_rejects_out_of_range_masks(net):
+    mx = MXModel(fold_batchnorm(net), MXConfig(fmt="e3m2")).quantize_weights()
+    for mask in (0, 1 << 6):
+        with pytest.raises(ValueError):
+            with mx.word_fault("layer1.conv1", "element", (0, 0, 0), mask):
+                pass
+
+
 def test_scale_msb_is_catastrophic(net, data):
     """Bit 7 of a shared scale moves the block past the float32 range."""
     mx = MXModel(fold_batchnorm(net), MXConfig()).quantize_weights()

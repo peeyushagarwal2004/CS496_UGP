@@ -143,34 +143,40 @@ class MXModel:
 
     # -------------------------------------------------------------- faults
     def _affected(self, lay: "_Layer", f: Fault):
-        """Which weights a fault touches, and their new decoded values.
+        """Which weights a single-bit fault touches, and their new values."""
+        return self._affected_mask(lay, f.site, f.index, 1 << f.bit)
+
+    def _affected_mask(self, lay: "_Layer", site: str, index: tuple, mask: int):
+        """Which weights an XOR `mask` on one word touches, and their new values.
 
         Returns ``(row, first_col, values)`` in the ``(out, reduction)`` view,
         or ``None`` when the fault lands on a padding lane that carries no
         model value.  An element fault yields one value, a scale fault yields
         the whole block -- which is exactly the blast-radius asymmetry the
-        study measures, here made explicit in the fast path.
+        study measures, here made explicit in the fast path.  A single-bit
+        fault is the mask ``1 << bit``; any other mask is a multi-bit upset
+        confined to that one word.
         """
         mx = lay.mx
         K = mx.block_size
         red = int(np.prod(lay.torch_shape[1:]))
         table = mx.fmt.table()
 
-        if f.site == "element":
-            row, blk, lane = f.index
+        if site == "element":
+            row, blk, lane = index
             col = blk * K + lane
             if col >= red:
                 return None
-            code = int(mx.codes[row, blk, lane]) ^ (1 << f.bit)
+            code = int(mx.codes[row, blk, lane]) ^ mask
             val = table[code] * decode_e8m0(mx.scales[row, blk])
             return row, col, np.asarray([val], dtype=np.float32)
 
-        row, blk = f.index
+        row, blk = index
         col0 = blk * K
         n = min(K, red - col0)
         if n <= 0:
             return None
-        byte = np.uint8(int(mx.scales[row, blk]) ^ (1 << f.bit))
+        byte = np.uint8(int(mx.scales[row, blk]) ^ mask)
         vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
         return row, col0, np.asarray(vals, dtype=np.float32)
 
@@ -180,7 +186,29 @@ class MXModel:
         if site.tensor not in self.layers:
             raise KeyError(f"{site.tensor!r} is not a quantised layer")
         lay = self.layers[site.tensor]
-        patch = self._affected(lay, site.fault)
+        with self._patched(lay, self._affected(lay, site.fault)):
+            yield
+
+    @contextmanager
+    def word_fault(self, tensor: str, site: str, index: tuple,
+                   mask: int) -> Iterator[None]:
+        """Flip every bit set in `mask` of one element code or scale byte.
+
+        The multi-bit counterpart of :meth:`fault`: all flipped bits land in
+        the same stored word, which is what a multi-bit upset in one memory
+        word does.
+        """
+        if tensor not in self.layers:
+            raise KeyError(f"{tensor!r} is not a quantised layer")
+        width = self.layers[tensor].mx.fmt.width if site == "element" else 8
+        if not 0 < mask < (1 << width):
+            raise ValueError(f"mask {mask:#x} out of range for a {width}-bit word")
+        lay = self.layers[tensor]
+        with self._patched(lay, self._affected_mask(lay, site, index, mask)):
+            yield
+
+    @contextmanager
+    def _patched(self, lay: "_Layer", patch) -> Iterator[None]:
         if patch is None:                      # padding lane: nothing to change
             yield
             return
