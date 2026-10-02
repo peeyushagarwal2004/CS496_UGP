@@ -1930,36 +1930,65 @@ $3.0\%$. Shrinking a block is mild; growing it is not.
 
 F67 located most of e4m3's element damage in one transition, into the NaN code, and
 noted a defence it implies: decode any special element code as zero on read, so that
-a fault which would have produced NaN merely zeroes one weight. E23 tests it. Every
-element fault that lands on a special code is found by enumeration; $1000$ of them
-are injected twice, unguarded and guarded, on the network that produced the e4m3
-exhaustive campaign. The guard changes nothing for any other fault, so its effect on
-the whole space follows from the exhaustive campaign without further injections.
+a fault which would have produced NaN merely zeroes one weight. E23 tests it on all
+three architectures: ResNet8-w16 (two networks, cluster train-seeds 0 and 9), and
+RepVGG-A0 and the ViT (three seeds each), under e4m3 and e5m2.
 
-## F68. Guarding the special codes removes the NaN pathway
+Every element fault that lands on a special code is found by enumeration, so its share
+$f$ of the element space is exact. $1000$ of them are injected twice, unguarded and
+guarded; $2000$ uniformly drawn *other* element faults are injected once, since the
+guard does not change them. The element per-inference rate is then
+$f\,\bar r_{\mathrm{special}} + (1-f)\,\bar r_{\mathrm{other}}$, guarded or not, with no
+reliance on an earlier campaign. Checked against the e4m3 exhaustive campaign of
+ResNet8 train-seed 9, this sampled estimate gives $0.016357 \to 0.003749$ against the
+exhaustive $0.016354 \to 0.003747$. Raw: `results/e23_*_nan_guard.csv`; summary
+`results/e23_nan_guard_summary.csv` (`python -m experiments.e23_nan_guard --summary`).
 
-| | e4m3 | e5m2 |
-|---|---|---|
-| element faults landing on a special code | $7{,}853$ ($1.27\%$) | $47{,}105$ ($7.61\%$) |
-| per-inference rate of those faults, unguarded | $1.000$ | $0.9997$ |
-| ... guarded | $0.0064$ ($156\times$ lower) | $0.0024$ ($425\times$ lower) |
-| non-finite outputs, unguarded / guarded | $100\%$ / $0\%$ | $100\%$ / $0\%$ |
+(An earlier version of this section used the laptop's `resnet8_w16`, which is cluster
+train-seed 9; its files have been replaced by the cluster runs, where `resnet8_w16`
+means train-seed 0. The train-seed 9 numbers are unchanged.)
 
-On e4m3, with the exhaustive campaign supplying the rest of the space, the guard lowers
-the element per-inference rate from $0.01635$ to $0.00375$ (**$4.4\times$**) and the
-rate over all weight faults, scale included, from $0.0236$ to $0.0113$ ($2.1\times$),
-leaving the scale as the dominant site by an even wider margin.
-No exhaustive campaign exists for e5m2, but E21's single-bit sample on the same network
-(train-seed 9 on the cluster, the laptop's `resnet8_w16`) gives the whole-space figure
-instead -- it reproduces the e4m3 result, $4.5\times$ against $4.4\times$. On e5m2,
-where $7.6\%$ of element faults land on a special code, the element per-inference rate
-falls from $0.0771$ to $0.0022$, **$36\times$**. With the guard, the three formats'
-element rates on this network are $0.0015$ (e3m2, nothing to guard), $0.0022$ (e5m2) and
-$0.0037$ (e4m3) -- within $2.5\times$ of one another, where unguarded e5m2 was $51\times$
-e3m2.
+## F68. Guarding the special codes removes nearly all element damage on the larger models
 
-This turns F18 and F58's design rule -- prefer element formats without NaN/Inf codes --
-into a choice rather than a constraint: a format that needs its exponent range can keep
-it and still remove the failure mode, at the cost of a comparator on the read path.
-A guarded special code still costs a weight (it reads as zero), which is why the guarded
-rate is not zero; it is the damage of an ordinary single-weight perturbation.
+Per network, the share of element faults that land on a special code, the share of
+element damage they carry, and what the guard does to the element per-inference rate.
+Because several guarded rates are zero or near it in the sample, the reduction is given
+as a lower bound: unguarded rate over a 95% upper bound on the guarded one (normal
+interval, or the rule of three where nothing was corrupted).
+
+| network | format | special faults | their share of damage | unguarded | guarded | reduction, at least |
+|---|---|---|---|---|---|---|
+| ResNet8 s0 | e4m3 | 1.29% | 92.8% | 0.0139 | 0.0010 | 10.7x |
+| ResNet8 s9 | e4m3 | 1.27% | 77.6% | 0.0164 | 0.0037 | 3.9x |
+| RepVGG-A0 s0/s1/s2 | e4m3 | 0.80% | 99.5--99.9% | 0.0080--0.0081 | 1.0--4.1e-5 | 115--389x |
+| ViT s0/s1/s2 | e4m3 | 1.12--1.13% | 97.1--99.5% | 0.0114--0.0115 | 0.6--3.4e-4 | 29--133x |
+| ResNet8 s0 | e5m2 | 7.67% | 98.7% | 0.0777 | 0.0011 | 53x |
+| ResNet8 s9 | e5m2 | 7.61% | 97.5% | 0.0781 | 0.0022 | 30x |
+| RepVGG-A0 s0/s1/s2 | e5m2 | 5.35--5.38% | 99.9--100% | 0.0535--0.0539 | 0.2--7.5e-5 | 319--4112x |
+| ViT s0/s1/s2 | e5m2 | 6.86--6.95% | 99.9--100% | 0.0686--0.0695 | 0--4.2e-5 | 43--2479x |
+
+Unguarded, a special-code fault corrupts $99.95$--$100\%$ of inferences; guarded,
+essentially none, on all sixteen networks and formats, and no guarded fault produced a
+non-finite output. Three things follow.
+
+**On the larger models the NaN pathway *is* the element vulnerability.** On RepVGG and
+the ViT, $97$--$100\%$ of all element damage in e4m3 and e5m2 comes from the $1$--$7\%$
+of faults that land on a special code. ResNet8 is the exception only in degree
+($78$--$99\%$), because a small network is also fragile to ordinary perturbations
+(F58's capacity effect), which the guard does not touch.
+
+**Guarded, the special-code formats fall to the level of the format without them.** For
+reference, E19's e3m2 element rates on the same architectures are $1.2$--$1.7\times10^{-5}$
+(RepVGG) and $0.7$--$5.8\times10^{-5}$ (ViT), from separate fault samples. Guarded e5m2
+lands in that range on both ($0.2$--$7.5\times10^{-5}$ and $0$--$4.2\times10^{-5}$), and
+guarded e4m3 within a small factor of it ($1.0$--$4.1\times10^{-5}$ and
+$0.6$--$3.4\times10^{-4}$). What remains of e4m3's gap is the perturbation sensitivity of
+F45, not its encoding. The format ordering e3m2 < e4m3 < e5m2 (F55) is therefore almost
+entirely a statement about special codes, and a guard removes most of it.
+
+**The design rule becomes a choice rather than a constraint.** F18 and F58 said: prefer
+element formats without NaN/Inf codes. A format that needs its exponent range can keep it
+and still remove the failure mode, at the cost of a comparator on the read path. A
+guarded special code still costs one weight (it reads as zero), which is why the
+guarded rate is not exactly zero; what is left is the damage of an ordinary
+single-weight perturbation.
