@@ -8,45 +8,96 @@ one 8-bit E8M0 scale:
 v[i] = decode(code[i]) * 2**(X - 127)
 ```
 
-This creates two structurally different fault sites — a **element** flip perturbs one
+This creates two structurally different fault sites — an **element** flip perturbs one
 value, a **shared-scale** flip rescales all *K*. Characterising that asymmetry is the
-point of the project. Working drafts are in [`papers/`](papers/).
+point of the project. The plan it follows is
+[`papers/Reliability-Aware-Microscaling-FI.pdf`](papers/Reliability-Aware-Microscaling-FI.pdf).
+
+**Results:** the report is [`docs/report.pdf`](docs/report.pdf) (5 pages). Every measured
+finding, with its numbers, caveats and later corrections, is in
+[`docs/findings.md`](docs/findings.md).
 
 ## Status
 
-| component | state |
+Complete for CIFAR-10. All five objectives of the plan (O1–O5) are answered, and both
+of its open design choices are settled empirically (E21, E22). The one part of the plan
+not carried out is DeiT on ImageNet: ImageNet is not available on any machine this
+project can reach.
+
+| covered | detail |
 |---|---|
-| `mxfi/formats.py` — MX element + E8M0 alphabets, exact per-code tables | done |
-| `mxfi/codec.py` — bit-addressable encode/decode, two scale rules | done |
-| `mxfi/faults.py` — two-site injection, exhaustive impact enumeration | done |
-| `mxfi/sampling.py` — uniform + stratified fault sampling, Neyman allocation | done |
-| `mxfi/stats.py` — Wilson / stratified estimators, injection-reduction metric | done |
-| `mxfi/torch_mx.py` — MX-quantised `Linear`/`Conv2d`, injectable fault sites | done |
-| `mxfi/models.py` — ResNet8 (78,042 params) + BN folding | done |
-| `mxfi/data.py` — CIFAR-10 loaders + fixed campaign subset | done |
-| `mxfi/train.py` — resumable CPU training | done |
-| `mxfi/campaign.py` — golden-vs-faulty runner, severity-annotated results | done |
-| trained ResNet8 checkpoint — **87.01%** top-1 | done |
-| RepVGG-A0 | next |
-| E00 quantised accuracy sweep, E01 uniform FI campaign | done |
-| exhaustive ResNet8 ground truth | feasible — see below |
+| models | ResNet8 (78k, 87.0%), RepVGG-A0 (7.0M, 91.4%, 3 seeds), a DeiT-Tiny-width ViT on CIFAR-10 (2.7M, 81.9%, 3 seeds), ResNet8 at 5 widths × 10 seeds |
+| formats | e4m3, e5m2 (MXFP8), e3m2, e2m3 (MXFP6), e2m1 (MXFP4); E8M0 scale |
+| block sizes | 8, 16, 32, 64; OCP scale rule and a non-clipping control |
+| tensors | weights and activations |
+| fault sites | element vs scale, every bit position, every layer; single- and double-bit; a NaN read guard |
+| ground truth | two exhaustive campaigns on ResNet8-w16 (483,904 and 638,624 faults) |
+| scale | 119 sampled campaigns, 1.44M recorded faults, all rescored per inference |
 
-194 tests, all passing. The core is **pure numpy** — only `mxfi.torch_mx`,
-`mxfi.models`, `mxfi.data`, `mxfi.train` and `mxfi.campaign` need torch.
+209 tests, all passing.
 
-## Measured throughput (this machine, 4 CPU threads)
+## Headline results
 
-| operation | cost |
+Quote **per-inference** rates — the fraction of evaluated inferences a fault corrupts.
+The conventional "any image changed" SDC rate measures whether the evaluation set
+happens to contain a near-tie image, and it hid the format effect entirely (F52).
+
+1. **Accuracy does not predict reliability.** Formats within 0.01 pp of each other in
+   accuracy differ by orders of magnitude in the inferences their faults corrupt. The
+   ordering e3m2 < e4m3 < e5m2 holds on 8 of 8 models (F55).
+2. **NaN/Inf codes are the dominant mechanism.** Only formats that own special codes
+   produce non-finite outputs, and model capacity absorbs perturbations but never a NaN:
+   over a 35× capacity range the format with no special codes improves 25×, the one with
+   eight not at all (F58). Prefer element formats without NaN/Inf codes — or guard them:
+   decoding special element codes as zero on read cuts element damage 4.4× (e4m3) and
+   36× (e5m2) on ResNet8 (F68).
+3. **Protect the shared scale first.** Scale faults outweigh element faults on every
+   model and format, per inference by 13× to ~1000× (F56).
+4. **Weights before activations**: 5–9× more damaging per inference (F43).
+5. **Sensitivity, not mantissa width**, predicts perturbation damage (ρ = +0.93, F59);
+   its cross-format spread is the margin of the hardest evaluation image (F48–F49).
+6. **The plan's severity metric fails** (AUC 0.435, scores the sign bit — the worst bit
+   for perturbation damage — as harmless; F39, F67);
+   `margin_shift` reaches AUC 0.990 (F39). Quantile-stratifying it cuts the injections
+   needed for a given precision **57–120×** (F61).
+7. **Single-bit injection is sufficient** (F62–F64): a double flip in one word does only
+   1.04–1.55× the damage of a single flip, and within-word doubles cannot matter at any
+   bit-error rate where single-fault injection is itself valid.
+8. **Enumerate, don't learn** (F65–F66): exact per-code enumeration of the decoded change
+   gives 48–65× variance reduction with no injections; TreeFI-style intervals learned
+   from a pilot do no better than uniform sampling.
+
+## Layout
+
+| path | contents |
 |---|---|
-| ResNet8 training | 82 s/epoch → ~90 min for 60 epochs |
-| campaign injection @100 images | 47 ms |
-| campaign injection @200 images | 89 ms |
+| `mxfi/` | the library: formats, codec, fault model, sampling, statistics, PyTorch wrapper, models, training, campaign runner |
+| `experiments/` | one script per experiment, `e00`–`e23`; each docstring states the question and the run command |
+| `tools/` | GPU patches, fast-injection verifier, and `verify_ground_truth` (checks a recorded campaign belongs to a checkpoint) |
+| `results/` | every campaign CSV and summary |
+| `docs/` | report, findings, figures |
+| `*.sh` | the long-running sweep drivers (laptop and cluster) |
 
-**Exhaustive ground truth is affordable.** The full MXFP8 weight bit space of ResNet8 is
-618,880 element bits + 19,744 scale bits = **638,624 faults** — about **16 h at 200
-images**, or 8 h at 100. MXFP4 halves it to 329,184 faults (~8 h). Both are overnight
-runs, so the statistical estimates can be validated against true exhaustive numbers
-rather than against a larger sample.
+The core (`formats`, `codec`, `faults`, `sampling`, `stats`) is **pure numpy**; only
+`torch_mx`, `models`, `vit`, `data`, `train` and `campaign` need torch.
+
+## Setup
+
+```bash
+.venv/Scripts/python.exe -m pytest tests/ -q
+```
+
+The venv is Python 3.13 with torch 2.14.0+cpu. GPU runs used an A100 cluster
+(Python 3.8, torch 2.1.2); apply `tools/device_support.py` and `tools/fast_inject.py`
+to a fresh checkout before running there.
+
+**Checkpoint provenance.** Training is not bit-reproducible across machines, so the same
+checkpoint name can hold different weights on two machines while agreeing on accuracy.
+Before using a recorded campaign as ground truth, check it against the checkpoint:
+
+```bash
+PYTHONPATH=. python -m tools.verify_ground_truth results/<campaign>.csv --fmt e3m2 --train-seed 0
+```
 
 ## Why BatchNorm is folded
 
@@ -55,59 +106,17 @@ corrupted convolution produced, partially masking the fault and understating dam
 Deployed MX accelerators fold BN, so an unfolded campaign would describe a network nobody
 ships. `fold_batchnorm` is exact to float32 roundoff (1.9e-8 on ResNet8).
 
-## Setup
-
-```bash
-.venv/Scripts/python.exe -m pytest tests/ -q
-```
-
-The venv is Python 3.13 with torch 2.14.0+cpu (the default `python` on this machine is
-3.14, which has no torch). **No CUDA GPU here** — CIFAR-scale models run locally;
-DeiT/ImageNet cells will need Colab, Kaggle, or a cluster.
-
 ## Supported formats
 
-| format | bits | exp/man | max normal | emax | headroom |
+| format | bits | exp/man | max normal | emax | special codes |
 |---|---|---|---|---|---|
-| `e4m3` (MXFP8) | 8 | 4/3 | 448 | 8 | 87.5% |
-| `e5m2` (MXFP8) | 8 | 5/2 | 57344 | 15 | 87.5% |
-| `e3m2` (MXFP6) | 6 | 3/2 | 28 | 4 | 87.5% |
-| `e2m3` (MXFP6) | 6 | 2/3 | 7.5 | 2 | 93.75% |
-| `e2m1` (MXFP4) | 4 | 2/1 | 6 | 2 | 75% |
+| `e4m3` (MXFP8) | 8 | 4/3 | 448 | 8 | NaN (2) |
+| `e5m2` (MXFP8) | 8 | 5/2 | 57344 | 15 | Inf, NaN (8) |
+| `e3m2` (MXFP6) | 6 | 3/2 | 28 | 4 | none |
+| `e2m3` (MXFP6) | 6 | 2/3 | 7.5 | 2 | none |
+| `e2m1` (MXFP4) | 4 | 2/1 | 6 | 2 | none |
 
 Shared scale is always E8M0 (bias 127, code 255 reserved for NaN).
-
-## Findings
-
-**Measured results are in [`docs/findings.md`](docs/findings.md)** — the core hypothesis
-confirmed (`e5m2` vs `e3m2`: 0.05 pp accuracy apart, 1.77x apart in fault vulnerability),
-the severity metric shown not to predict failure, and shared-scale faults measured at
-2-3x the element SDC rate with a 40x blast radius.
-
-### Representation-level findings
-
-**1. The drafts' severity metric is blind to the sign bit.** `d = |log v' − log v|` scores
-a sign flip as *zero* damage while the relative error is 2.0. Any value-aware risk score
-built on it would rank the sign bit as the safest in the word. `element_impact_table`
-reports `log_severity`, `rel_error` and an explicit `sign_flip` mask; the discrepancy is
-pinned by `test_sign_bit_is_invisible_to_the_log_severity_metric`. **The severity
-definition in §3 of both drafts needs fixing before any campaign runs.**
-
-**2. Matched-accuracy format pairs exist, and they differ structurally.** `e5m2` (8-bit)
-and `e3m2` (6-bit) give near-identical SQNR across Gaussian, heavy-tailed and outlier
-data — both have 2 mantissa bits, and block scaling makes the extra exponent range nearly
-useless. Same accuracy, different bit width and exponent/mantissa split, so necessarily
-different per-bit vulnerability. That is the cleanest test of the core hypothesis.
-
-**3. The OCP scale rule clips block maxima, unequally across formats.** The rule aligns
-the block max into `[2**emax, 2**(emax+1))`, but `max_normal` sits below the top of that
-binade, so the largest element saturates — up to 12.5% for e4m3/e5m2/e3m2, 6.25% for
-e2m3, **25% for e2m1**. A naive MXFP4-vs-MXFP8 comparison would partly measure clipping,
-not fault behaviour. Use `scale_mode="fit"` (provably non-clipping) as the control.
-
-**4. Catastrophic bits are identified exactly.** Scale **bit 7** shifts the exponent by
-128 — past the entire float32 range (`inf` logits on a real network). **8 of the 256**
-scale byte values flip into the reserved NaN code, NaN-ing a whole block.
 
 ## Quick start
 
@@ -122,19 +131,13 @@ inject(q, Fault("element", (0, 0, 0), 7)).decode()   # 1 value changes
 inject(q, Fault("scale",   (0, 0),    7)).decode()   # 32 values change
 ```
 
-## Scope (settled)
+On a network, `MXModel.fault(site)` applies one single-bit fault for the duration of a
+`with` block, and `MXModel.word_fault(tensor, site, index, mask)` applies any multi-bit
+XOR mask to one stored word.
 
-**The project is `papers/Reliability-Aware-Microscaling-FI.pdf`** — a reliability-analysis
-methodology characterising how element and shared-scale faults propagate through
-MX-quantised DNNs, and which representation characteristics drive vulnerability.
+## Scope
 
 `papers/MX-TreeFI.pdf` is **reference material only** — it frames the problem and records
-how TreeFI (ICCAD 2026) approaches FP32 statistical FI. TreeFI is prior work, not the
-method to reproduce. Value-aware stratified sampling appears here strictly as a
-*supporting tool* to keep the multi-axis campaign affordable; it is not a contribution.
-
-Remaining open questions (both empirical, both scoped as supporting-tool choices):
-
-- Learned value intervals vs exact per-code enumeration — the exact tables are already
-  built and cheap, which weakens the case for learned intervals.
-- Single-bit vs multi-bit (H-model) fault occurrence.
+how TreeFI (ICCAD 2026) approaches FP32 statistical FI. Value-aware stratified sampling
+appears here strictly as a *supporting tool* to keep the campaign affordable; it is not
+the contribution.
