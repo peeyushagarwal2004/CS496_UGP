@@ -1,0 +1,12 @@
+gate: orphan stalled 30 min
+gate opened 09-17 20:09
+########## SEED 1 START 09-1done: final 0.7888, best 0.7888
+model-wide SDC rate: 44.9333% [43.1610%, 46.7187%] (model-wide SDC rate: 72.8333% [71.2131%, 74.3951%] (95% CI, n=3model-wide SDC rate: 42.6667% [40.9073%, 44.4448%] (model-wide SDC rate: 42.6667% [40.9073%, 44.4448%] (95% CI, n=3model-wide SDC rate: 67.1000% [65.3978%, 68.7585%] (model-wide SDC rate: 67.1000% [65.3978%, 68.7585%] (95% CI, n=3000)
+[seed 1 w8 e3m2] campaign findone: final 0.8505, best 0.8518
+model-wide SDC rate: 21.2000% [19.7747%, 22.6989%] (model-wide SDC rate: 21.2000% [19.7747%, 22.6989%] (95% CI, n=30model-wide SDC rate: 12.9000% [11.7478%, 14.1471%] (model-wide SDC rate: 12.9000% [11.7478%, 14.1471%] (95% CI, n=30model-wide SDC rate: 17.8000% [16.4727%, 19.2097%] (model-wide SDC rate: 17.8000% [16.4727%, 19.2097%] (95% CI, n=3000)
+[seed 1 w16 e3m2] campaign findone: final 0.8695, best 0.8712
+model-wide SDC rate: 11.9667% [10.8536%, 13.1770%] (model-wide SDC rate: 11.9667% [10.8536%, 13.1770%] (95% CI, n=30model-wide SDC rate: 14.7000% [13.4780%, 16.0123%] (model-wide SDC rate: 14.7000% [13.4780%, 16.0123%] (95% CI, n=30model-wide SDC rate: 4.7000% [3.9989%, 5.5170%] (95%model-wide SDC rate: 4.7000% [3.9989%, 5.5170%] (95% CI, n=3000)
+[seed 1 w24 e3m2] campaign findone: final 0.8855, best 0.8855
+model-wide SDC rate: 11.7000% [10.5985%, 12.8995%] (model-wide SDC rate: 11.7000% [10.5985%, 12.8995%] (95% CI, n=30model-wide SDC rate: 2.6333% [2.1181%, 3.2697%] (95%model-wide SDC rate: 2.6333% [2.1181%, 3.2697%] (95% CI, n=30model-wide SDC rate: 4.5333% [3.8453%, 5.3377%] (95%model-wide SDC rate: 4.5333% [3.8453%, 5.3377%] (95% CI, n=3000)
+[seed 1 w32 e3m2] campaign finished 09-18 12:15
+[seed 1 w48] training 09-18 12:15

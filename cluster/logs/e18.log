@@ -1,0 +1,33 @@
+resnet8_w16: 8 disjoint folds of 200 images, 1500 element faults per format, the same list for every fold
+
+e3m2: 1500 element faults
+  fold 0: golden acc 0.8450, min margin 0.0070, SDC 0.2413 [0.2204, 0.2636]
+  fold 1: golden acc 0.7850, min margin 0.0413, SDC 0.1067 [0.0920, 0.1233]
+  fold 2: golden acc 0.8600, min margin 0.0586, SDC 0.0487 [0.0389, 0.0608]
+  fold 3: golden acc 0.8250, min margin 0.0024, SDC 0.4207 [0.3959, 0.4458]
+  fold 4: golden acc 0.8200, min margin 0.0387, SDC 0.1060 [0.0914, 0.1226]
+  fold 5: golden acc 0.8200, min margin 0.0248, SDC 0.1380 [0.1215, 0.1564]
+  fold 6: golden acc 0.8050, min margin 0.0075, SDC 0.2800 [0.2579, 0.3033]
+  fold 7: golden acc 0.8400, min margin 0.0855, SDC 0.0467 [0.0371, 0.0585]
+
+e4m3: 1500 element faults
+  fold 0: golden acc 0.8550, min margin 0.0168, SDC 0.2080 [0.1882, 0.2293]
+  fold 1: golden acc 0.8100, min margin 0.0194, SDC 0.1933 [0.1741, 0.2141]
+  fold 2: golden acc 0.8650, min margin 0.0517, SDC 0.1040 [0.0896, 0.1205]
+  fold 3: golden acc 0.8400, min margin 0.0111, SDC 0.2053 [0.1857, 0.2265]
+  fold 4: golden acc 0.8400, min margin 0.0170, SDC 0.1800 [0.1614, 0.2003]
+  fold 5: golden acc 0.8150, min margin 0.0193, SDC 0.1487 [0.1316, 0.1676]
+  fold 6: golden acc 0.8100, min margin 0.0279, SDC 0.1313 [0.1152, 0.1494]
+  fold 7: golden acc 0.8450, min margin 0.0710, SDC 0.0713 [0.0594, 0.0855]
+
+   fmt  mean SDC      min      max   spread  CI width  spread / CI
+  e3m2    0.1735   0.0467   0.4207   0.3740    0.0349       10.71x
+  e4m3    0.1552   0.0713   0.2080   0.1367    0.0360        3.80x
+
+the headline ratio, e4m3 over e3m2, recomputed per fold:
+  0.86x  1.81x  2.14x  0.49x  1.70x  1.08x  0.47x  1.53x
+  from 0.47x to 2.14x, median 1.30x
+  e3m2: fold SDC against 1/min margin, spearman +0.952 (n=8)
+  e4m3: fold SDC against 1/min margin, spearman +0.905 (n=8)
+
+wrote /data/rajeshr/peeyush/bitflip/results/e18_resnet8_w16_eval_set_sensitivity.csv

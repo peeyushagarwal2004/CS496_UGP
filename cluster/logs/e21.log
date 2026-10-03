@@ -1,0 +1,145 @@
+resnet8_w16 s0 | e3m2-K32-ocp-w | golden 0.7950 | 2000 words
+  100/2000 words, 2,100 injections, 142 inj/s
+  200/2000 words, 4,200 injections, 133 inj/s
+  300/2000 words, 6,300 injections, 129 inj/s
+  400/2000 words, 8,400 injections, 128 inj/s
+  500/2000 words, 10,500 injections, 127 inj/s
+  600/2000 words, 12,600 injections, 141 inj/s
+  700/2000 words, 14,700 injections, 146 inj/s
+  800/2000 words, 16,800 injections, 151 inj/s
+  900/2000 words, 18,900 injections, 155 inj/s
+  1000/2000 words, 21,000 injections, 157 inj/s
+  1100/2000 words, 23,100 injections, 159 inj/s
+  1200/2000 words, 25,200 injections, 161 inj/s
+  1300/2000 words, 27,300 injections, 162 inj/s
+  1400/2000 words, 29,400 injections, 163 inj/s
+  1500/2000 words, 31,500 injections, 165 inj/s
+  1600/2000 words, 35,100 injections, 166 inj/s
+  1700/2000 words, 38,700 injections, 168 inj/s
+  1800/2000 words, 42,300 injections, 176 inj/s
+  1900/2000 words, 45,900 injections, 187 inj/s
+  2000/2000 words, 49,500 injections, 198 inj/s
+/data/rajeshr/peeyush/bitflip/mxfi/torch_mx.py:180: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+wrote /data/rajeshr/peeyush/bitflip/results/e21_resnet8_w16_s0_e3m2-K32-ocp-w_multibit.csv
+resnet8_w16 s0 | e4m3-K32-ocp-w | golden 0.7900 | 2000 words
+  100/2000 words, 3,600 injections, 704 inj/s
+  200/2000 words, 7,200 injections, 680 inj/s
+  300/2000 words, 10,800 injections, 628 inj/s
+  400/2000 words, 14,400 injections, 605 inj/s
+  500/2000 words, 18,000 injections, 592 inj/s
+  600/2000 words, 21,600 injections, 583 inj/s
+  700/2000 words, 25,200 injections, 577 inj/s
+  800/2000 words, 28,800 injections, 573 inj/s
+  900/2000 words, 32,400 injections, 569 inj/s
+  1000/2000 words, 36,000 injections, 567 inj/s
+  1100/2000 words, 39,600 injections, 565 inj/s
+  1200/2000 words, 43,200 injections, 563 inj/s
+  1300/2000 words, 46,800 injections, 561 inj/s
+  1400/2000 words, 50,400 injections, 569 inj/s
+  1500/2000 words, 54,000 injections, 580 inj/s
+  1600/2000 words, 57,600 injections, 588 inj/s
+  1700/2000 words, 61,200 injections, 567 inj/s
+  1800/2000 words, 64,800 injections, 474 inj/s
+  1900/2000 words, 68,400 injections, 413 inj/s
+  2000/2000 words, 72,000 injections, 370 inj/s
+/data/rajeshr/peeyush/bitflip/mxfi/torch_mx.py:180: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+wrote /data/rajeshr/peeyush/bitflip/results/e21_resnet8_w16_s0_e4m3-K32-ocp-w_multibit.csv
+resnet8_w16 s0 | e5m2-K32-ocp-w | golden 0.7950 | 2000 words
+  100/2000 words, 3,600 injections, 124 inj/s
+  200/2000 words, 7,200 injections, 124 inj/s
+  300/2000 words, 10,800 injections, 124 inj/s
+  400/2000 words, 14,400 injections, 124 inj/s
+  500/2000 words, 18,000 injections, 145 inj/s
+  600/2000 words, 21,600 injections, 168 inj/s
+  700/2000 words, 25,200 injections, 189 inj/s
+  800/2000 words, 28,800 injections, 189 inj/s
+  900/2000 words, 32,400 injections, 177 inj/s
+  1000/2000 words, 36,000 injections, 168 inj/s
+  1100/2000 words, 39,600 injections, 153 inj/s
+  1200/2000 words, 43,200 injections, 136 inj/s
+  1300/2000 words, 46,800 injections, 125 inj/s
+  1400/2000 words, 50,400 injections, 117 inj/s
+  1500/2000 words, 54,000 injections, 111 inj/s
+  1600/2000 words, 57,600 injections, 110 inj/s
+  1700/2000 words, 61,200 injections, 111 inj/s
+  1800/2000 words, 64,800 injections, 107 inj/s
+  1900/2000 words, 68,400 injections, 104 inj/s
+  2000/2000 words, 72,000 injections, 105 inj/s
+/data/rajeshr/peeyush/bitflip/mxfi/torch_mx.py:180: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+wrote /data/rajeshr/peeyush/bitflip/results/e21_resnet8_w16_s0_e5m2-K32-ocp-w_multibit.csv
+resnet8_w16 s9 | e3m2-K32-ocp-w | golden 0.7800 | 2000 words
+  100/2000 words, 2,100 injections, 123 inj/s
+  200/2000 words, 4,200 injections, 123 inj/s
+  300/2000 words, 6,300 injections, 123 inj/s
+  400/2000 words, 8,400 injections, 123 inj/s
+  500/2000 words, 10,500 injections, 123 inj/s
+  600/2000 words, 12,600 injections, 123 inj/s
+  700/2000 words, 14,700 injections, 123 inj/s
+  800/2000 words, 16,800 injections, 123 inj/s
+  900/2000 words, 18,900 injections, 130 inj/s
+  1000/2000 words, 21,000 injections, 142 inj/s
+  1100/2000 words, 23,100 injections, 154 inj/s
+  1200/2000 words, 25,200 injections, 165 inj/s
+  1300/2000 words, 27,300 injections, 175 inj/s
+  1400/2000 words, 29,400 injections, 185 inj/s
+  1500/2000 words, 31,500 injections, 190 inj/s
+  1600/2000 words, 35,100 injections, 179 inj/s
+  1700/2000 words, 38,700 injections, 159 inj/s
+  1800/2000 words, 42,300 injections, 142 inj/s
+  1900/2000 words, 45,900 injections, 130 inj/s
+  2000/2000 words, 49,500 injections, 121 inj/s
+/data/rajeshr/peeyush/bitflip/mxfi/torch_mx.py:180: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+wrote /data/rajeshr/peeyush/bitflip/results/e21_resnet8_w16_s9_e3m2-K32-ocp-w_multibit.csv
+resnet8_w16 s9 | e4m3-K32-ocp-w | golden 0.8000 | 2000 words
+  100/2000 words, 3,600 injections, 65 inj/s
+  200/2000 words, 7,200 injections, 65 inj/s
+  300/2000 words, 10,800 injections, 65 inj/s
+  400/2000 words, 14,400 injections, 69 inj/s
+  500/2000 words, 18,000 injections, 84 inj/s
+  600/2000 words, 21,600 injections, 99 inj/s
+  700/2000 words, 25,200 injections, 97 inj/s
+  800/2000 words, 28,800 injections, 92 inj/s
+  900/2000 words, 32,400 injections, 88 inj/s
+  1000/2000 words, 36,000 injections, 85 inj/s
+  1100/2000 words, 39,600 injections, 83 inj/s
+  1200/2000 words, 43,200 injections, 81 inj/s
+  1300/2000 words, 46,800 injections, 80 inj/s
+  1400/2000 words, 50,400 injections, 79 inj/s
+  1500/2000 words, 54,000 injections, 79 inj/s
+  1600/2000 words, 57,600 injections, 79 inj/s
+  1700/2000 words, 61,200 injections, 79 inj/s
+  1800/2000 words, 64,800 injections, 78 inj/s
+  1900/2000 words, 68,400 injections, 78 inj/s
+  2000/2000 words, 72,000 injections, 77 inj/s
+/data/rajeshr/peeyush/bitflip/mxfi/torch_mx.py:180: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+wrote /data/rajeshr/peeyush/bitflip/results/e21_resnet8_w16_s9_e4m3-K32-ocp-w_multibit.csv
+resnet8_w16 s9 | e5m2-K32-ocp-w | golden 0.7800 | 2000 words
+  100/2000 words, 3,600 injections, 65 inj/s
+  200/2000 words, 7,200 injections, 65 inj/s
+  300/2000 words, 10,800 injections, 71 inj/s
+  400/2000 words, 14,400 injections, 69 inj/s
+  500/2000 words, 18,000 injections, 68 inj/s
+  600/2000 words, 21,600 injections, 67 inj/s
+  700/2000 words, 25,200 injections, 69 inj/s
+  800/2000 words, 28,800 injections, 69 inj/s
+  900/2000 words, 32,400 injections, 68 inj/s
+  1000/2000 words, 36,000 injections, 67 inj/s
+  1100/2000 words, 39,600 injections, 68 inj/s
+  1200/2000 words, 43,200 injections, 68 inj/s
+  1300/2000 words, 46,800 injections, 68 inj/s
+  1400/2000 words, 50,400 injections, 68 inj/s
+  1500/2000 words, 54,000 injections, 67 inj/s
+  1600/2000 words, 57,600 injections, 67 inj/s
+  1700/2000 words, 61,200 injections, 67 inj/s
+  1800/2000 words, 64,800 injections, 67 inj/s
+  1900/2000 words, 68,400 injections, 67 inj/s
+  2000/2000 words, 72,000 injections, 67 inj/s
+/data/rajeshr/peeyush/bitflip/mxfi/torch_mx.py:180: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+wrote /data/rajeshr/peeyush/bitflip/results/e21_resnet8_w16_s9_e5m2-K32-ocp-w_multibit.csv
+E21_DONE

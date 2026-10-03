@@ -1,0 +1,81 @@
+[repvgg_a0_c100 s0] already trained
+[repvgg_a0_c100 s1] already trained
+[repvgg_a0_c100 s2] already trained
+[resnet8_c100 s0] already trained
+[resnet8_c100 s1] training 10-02 20:15
+epoch   0  loss 3.9050  acc 0.1377  best 0.1377  9.0s
+epoch   5  loss 2.3322  acc 0.3161  best 0.3311  8.2s
+epoch  10  loss 1.9806  acc 0.4092  best 0.4092  8.1s
+epoch  15  loss 1.8141  acc 0.4556  best 0.4556  8.2s
+epoch  20  loss 1.7124  acc 0.4914  best 0.4914  8.3s
+epoch  25  loss 1.6214  acc 0.4434  best 0.4975  8.3s
+epoch  30  loss 1.5513  acc 0.5212  best 0.5212  8.2s
+epoch  35  loss 1.4846  acc 0.5361  best 0.5361  8.1s
+epoch  40  loss 1.4140  acc 0.5472  best 0.5555  8.3s
+epoch  45  loss 1.3457  acc 0.5577  best 0.5659  8.1s
+epoch  50  loss 1.2969  acc 0.5794  best 0.5794  8.2s
+epoch  55  loss 1.2593  acc 0.5835  best 0.5835  8.2s
+done: final 0.5802, best 0.5835
+[resnet8_c100_s1 e5m2] e01 10-02 20:24
+config e5m2-K32-ocp-w | subset 200 images | golden acc on subset 0.4900
+model-wide SDC rate: 56.9667% [55.1871%, 58.7284%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.9574 vs 0.5571 (1.7x)
+non-finite outputs: scale 17.02%, element 8.02%
+mean images corrupted per fault: scale 73.0, element 17.2 (of 200)
+[resnet8_c100_s1 e4m3] e01 10-02 20:24
+config e4m3-K32-ocp-w | subset 200 images | golden acc on subset 0.5850
+model-wide SDC rate: 40.1000% [38.3600%, 41.8654%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.9681 vs 0.3827 (2.5x)
+non-finite outputs: scale 17.02%, element 1.38%
+mean images corrupted per fault: scale 60.3, element 3.8 (of 200)
+[resnet8_c100_s1 e3m2] e01 10-02 20:25
+config e3m2-K32-ocp-w | subset 200 images | golden acc on subset 0.4950
+model-wide SDC rate: 32.3667% [30.7159%, 34.0625%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.9590 vs 0.2967 (3.2x)
+non-finite outputs: scale 18.85%, element 0.00%
+mean images corrupted per fault: scale 56.9, element 1.0 (of 200)
+resnet8_c100 s1 e4m3-K32-ocp-w: golden 0.5850
+element faults landing on a special code: 8,218 of 664,960 (1.236%)
+whole element space, sampled: 0.016507 -> 0.004284 (3.85x lower); special share of damage 74.9%
+resnet8_c100 s1 e5m2-K32-ocp-w: golden 0.4900
+element faults landing on a special code: 50,075 of 664,960 (7.531%)
+whole element space, sampled: 0.080037 -> 0.005362 (14.93x lower); special share of damage 94.1%
+[resnet8_c100 s2] training 10-02 20:26
+epoch   0  loss 3.9203  acc 0.1208  best 0.1208  8.6s
+epoch   5  loss 2.3587  acc 0.3500  best 0.3500  8.6s
+epoch  10  loss 1.9870  acc 0.4108  best 0.4108  8.1s
+epoch  15  loss 1.8218  acc 0.4319  best 0.4370  8.0s
+epoch  20  loss 1.7086  acc 0.4797  best 0.4855  8.1s
+epoch  25  loss 1.6288  acc 0.5103  best 0.5103  8.0s
+epoch  30  loss 1.5526  acc 0.5274  best 0.5274  7.9s
+epoch  35  loss 1.4836  acc 0.5156  best 0.5348  8.1s
+epoch  40  loss 1.4170  acc 0.5543  best 0.5543  8.1s
+epoch  45  loss 1.3554  acc 0.5683  best 0.5683  7.9s
+epoch  50  loss 1.2988  acc 0.5769  best 0.5769  8.0s
+epoch  55  loss 1.2650  acc 0.5788  best 0.5788  7.9s
+done: final 0.5791, best 0.5794
+[resnet8_c100_s2 e5m2] e01 10-02 20:35
+config e5m2-K32-ocp-w | subset 200 images | golden acc on subset 0.5650
+model-wide SDC rate: 41.8333% [40.0797%, 43.6078%] (95% CI, n=3000)
+scale-vs-element SDC rate: 1.0000 vs 0.3995 (2.5x)
+non-finite outputs: scale 17.02%, element 7.64%
+mean images corrupted per fault: scale 70.3, element 16.4 (of 200)
+[resnet8_c100_s2 e4m3] e01 10-02 20:35
+config e4m3-K32-ocp-w | subset 200 images | golden acc on subset 0.6000
+model-wide SDC rate: 28.1000% [26.5204%, 29.7357%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.9681 vs 0.2588 (3.7x)
+non-finite outputs: scale 17.02%, element 1.07%
+mean images corrupted per fault: scale 58.9, element 2.9 (of 200)
+[resnet8_c100_s2 e3m2] e01 10-02 20:36
+config e3m2-K32-ocp-w | subset 200 images | golden acc on subset 0.5650
+model-wide SDC rate: 41.5667% [39.8150%, 43.3399%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.9918 vs 0.3912 (2.5x)
+non-finite outputs: scale 18.85%, element 0.00%
+mean images corrupted per fault: scale 57.7, element 1.3 (of 200)
+resnet8_c100 s2 e4m3-K32-ocp-w: golden 0.6000
+element faults landing on a special code: 8,403 of 664,960 (1.264%)
+whole element space, sampled: 0.015256 -> 0.002705 (5.64x lower); special share of damage 82.8%
+resnet8_c100 s2 e5m2-K32-ocp-w: golden 0.5650
+element faults landing on a special code: 50,317 of 664,960 (7.567%)
+whole element space, sampled: 0.080624 -> 0.005632 (14.31x lower); special share of damage 93.8%
+LANE_B_DONE 10-02 20:37

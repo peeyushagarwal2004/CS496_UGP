@@ -1,23 +1,24 @@
-# virtualenv and caches
+# Everything the project produced is tracked: code, results, trained weights, the
+# CIFAR datasets, logs, and a mirror of the GPU cluster's outputs in cluster/.
+# Only regenerable environment and cache files are left out.
+
+# Python environment: its torch binaries exceed GitHub's 100 MB file limit and
+# are platform-specific. Recreate it from requirements.txt instead.
 .venv/
+
+# caches Python and pytest regenerate on every run
 __pycache__/
 *.pyc
+.pytest_cache/
 
-# CIFAR-10, re-downloadable
-data/
-
-# trained weights: large binaries, reproducible from mxfi.train + the logged seed.
-# the per-epoch accuracy logs ARE kept, since they are the training record.
-checkpoints/*.pt
-!checkpoints/*.log.json
-
-# run logs and the single-runner lock
-logs/*.log
-logs/sweep.lock
-logs/STOP*
-
-# LaTeX build products
+# LaTeX intermediate files (the built report.pdf is tracked)
 docs/*.aux
 docs/*.log
 docs/*.out
-docs/figures/*.png
+texput.log
+
+# live control files for the sweep runners: a committed STOP would halt every
+# rerun after a clone, and a lock would block it
+logs/STOP*
+logs/sweep.lock
+cluster/logs/STOP*

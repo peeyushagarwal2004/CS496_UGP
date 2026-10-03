@@ -1,0 +1,42 @@
+resnet8_w16: 8 disjoint folds of 200 images, 1500 element faults per format, the same list for every fold
+
+e3m2: 1500 element faults
+  fold 0: golden acc 0.7800, min margin 0.0096, SDC 0.1587 [0.1411, 0.1780]
+  fold 1: golden acc 0.8200, min margin 0.0089, SDC 0.2160 [0.1959, 0.2375]
+  fold 2: golden acc 0.7850, min margin 0.0094, SDC 0.3593 [0.3354, 0.3839]
+  fold 3: golden acc 0.8200, min margin 0.0110, SDC 0.2100 [0.1901, 0.2313]
+  fold 4: golden acc 0.8050, min margin 0.0333, SDC 0.1727 [0.1544, 0.1926]
+  fold 5: golden acc 0.8250, min margin 0.0340, SDC 0.1233 [0.1076, 0.1409]
+  fold 6: golden acc 0.8050, min margin 0.0071, SDC 0.3127 [0.2897, 0.3366]
+  fold 7: golden acc 0.7650, min margin 0.0243, SDC 0.1320 [0.1158, 0.1501]
+  fold 8: golden acc 0.7700, min margin 0.0091, SDC 0.2520 [0.2307, 0.2746]
+
+e4m3: 1500 element faults
+  fold 0: golden acc 0.8000, min margin 0.0022, SDC 0.4087 [0.3841, 0.4337]
+  fold 1: golden acc 0.8350, min margin 0.0017, SDC 0.3400 [0.3165, 0.3644]
+  fold 2: golden acc 0.8450, min margin 0.0294, SDC 0.1227 [0.1070, 0.1402]
+  fold 3: golden acc 0.8500, min margin 0.0334, SDC 0.1373 [0.1208, 0.1557]
+  fold 4: golden acc 0.8150, min margin 0.0289, SDC 0.1807 [0.1620, 0.2009]
+  fold 5: golden acc 0.8500, min margin 0.0145, SDC 0.2813 [0.2592, 0.3046]
+  fold 6: golden acc 0.8450, min margin 0.0237, SDC 0.1647 [0.1468, 0.1843]
+  fold 7: golden acc 0.8000, min margin 0.0204, SDC 0.1773 [0.1588, 0.1975]
+  fold 8: golden acc 0.8100, min margin 0.0085, SDC 0.1800 [0.1614, 0.2003]
+
+   fmt  mean SDC      min      max   spread  CI width  spread / CI
+  e3m2    0.2152   0.1233   0.3593   0.2360    0.0405        5.82x
+  e4m3    0.2214   0.1227   0.4087   0.2860    0.0406        7.05x
+
+the same folds under the per-inference rate, which unlike SDC does not grow with the size of the image set:
+   fmt      mean      min      max   max/min
+  e3m2   0.00202  0.00137  0.00327     2.38x
+  e4m3   0.01124  0.01037  0.01316     1.27x
+
+pooled over every fold: e3m2 SDC 0.2152 against e4m3 0.2214 (1.03x); per-inference 0.00202 against 0.01124 (5.57x)
+
+the headline ratio, e4m3 over e3m2, recomputed per fold:
+  2.58x  1.57x  0.34x  0.65x  1.05x  2.28x  0.53x  1.34x  0.71x
+  from 0.34x to 2.58x, median 1.05x
+  e3m2: fold SDC against 1/min margin, spearman +0.800 (n=9)
+  e4m3: fold SDC against 1/min margin, spearman +0.833 (n=9)
+
+wrote /data/rajeshr/peeyush/bitflip/results/e18_resnet8_w16_eval_set_sensitivity.csv

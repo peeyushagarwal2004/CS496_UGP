@@ -1,0 +1,149 @@
+########## SEED 1 START 09-18 20:38 ##########
+[seed 1 w8] already trained
+[seed 1 w8 e5m2] already done
+[seed 1 w8 e4m3] already done
+[seed 1 w8 e3m2] already done
+[seed 1 w16] already trained
+[seed 1 w16 e5m2] already done
+[seed 1 w16 e4m3] already done
+[seed 1 w16 e3m2] already done
+[seed 1 w24] already trained
+[seed 1 w24 e5m2] already done
+[seed 1 w24 e4m3] already done
+[seed 1 w24 e3m2] already done
+[seed 1 w32] already trained
+[seed 1 w32 e5m2] already done
+[seed 1 w32 e4m3] already done
+[seed 1 w32 e3m2] already done
+[seed 1 w48] training 09-18 20:39
+runner Windows PID 64200
+########## SEED 1 START 09-19 09:21 ##########
+[seed 1 w8] already trained
+[seed 1 w8 e5m2] already done
+[seed 1 w8 e4m3] already done
+[seed 1 w8 e3m2] already done
+[seed 1 w16] already trained
+[seed 1 w16 e5m2] already done
+[seed 1 w16 e4m3] already done
+[seed 1 w16 e3m2] already done
+[seed 1 w24] already trained
+[seed 1 w24 e5m2] already done
+[seed 1 w24 e4m3] already done
+[seed 1 w24 e3m2] already done
+[seed 1 w32] already trained
+[seed 1 w32 e5m2] already done
+[seed 1 w32 e4m3] already done
+[seed 1 w32 e3m2] already done
+[seed 1 w48] training 09-19 09:22
+done: final 0.9008, best 0.9008
+model-wide SDC rate: 8.4333% [7.4913%, 9.4817%] (95% CI, n=3000)
+[seed 1 w48 e5m2] campaign finished 09-19 16:39
+model-wide SDC rate: 9.3333% [8.3438%, 10.4269%] (95% CI, n=3000)
+[seed 1 w48 e4m3] campaign finished 09-19 17:04
+model-wide SDC rate: 1.6333% [1.2377%, 2.1527%] (95% CI, n=3000)
+[seed 1 w48 e3m2] campaign finished 09-19 17:25
+=== SEED 1 COMPLETE 09-19 17:25 ===
+########## SEED 2 START 09-19 17:25 ##########
+[seed 2 w8] training 09-19 17:25
+done: final 0.7954, best 0.7954
+model-wide SDC rate: 70.6667% [69.0119%, 72.2686%] (95% CI, n=3000)
+[seed 2 w8 e5m2] campaign finished 09-19 18:07
+model-wide SDC rate: 52.3000% [50.5109%, 54.0832%] (95% CI, n=3000)
+[seed 2 w8 e4m3] campaign finished 09-19 18:10
+model-wide SDC rate: 63.2333% [61.4920%, 64.9408%] (95% CI, n=3000)
+[seed 2 w8 e3m2] campaign finished 09-19 18:13
+[seed 2 w16] training 09-19 18:13
+done: final 0.8514, best 0.8514
+model-wide SDC rate: 26.1333% [24.5924%, 27.7354%] (95% CI, n=3000)
+[seed 2 w16 e5m2] campaign finished 09-19 19:24
+model-wide SDC rate: 12.7333% [11.5880%, 13.9740%] (95% CI, n=3000)
+[seed 2 w16 e4m3] campaign finished 09-19 19:30
+model-wide SDC rate: 22.8333% [21.3666%, 24.3696%] (95% CI, n=3000)
+[seed 2 w16 e3m2] campaign finished 09-19 19:35
+[seed 2 w24] training 09-19 19:35
+done: final 0.8736, best 0.8758
+model-wide SDC rate: 14.7333% [13.5101%, 16.0467%] (95% CI, n=3000)
+[seed 2 w24 e5m2] campaign finished 09-19 23:34
+model-wide SDC rate: 9.8667% [8.8503%, 10.9857%] (95% CI, n=3000)
+[seed 2 w24 e4m3] campaign finished 09-19 23:44
+model-wide SDC rate: 8.5667% [7.6174%, 9.6219%] (95% CI, n=3000)
+[seed 2 w24 e3m2] campaign finished 09-19 23:51
+[seed 2 w32] training 09-19 23:51
+done: final 0.8857, best 0.8861
+model-wide SDC rate: 16.5000% [15.2148%, 17.8709%] (95% CI, n=3000)
+[seed 2 w32 e5m2] campaign finished 09-20 01:37
+model-wide SDC rate: 15.7000% [14.4421%, 17.0456%] (95% CI, n=3000)
+[seed 2 w32 e4m3] campaign finished 09-20 01:46
+model-wide SDC rate: 9.4333% [8.4387%, 10.5318%] (95% CI, n=3000)
+[seed 2 w32 e3m2] campaign finished 09-20 01:55
+[seed 2 w48] training 09-20 01:55
+done: final 0.8997, best 0.9001
+model-wide SDC rate: 9.6333% [8.6286%, 10.7413%] (95% CI, n=3000)
+[seed 2 w48 e5m2] campaign finished 09-20 04:48
+model-wide SDC rate: 3.8000% [3.1728%, 4.5454%] (95% CI, n=3000)
+[seed 2 w48 e4m3] campaign finished 09-20 05:04
+model-wide SDC rate: 2.5333% [2.0288%, 3.1592%] (95% CI, n=3000)
+[seed 2 w48 e3m2] campaign finished 09-20 05:20
+=== SEED 2 COMPLETE 09-20 05:20 ===
+########## SEED 3 START 09-20 05:20 ##########
+[seed 3 w8] training 09-20 05:20
+done: final 0.7910, best 0.7914
+model-wide SDC rate: 62.6000% [60.8535%, 64.3143%] (95% CI, n=3000)
+[seed 3 w8 e5m2] campaign finished 09-20 05:48
+model-wide SDC rate: 33.7333% [32.0632%, 35.4450%] (95% CI, n=3000)
+[seed 3 w8 e4m3] campaign finished 09-20 05:50
+model-wide SDC rate: 70.0667% [68.4031%, 71.6789%] (95% CI, n=3000)
+[seed 3 w8 e3m2] campaign finished 09-20 05:52
+[seed 3 w16] training 09-20 05:52
+done: final 0.8511, best 0.8511
+model-wide SDC rate: 25.1667% [23.6462%, 26.7507%] (95% CI, n=3000)
+[seed 3 w16 e5m2] campaign finished 09-20 06:37
+model-wide SDC rate: 10.3333% [9.2943%, 11.4738%] (95% CI, n=3000)
+[seed 3 w16 e4m3] campaign finished 09-20 06:40
+model-wide SDC rate: 23.0000% [21.5292%, 24.5399%] (95% CI, n=3000)
+[seed 3 w16 e3m2] campaign finished 09-20 06:44
+[seed 3 w24] training 09-20 06:44
+done: final 0.8766, best 0.8774
+model-wide SDC rate: 15.2000% [13.9598%, 16.5292%] (95% CI, n=3000)
+[seed 3 w24 e5m2] campaign finished 09-20 08:07
+model-wide SDC rate: 8.4000% [7.4598%, 9.4466%] (95% CI, n=3000)
+[seed 3 w24 e4m3] campaign finished 09-20 08:13
+model-wide SDC rate: 9.1667% [8.1857%, 10.2521%] (95% CI, n=3000)
+[seed 3 w24 e3m2] campaign finished 09-20 08:19
+[seed 3 w32] training 09-20 08:19
+done: final 0.8884, best 0.8886
+model-wide SDC rate: 13.7667% [12.5800%, 15.0460%] (95% CI, n=3000)
+[seed 3 w32 e5m2] campaign finished 09-20 10:56
+model-wide SDC rate: 7.3667% [6.4854%, 8.3570%] (95% CI, n=3000)
+[seed 3 w32 e4m3] campaign finished 09-20 11:08
+model-wide SDC rate: 7.5667% [6.6736%, 8.5682%] (95% CI, n=3000)
+[seed 3 w32 e3m2] campaign finished 09-20 11:18
+[seed 3 w48] training 09-20 11:18
+done: final 0.8994, best 0.9002
+model-wide SDC rate: 40.8667% [39.1203%, 42.6364%] (95% CI, n=3000)
+[seed 3 w48 e5m2] campaign finished 09-20 15:40
+model-wide SDC rate: 6.5333% [5.7035%, 7.4744%] (95% CI, n=3000)
+[seed 3 w48 e4m3] campaign finished 09-20 17:26
+model-wide SDC rate: 24.2000% [22.7010%, 25.7650%] (95% CI, n=3000)
+[seed 3 w48 e3m2] campaign finished 09-20 17:48
+=== SEED 3 COMPLETE 09-20 17:49 ===
+########## SEED 4 START 09-20 17:49 ##########
+[seed 4 w8] training 09-20 17:49
+done: final 0.7925, best 0.7939
+model-wide SDC rate: 67.7333% [66.0387%, 69.3826%] (95% CI, n=3000)
+[seed 4 w8 e5m2] campaign finished 09-20 18:30
+model-wide SDC rate: 46.7667% [44.9865%, 48.5551%] (95% CI, n=3000)
+[seed 4 w8 e4m3] campaign finished 09-20 18:32
+model-wide SDC rate: 61.4333% [59.6780%, 63.1594%] (95% CI, n=3000)
+[seed 4 w8 e3m2] campaign finished 09-20 18:34
+[seed 4 w16] training 09-20 18:34
+done: final 0.8475, best 0.8484
+model-wide SDC rate: 24.0000% [22.5056%, 25.5609%] (95% CI, n=3000)
+[seed 4 w16 e5m2] campaign finished 09-20 20:39
+model-wide SDC rate: 17.4000% [16.0853%, 18.7981%] (95% CI, n=3000)
+[seed 4 w16 e4m3] campaign finished 09-21 11:22
+model-wide SDC rate: 18.3000% [16.9572%, 19.7239%] (95% CI, n=3000)
+[seed 4 w16 e3m2] campaign finished 09-21 11:28
+[seed 4 w24] training 09-21 11:28
+done: final 0.8500, best 0.8597
+STOP requested -- exiting cleanly 09-21 13:02

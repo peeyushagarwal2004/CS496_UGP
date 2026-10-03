@@ -1,0 +1,90 @@
+resuming: 3,000 of 638,624 already recorded
+resnet8_w16 seed 0 | e4m3-K32-ocp-w | device cuda | subset 200 images | golden 0.8000
+exhaustive fault space: 638,624 bits
+  23,000/638,624 (3.6%)  127.3 inj/s  ~1.34 h left
+  43,000/638,624 (6.7%)  125.1 inj/s  ~1.32 h left
+  63,000/638,624 (9.9%)  148.8 inj/s  ~1.07 h left
+  83,000/638,624 (13.0%)  144.8 inj/s  ~1.07 h left
+  103,000/638,624 (16.1%)  150.3 inj/s  ~0.99 h left
+  123,000/638,624 (19.3%)  163.2 inj/s  ~0.88 h left
+  143,000/638,624 (22.4%)  182.5 inj/s  ~0.75 h left
+  163,000/638,624 (25.5%)  199.0 inj/s  ~0.66 h left
+  183,000/638,624 (28.7%)  215.3 inj/s  ~0.59 h left
+  203,000/638,624 (31.8%)  203.6 inj/s  ~0.59 h left
+  223,000/638,624 (34.9%)  204.7 inj/s  ~0.56 h left
+  243,000/638,624 (38.1%)  194.3 inj/s  ~0.57 h left
+  263,000/638,624 (41.2%)  197.7 inj/s  ~0.53 h left
+  283,000/638,624 (44.3%)  190.7 inj/s  ~0.52 h left
+  303,000/638,624 (47.4%)  185.0 inj/s  ~0.50 h left
+  323,000/638,624 (50.6%)  179.5 inj/s  ~0.49 h left
+  343,000/638,624 (53.7%)  175.0 inj/s  ~0.47 h left
+  363,000/638,624 (56.8%)  171.0 inj/s  ~0.45 h left
+  383,000/638,624 (60.0%)  167.8 inj/s  ~0.42 h left
+  403,000/638,624 (63.1%)  164.8 inj/s  ~0.40 h left
+  423,000/638,624 (66.2%)  165.1 inj/s  ~0.36 h left
+  443,000/638,624 (69.4%)  166.1 inj/s  ~0.33 h left
+  463,000/638,624 (72.5%)  163.6 inj/s  ~0.30 h left
+  483,000/638,624 (75.6%)  162.0 inj/s  ~0.27 h left
+  503,000/638,624 (78.8%)  160.0 inj/s  ~0.24 h left
+  523,000/638,624 (81.9%)  158.3 inj/s  ~0.20 h left
+  543,000/638,624 (85.0%)  156.7 inj/s  ~0.17 h left
+  563,000/638,624 (88.2%)  155.3 inj/s  ~0.14 h left
+  583,000/638,624 (91.3%)  154.0 inj/s  ~0.10 h left
+  603,000/638,624 (94.4%)  156.3 inj/s  ~0.06 h left
+  623,000/638,624 (97.6%)  159.4 inj/s  ~0.03 h left
+/tmp/bitflip/mxfi/torch_mx.py:174: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+/tmp/bitflip/mxfi/torch_mx.py:174: RuntimeWarning: overflow encountered in multiply
+  vals = table[mx.codes[row, blk, :n]] * decode_e8m0(byte)
+
+=== EXHAUSTIVE TRUTH (638,624 injections, no sampling) ===
+model-wide SDC rate: 0.417114
+non-finite rate:     0.016110
+
+--- by site ---
+              n       sdc       imgs  nonfinite
+site                                           
+element  618880  0.400297   3.270838   0.012689
+scale     19744  0.944236  49.886902   0.123329
+
+--- by site x bit ---
+              size      mean
+site    bit                 
+element 0    77360  0.129666
+        1    77360  0.211505
+        2    77360  0.313870
+        3    77360  0.420928
+        4    77360  0.531786
+        5    77360  0.528193
+        6    77360  0.473785
+        7    77360  0.592645
+scale   0     2468  0.883306
+        1     2468  0.956645
+        2     2468  0.927877
+        3     2468  1.000000
+        4     2468  0.928687
+        5     2468  0.928687
+        6     2468  0.928687
+        7     2468  1.000000
+
+--- by layer ---
+                     size      mean
+tensor                             
+conv1                3584  0.852958
+layer2.shortcut.0    4352  0.726103
+layer1.conv2        19072  0.723521
+layer2.conv1        38144  0.667156
+layer1.conv1        19072  0.650168
+layer2.conv2        76032  0.559620
+fc                   5280  0.549811
+layer3.conv1       152064  0.447805
+layer3.shortcut.0   16896  0.410630
+layer3.conv2       304128  0.289450
+
+=== was the n=3000 sampled estimate right? ===
+  truth      0.417114
+  estimate   0.427000  95% CI [0.409404, 0.444783]
+  error      +0.009886 (2.37% relative)
+  CI covers the truth: YES
+
+wrote /tmp/bitflip/results/e06_resnet8_w16_e4m3-K32-ocp-w_exhaustive.csv

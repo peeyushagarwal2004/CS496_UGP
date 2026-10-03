@@ -1,0 +1,137 @@
+resnet8_w16 e3m2-K32-ocp-w: 483,904 faults, per-inference rate 0.008785
+ground-truth check: 1.000 of 200 replayed faults agree
+
+how much of the target each abstraction can see (spearman with truth):
+  exact |dv| / rms         +0.430
+  exact margin_shift       +0.526
+  oracle tree, value+layer +0.483
+  tree on a 600-fault pilot, value       +0.217 (sd 0.038 over 20 pilots)
+  tree on a 600-fault pilot, value+layer +0.280 (sd 0.062 over 20 pilots)
+
+variance ratio over uniform sampling (400 replays per cell)
+budget                                     500     1000    3000
+arm                                                            
+learned tree (value)                       0.33    0.36    0.98
+learned tree (value+layer)                 0.10    0.11    0.69
+learned tree (value+layer), pilot reused   1.06    1.06    1.22
+learned tree (value+layer), proportional   0.80    0.90    0.84
+oracle tree (value+layer)                 19.75   28.59   39.04
+oracle tree (value+layer), proportional   11.31    8.90    7.38
+exact |dv| enumeration                    47.78   48.01   55.05
+exact margin_shift                        98.82  127.04  114.16
+
+bias / truth at the largest budget
+arm
+learned tree (value)                        +0.0028
+learned tree (value+layer)                  -0.0236
+learned tree (value+layer), pilot reused    -0.0891
+learned tree (value+layer), proportional    -0.0031
+oracle tree (value+layer)                   -0.0033
+oracle tree (value+layer), proportional     +0.0023
+exact |dv| enumeration                      -0.0063
+exact margin_shift                          -0.0009
+
+wrote /data/rajeshr/peeyush/bitflip/results/e22_resnet8_w16_e3m2_learned_vs_exact.csv
+resnet8_w16 e4m3-K32-ocp-w: 638,624 faults, per-inference rate 0.023560
+ground-truth check: 1.000 of 200 replayed faults agree
+
+how much of the target each abstraction can see (spearman with truth):
+  exact |dv| / rms         +0.548
+  exact margin_shift       +0.699
+  oracle tree, value+layer +0.153
+  tree on a 600-fault pilot, value       +0.111 (sd 0.092 over 20 pilots)
+  tree on a 600-fault pilot, value+layer +0.175 (sd 0.111 over 20 pilots)
+
+variance ratio over uniform sampling (400 replays per cell)
+budget                                     500    1000   3000
+arm                                                          
+learned tree (value)                       0.18   0.14   0.25
+learned tree (value+layer)                 0.13   0.13   0.20
+learned tree (value+layer), pilot reused   0.43   0.31   0.41
+learned tree (value+layer), proportional   0.82   0.97   0.86
+oracle tree (value+layer)                  0.58   0.50   0.69
+oracle tree (value+layer), proportional    1.49   1.17   1.39
+exact |dv| enumeration                    64.96  64.67  59.75
+exact margin_shift                        73.85  82.63  73.92
+
+bias / truth at the largest budget
+arm
+learned tree (value)                        +0.0151
+learned tree (value+layer)                  +0.0200
+learned tree (value+layer), pilot reused    -0.1249
+learned tree (value+layer), proportional    -0.0081
+oracle tree (value+layer)                   -0.0359
+oracle tree (value+layer), proportional     -0.0010
+exact |dv| enumeration                      -0.0013
+exact margin_shift                          -0.0003
+
+wrote /data/rajeshr/peeyush/bitflip/results/e22_resnet8_w16_e4m3_learned_vs_exact.csv
+resnet8_w16 e3m2-K32-ocp-w: 483,904 faults, per-inference rate 0.008785
+ground-truth check: 1.000 of 200 replayed faults agree
+
+how much of the target each abstraction can see (spearman with truth):
+  exact |dv| / rms         +0.430
+  exact margin_shift       +0.526
+  oracle tree, value+layer +0.480
+  tree on a 600-fault pilot, value       +0.223 (sd 0.041 over 20 pilots)
+  tree on a 600-fault pilot, value+layer +0.319 (sd 0.044 over 20 pilots)
+
+variance ratio over uniform sampling (400 replays per cell)
+budget                                     500     1000    3000
+arm                                                            
+learned tree (value)                       0.33    0.34    0.92
+learned tree (value+layer)                 0.12    0.11    0.82
+learned tree (value+layer), pilot reused   0.95    1.09    1.37
+learned tree (value+layer), proportional   0.79    0.98    0.85
+oracle tree (value+layer)                 53.06   81.27  101.62
+oracle tree (value+layer), proportional   10.13    8.98    7.20
+exact |dv| enumeration                    47.78   48.01   55.05
+exact margin_shift                        98.82  127.04  114.16
+
+bias / truth at the largest budget
+arm
+learned tree (value)                        +0.0102
+learned tree (value+layer)                  -0.0167
+learned tree (value+layer), pilot reused    -0.0867
+learned tree (value+layer), proportional    -0.0007
+oracle tree (value+layer)                   -0.0059
+oracle tree (value+layer), proportional     +0.0027
+exact |dv| enumeration                      -0.0063
+exact margin_shift                          -0.0009
+
+wrote /data/rajeshr/peeyush/bitflip/results/e22_resnet8_w16_e3m2_learned_vs_exact_leaves16.csv
+resnet8_w16 e4m3-K32-ocp-w: 638,624 faults, per-inference rate 0.023560
+ground-truth check: 1.000 of 200 replayed faults agree
+
+how much of the target each abstraction can see (spearman with truth):
+  exact |dv| / rms         +0.548
+  exact margin_shift       +0.699
+  oracle tree, value+layer +0.346
+  tree on a 600-fault pilot, value       +0.221 (sd 0.063 over 20 pilots)
+  tree on a 600-fault pilot, value+layer +0.326 (sd 0.078 over 20 pilots)
+
+variance ratio over uniform sampling (400 replays per cell)
+budget                                     500    1000   3000
+arm                                                          
+learned tree (value)                       0.19   0.18   0.19
+learned tree (value+layer)                 0.15   0.17   0.18
+learned tree (value+layer), pilot reused   0.39   0.28   0.27
+learned tree (value+layer), proportional   0.94   0.82   0.87
+oracle tree (value+layer)                  0.67   0.61   0.65
+oracle tree (value+layer), proportional    1.51   1.29   1.45
+exact |dv| enumeration                    64.96  64.67  59.75
+exact margin_shift                        73.85  82.63  73.92
+
+bias / truth at the largest budget
+arm
+learned tree (value)                        -0.0042
+learned tree (value+layer)                  -0.0132
+learned tree (value+layer), pilot reused    -0.1837
+learned tree (value+layer), proportional    +0.0076
+oracle tree (value+layer)                   -0.0575
+oracle tree (value+layer), proportional     -0.0026
+exact |dv| enumeration                      -0.0013
+exact margin_shift                          -0.0003
+
+wrote /data/rajeshr/peeyush/bitflip/results/e22_resnet8_w16_e4m3_learned_vs_exact_leaves16.csv
+E22_DONE

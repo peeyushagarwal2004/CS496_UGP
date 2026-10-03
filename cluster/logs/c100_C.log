@@ -1,0 +1,36 @@
+[vit_small] e04 e5m2 10-02 20:15
+overall: 5.0000% [4.3667%, 5.7196%] (95% CI, n=4000)
+  element  n= 3870  0.0486 [0.0422, 0.0558]  nonfinite 4.73%
+  scale    n=  130  0.0923 [0.0536, 0.1544]  nonfinite 7.69%
+--- by bit (element site) ---
+element          0.0658       0.0486      1.4x
+scale            0.1437       0.0923      1.6x
+[repvgg_a0] e04 e5m2 10-02 20:37
+overall: 4.1750% [3.5979%, 4.8401%] (95% CI, n=4000)
+  element  n= 3868  0.0377 [0.0322, 0.0442]  nonfinite 3.57%
+  scale    n=  132  0.1591 [0.1065, 0.2310]  nonfinite 7.58%
+--- by bit (element site) ---
+element          0.0549       0.0377      1.5x
+scale            0.1989       0.1591      1.3x
+[vit_small_c100] e04 e5m2 10-02 20:57
+overall: 10.0250% [9.1323%, 10.9944%] (95% CI, n=4000)
+  element  n= 3870  0.0997 [0.0907, 0.1096]  nonfinite 6.05%
+  scale    n=  130  0.1154 [0.0712, 0.1817]  nonfinite 7.69%
+--- by bit (element site) ---
+element          0.0856       0.0997      0.9x
+scale            0.1274       0.1154      1.1x
+[repvgg_a0_c100] e04 e5m2 10-02 21:21
+overall: 6.6500% [5.9187%, 7.4645%] (95% CI, n=4000)
+  element  n= 3868  0.0600 [0.0529, 0.0679]  nonfinite 3.77%
+  scale    n=  132  0.2576 [0.1906, 0.3383]  nonfinite 6.82%
+--- by bit (element site) ---
+element          0.0565       0.0600      0.9x
+scale            0.2221       0.2576      0.9x
+[resnet8_c100] e04 e5m2 10-02 21:41
+overall: 7.3250% [6.5579%, 8.1740%] (95% CI, n=4000)
+  element  n= 3759  0.0612 [0.0540, 0.0693]  nonfinite 4.18%
+  scale    n=  241  0.2614 [0.2100, 0.3203]  nonfinite 10.79%
+--- by bit (element site) ---
+element          0.0782       0.0612      1.3x
+scale            0.3491       0.2614      1.3x
+LANE_C_DONE 10-02 21:51

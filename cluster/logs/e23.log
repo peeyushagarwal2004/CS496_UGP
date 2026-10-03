@@ -1,0 +1,194 @@
+resnet8_w16 s0 e4m3-K32-ocp-w: golden 0.7900
+element faults landing on a special code: 8,001 of 618,880 (1.293%)
+  by bit: {0: 952, 1: 704, 2: 1393, 3: 1898, 4: 2228, 5: 775, 6: 51}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.003265 (306x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.001010, non-finite 0.0000
+whole element space, sampled: 0.013925 -> 0.001039 (13.40x lower); special share of damage 92.8%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_resnet8_w16_e4m3-K32-ocp-w_nan_guard.csv
+resnet8_w16 s9 e4m3-K32-ocp-w: golden 0.8000
+element faults landing on a special code: 7,853 of 618,880 (1.269%)
+  by bit: {0: 910, 1: 687, 2: 1346, 3: 1849, 4: 2196, 5: 817, 6: 48}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.006420 (156x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.003715, non-finite 0.0000
+whole element space, sampled: 0.016357 -> 0.003749 (4.36x lower); special share of damage 77.6%
+whole element space, exhaustive: 0.016354 -> 0.003747 (4.37x lower)
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_resnet8_w16_s9_e4m3-K32-ocp-w_nan_guard.csv
+repvgg_a0 s0 e4m3-K32-ocp-w: golden 0.9050
+element faults landing on a special code: 454,140 of 56,293,504 (0.807%)
+  by bit: {0: 62026, 1: 34155, 2: 51692, 3: 42734, 4: 103119, 5: 146117, 6: 14297}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000055 (18,182x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000025, non-finite 0.0000
+whole element space, sampled: 0.008092 -> 0.000025 (320.58x lower); special share of damage 99.7%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_repvgg_a0_e4m3-K32-ocp-w_nan_guard.csv
+vit_small s0 e4m3-K32-ocp-w: golden 0.8550
+element faults landing on a special code: 241,724 of 21,322,752 (1.134%)
+  by bit: {0: 26522, 1: 19326, 2: 38429, 3: 54469, 4: 68383, 5: 31433, 6: 3162}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000340 (2,941x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000128, non-finite 0.0000
+whole element space, sampled: 0.011462 -> 0.000130 (88.23x lower); special share of damage 98.9%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_vit_small_e4m3-K32-ocp-w_nan_guard.csv
+repvgg_a0 s1 e4m3-K32-ocp-w: golden 0.9100
+element faults landing on a special code: 449,867 of 56,293,504 (0.799%)
+  by bit: {0: 61621, 1: 33638, 2: 50995, 3: 40842, 4: 99643, 5: 148428, 6: 14700}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000065 (15,385x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000010, non-finite 0.0000
+whole element space, sampled: 0.008001 -> 0.000010 (766.45x lower); special share of damage 99.9%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_repvgg_a0_s1_e4m3-K32-ocp-w_nan_guard.csv
+vit_small s1 e4m3-K32-ocp-w: golden 0.8250
+element faults landing on a special code: 238,284 of 21,322,752 (1.118%)
+  by bit: {0: 26421, 1: 19371, 2: 37858, 3: 52705, 4: 66952, 5: 31843, 6: 3134}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000785 (1,274x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000333, non-finite 0.0000
+whole element space, sampled: 0.011504 -> 0.000338 (34.08x lower); special share of damage 97.1%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_vit_small_s1_e4m3-K32-ocp-w_nan_guard.csv
+repvgg_a0 s2 e4m3-K32-ocp-w: golden 0.9200
+element faults landing on a special code: 452,647 of 56,293,504 (0.804%)
+  by bit: {0: 61872, 1: 34191, 2: 51253, 3: 41570, 4: 101698, 5: 147475, 6: 14588}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000135 (7,407x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000040, non-finite 0.0000
+whole element space, sampled: 0.008081 -> 0.000041 (198.23x lower); special share of damage 99.5%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_repvgg_a0_s2_e4m3-K32-ocp-w_nan_guard.csv
+vit_small s2 e4m3-K32-ocp-w: golden 0.8100
+element faults landing on a special code: 240,937 of 21,322,752 (1.130%)
+  by bit: {0: 26810, 1: 19242, 2: 38424, 3: 54228, 4: 67814, 5: 31241, 6: 3178}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000160 (6,250x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000060, non-finite 0.0000
+whole element space, sampled: 0.011359 -> 0.000061 (185.81x lower); special share of damage 99.5%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_vit_small_s2_e4m3-K32-ocp-w_nan_guard.csv
+resnet8_w16 s0 e5m2-K32-ocp-w: golden 0.7950
+element faults landing on a special code: 47,499 of 618,880 (7.675%)
+  by bit: {2: 12305, 3: 23123, 4: 11333, 5: 736, 6: 2}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.002020 (495x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.001055, non-finite 0.0000
+whole element space, sampled: 0.077721 -> 0.001129 (68.84x lower); special share of damage 98.7%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_resnet8_w16_e5m2-K32-ocp-w_nan_guard.csv
+resnet8_w16 s9 e5m2-K32-ocp-w: golden 0.7800
+element faults landing on a special code: 47,105 of 618,880 (7.611%)
+  by bit: {2: 12016, 3: 23056, 4: 11308, 5: 718, 6: 7}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  0.9998 -> 0.002350 (425x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.002142, non-finite 0.0000
+whole element space, sampled: 0.078079 -> 0.002158 (36.18x lower); special share of damage 97.5%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_resnet8_w16_s9_e5m2-K32-ocp-w_nan_guard.csv
+repvgg_a0 s0 e5m2-K32-ocp-w: golden 0.8900
+element faults landing on a special code: 3,029,638 of 56,293,504 (5.382%)
+  by bit: {2: 431373, 3: 727568, 4: 1659929, 5: 209907, 6: 861}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  0.9995 -> 0.000110 (9,086x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000073, non-finite 0.0000
+whole element space, sampled: 0.053858 -> 0.000075 (722.76x lower); special share of damage 99.9%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_repvgg_a0_e5m2-K32-ocp-w_nan_guard.csv
+vit_small s0 e5m2-K32-ocp-w: golden 0.8450
+element faults landing on a special code: 1,480,883 of 21,322,752 (6.945%)
+  by bit: {2: 342408, 3: 687000, 4: 404954, 5: 46333, 6: 188}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000000 (1,000,000,000x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000000, non-finite 0.0000
+whole element space, sampled: 0.069451 -> 0.000000 (69450838240.77x lower); special share of damage 100.0%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_vit_small_e5m2-K32-ocp-w_nan_guard.csv
+repvgg_a0 s1 e5m2-K32-ocp-w: golden 0.9050
+element faults landing on a special code: 3,009,013 of 56,293,504 (5.345%)
+  by bit: {2: 423472, 3: 701275, 4: 1669605, 5: 213748, 6: 913}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  0.9999 -> 0.000015 (66,659x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000005, non-finite 0.0000
+whole element space, sampled: 0.053451 -> 0.000006 (9657.76x lower); special share of damage 100.0%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_repvgg_a0_s1_e5m2-K32-ocp-w_nan_guard.csv
+vit_small s1 e5m2-K32-ocp-w: golden 0.8300
+element faults landing on a special code: 1,463,274 of 21,322,752 (6.863%)
+  by bit: {2: 335569, 3: 669333, 4: 409409, 5: 48734, 6: 229}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000025 (40,000x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000010, non-finite 0.0000
+whole element space, sampled: 0.068634 -> 0.000011 (6222.87x lower); special share of damage 100.0%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_vit_small_s1_e5m2-K32-ocp-w_nan_guard.csv
+repvgg_a0 s2 e5m2-K32-ocp-w: golden 0.9150
+element faults landing on a special code: 3,019,501 of 56,293,504 (5.364%)
+  by bit: {2: 424997, 3: 707957, 4: 1673392, 5: 212297, 6: 858}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  0.9996 -> 0.000000 (999,630,000x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000003, non-finite 0.0000
+whole element space, sampled: 0.053621 -> 0.000002 (22664.09x lower); special share of damage 100.0%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_repvgg_a0_s2_e5m2-K32-ocp-w_nan_guard.csv
+vit_small s2 e5m2-K32-ocp-w: golden 0.8100
+element faults landing on a special code: 1,471,881 of 21,322,752 (6.903%)
+  by bit: {2: 341796, 3: 679008, 4: 402542, 5: 48369, 6: 166}
+
+1000 special-code faults injected, unguarded vs guarded:
+  per-inference rate  1.0000 -> 0.000075 (13,333x lower)
+  non-finite output   1.0000 -> 0.0000
+
+2000 other element faults: rate 0.000040, non-finite 0.0000
+whole element space, sampled: 0.069066 -> 0.000042 (1628.30x lower); special share of damage 99.9%
+
+wrote /data/rajeshr/peeyush/bitflip/results/e23_vit_small_s2_e5m2-K32-ocp-w_nan_guard.csv
+E23_DONE

@@ -1,0 +1,189 @@
+[vit_small_c100 s0] training 10-02 13:37
+epoch   0  loss 4.1173  acc 0.1153  best 0.1153  27.1s
+epoch   5  loss 3.2440  acc 0.2779  best 0.2779  26.5s
+epoch  10  loss 2.8232  acc 0.3500  best 0.3500  26.4s
+epoch  15  loss 2.4446  acc 0.4162  best 0.4162  26.3s
+epoch  20  loss 2.0649  acc 0.4309  best 0.4354  26.3s
+epoch  25  loss 1.6655  acc 0.4447  best 0.4453  26.3s
+epoch  30  loss 1.3764  acc 0.4431  best 0.4500  26.2s
+epoch  35  loss 1.1915  acc 0.4538  best 0.4538  26.5s
+epoch  40  loss 1.0850  acc 0.4522  best 0.4597  26.3s
+epoch  45  loss 1.0038  acc 0.4607  best 0.4607  26.2s
+epoch  50  loss 0.9556  acc 0.4664  best 0.4664  26.3s
+epoch  55  loss 0.9169  acc 0.4675  best 0.4678  26.3s
+epoch  60  loss 0.8819  acc 0.4698  best 0.4748  26.2s
+epoch  65  loss 0.8549  acc 0.4729  best 0.4748  25.9s
+epoch  70  loss 0.8339  acc 0.4815  best 0.4815  26.4s
+epoch  75  loss 0.8209  acc 0.4774  best 0.4815  26.3s
+epoch  80  loss 0.8106  acc 0.4814  best 0.4815  26.3s
+epoch  85  loss 0.8039  acc 0.4825  best 0.4830  26.8s
+epoch  90  loss 0.8003  acc 0.4809  best 0.4836  26.9s
+epoch  95  loss 0.7985  acc 0.4809  best 0.4836  26.9s
+done: final 0.4819, best 0.4836
+checkpoint: epoch 99, fp32 test acc 0.4819
+fp32 (BN-folded) accuracy: 0.4819
+  e4m3  8b K=32 ocp  -> 0.4809 (+0.0010)
+  e5m2  8b K=32 ocp  -> 0.4808 (+0.0011)
+  e3m2  6b K=32 ocp  -> 0.4809 (+0.0010)
+  e2m3  6b K=32 ocp  -> 0.4809 (+0.0010)
+  e2m1  4b K=32 ocp  -> 0.4687 (+0.0132)
+fp32 baseline 0.4819   wrote /data/rajeshr/peeyush/bitflip/results/e00_vit_small_c100_quantized_accuracy.csv
+[vit_small_c100 e5m2] e01 10-02 14:22
+config e5m2-K32-ocp-w | subset 200 images | golden acc on subset 0.5050
+model-wide SDC rate: 17.4333% [16.1176%, 18.8324%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.6200 vs 0.1590 (3.9x)
+non-finite outputs: scale 6.00%, element 8.52%
+mean images corrupted per fault: scale 25.5, element 17.1 (of 200)
+[vit_small_c100 e4m3] e01 10-02 14:24
+config e4m3-K32-ocp-w | subset 200 images | golden acc on subset 0.4700
+model-wide SDC rate: 9.8667% [8.8503%, 10.9857%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.7100 vs 0.0776 (9.2x)
+non-finite outputs: scale 6.00%, element 0.93%
+mean images corrupted per fault: scale 23.0, element 1.9 (of 200)
+[vit_small_c100 e3m2] e01 10-02 14:26
+config e3m2-K32-ocp-w | subset 200 images | golden acc on subset 0.5050
+model-wide SDC rate: 7.0667% [6.2035%, 8.0397%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.6014 vs 0.0451 (13.3x)
+non-finite outputs: scale 10.87%, element 0.00%
+mean images corrupted per fault: scale 25.1, element 0.1 (of 200)
+[vit_small_c100 e2m3] e01 10-02 14:28
+config e2m3-K32-ocp-w | subset 200 images | golden acc on subset 0.4800
+model-wide SDC rate: 5.3000% [4.5540%, 6.1604%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.5145 vs 0.0307 (16.7x)
+non-finite outputs: scale 10.87%, element 0.00%
+mean images corrupted per fault: scale 23.8, element 0.0 (of 200)
+[vit_small_c100 e2m1] e01 10-02 14:30
+config e2m1-K32-ocp-w | subset 200 images | golden acc on subset 0.5000
+model-wide SDC rate: 4.7667% [4.0604%, 5.5886%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.4516 vs 0.0210 (21.5x)
+non-finite outputs: scale 10.75%, element 0.00%
+mean images corrupted per fault: scale 22.7, element 0.0 (of 200)
+vit_small_c100 s0 e4m3-K32-ocp-w: golden 0.4700
+element faults landing on a special code: 258,327 of 21,460,992 (1.204%)
+whole element space, sampled: 0.012427 -> 0.000401 (31.01x lower); special share of damage 96.9%
+vit_small_c100 s0 e5m2-K32-ocp-w: golden 0.5050
+element faults landing on a special code: 1,575,898 of 21,460,992 (7.343%)
+whole element space, sampled: 0.073769 -> 0.000375 (196.76x lower); special share of damage 99.5%
+activation fault space (per inference): 4,358,672 bits
+weight fault space (whole model):       22,132,416 bits
+site             weight   activation   ratio
+(weight = mean fraction of the 200-image subset whose prediction changed;
+ activation = fraction of injections that changed their own inference)
+wrote /data/rajeshr/peeyush/bitflip/results/e04_vit_small_c100_activations_e4m3-K32-ocp-wa.csv
+[vit_small_c100 s1] training 10-02 14:41
+epoch   0  loss 4.1317  acc 0.1158  best 0.1158  27.2s
+epoch   5  loss 3.2722  acc 0.2756  best 0.2756  26.6s
+epoch  10  loss 2.9057  acc 0.3409  best 0.3409  26.7s
+epoch  15  loss 2.5613  acc 0.3857  best 0.3857  26.7s
+epoch  20  loss 2.2147  acc 0.4189  best 0.4189  26.7s
+epoch  25  loss 1.8426  acc 0.4369  best 0.4383  26.7s
+epoch  30  loss 1.5224  acc 0.4296  best 0.4414  26.8s
+epoch  35  loss 1.3052  acc 0.4515  best 0.4515  26.5s
+epoch  40  loss 1.1574  acc 0.4417  best 0.4515  26.8s
+epoch  45  loss 1.0705  acc 0.4528  best 0.4528  26.7s
+epoch  50  loss 1.0012  acc 0.4555  best 0.4585  26.7s
+epoch  55  loss 0.9518  acc 0.4579  best 0.4614  26.7s
+epoch  60  loss 0.9147  acc 0.4597  best 0.4634  27.0s
+epoch  65  loss 0.8791  acc 0.4642  best 0.4642  26.8s
+epoch  70  loss 0.8552  acc 0.4661  best 0.4661  26.8s
+epoch  75  loss 0.8386  acc 0.4668  best 0.4687  26.9s
+epoch  80  loss 0.8260  acc 0.4631  best 0.4687  26.7s
+epoch  85  loss 0.8170  acc 0.4691  best 0.4694  27.0s
+epoch  90  loss 0.8122  acc 0.4680  best 0.4694  26.8s
+epoch  95  loss 0.8099  acc 0.4688  best 0.4694  26.8s
+done: final 0.4699, best 0.4699
+[vit_small_c100_s1 e5m2] e01 10-02 15:26
+config e5m2-K32-ocp-w | subset 200 images | golden acc on subset 0.4550
+model-wide SDC rate: 25.3667% [23.8419%, 26.9545%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.7800 vs 0.2355 (3.3x)
+non-finite outputs: scale 6.00%, element 6.76%
+mean images corrupted per fault: scale 26.8, element 13.7 (of 200)
+[vit_small_c100_s1 e4m3] e01 10-02 15:28
+config e4m3-K32-ocp-w | subset 200 images | golden acc on subset 0.4350
+model-wide SDC rate: 6.7000% [5.8596%, 7.6512%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.6700 vs 0.0462 (14.5x)
+non-finite outputs: scale 6.00%, element 1.03%
+mean images corrupted per fault: scale 19.2, element 2.1 (of 200)
+[vit_small_c100_s1 e3m2] e01 10-02 15:30
+config e3m2-K32-ocp-w | subset 200 images | golden acc on subset 0.4550
+model-wide SDC rate: 11.9333% [10.8217%, 13.1423%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.7754 vs 0.0877 (8.8x)
+non-finite outputs: scale 11.59%, element 0.00%
+mean images corrupted per fault: scale 25.4, element 0.1 (of 200)
+[vit_small_c100_s1 e2m3] e01 10-02 15:32
+config e2m3-K32-ocp-w | subset 200 images | golden acc on subset 0.4450
+model-wide SDC rate: 11.2333% [10.1526%, 12.4132%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.6739 vs 0.0853 (7.9x)
+non-finite outputs: scale 11.59%, element 0.00%
+mean images corrupted per fault: scale 23.6, element 0.1 (of 200)
+[vit_small_c100_s1 e2m1] e01 10-02 15:33
+config e2m1-K32-ocp-w | subset 200 images | golden acc on subset 0.4550
+model-wide SDC rate: 6.2667% [5.4541%, 7.1911%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.5323 vs 0.0316 (16.8x)
+non-finite outputs: scale 11.29%, element 0.00%
+mean images corrupted per fault: scale 22.2, element 0.0 (of 200)
+vit_small_c100 s1 e4m3-K32-ocp-w: golden 0.4350
+element faults landing on a special code: 260,747 of 21,460,992 (1.215%)
+whole element space, sampled: 0.012382 -> 0.000239 (51.82x lower); special share of damage 98.1%
+vit_small_c100 s1 e5m2-K32-ocp-w: golden 0.4550
+element faults landing on a special code: 1,577,905 of 21,460,992 (7.352%)
+whole element space, sampled: 0.074476 -> 0.001065 (69.94x lower); special share of damage 98.7%
+[vit_small_c100 s2] training 10-02 15:41
+epoch   0  loss 4.1052  acc 0.1205  best 0.1205  27.6s
+epoch   5  loss 3.1903  acc 0.2842  best 0.2842  27.2s
+epoch  10  loss 2.7404  acc 0.3763  best 0.3763  27.1s
+epoch  15  loss 2.3126  acc 0.4397  best 0.4397  27.0s
+epoch  20  loss 1.8834  acc 0.4587  best 0.4640  26.9s
+epoch  25  loss 1.5048  acc 0.4671  best 0.4671  26.9s
+epoch  30  loss 1.2550  acc 0.4628  best 0.4712  26.9s
+epoch  35  loss 1.1208  acc 0.4678  best 0.4712  26.9s
+epoch  40  loss 1.0352  acc 0.4755  best 0.4755  26.9s
+epoch  45  loss 0.9774  acc 0.4752  best 0.4820  26.9s
+epoch  50  loss 0.9294  acc 0.4758  best 0.4820  27.0s
+epoch  55  loss 0.8971  acc 0.4818  best 0.4866  27.0s
+epoch  60  loss 0.8671  acc 0.4833  best 0.4911  26.8s
+epoch  65  loss 0.8420  acc 0.4909  best 0.4918  26.8s
+epoch  70  loss 0.8239  acc 0.4937  best 0.4937  26.9s
+epoch  75  loss 0.8124  acc 0.4883  best 0.4970  26.9s
+epoch  80  loss 0.8029  acc 0.4944  best 0.4970  26.9s
+epoch  85  loss 0.7973  acc 0.4922  best 0.4970  26.9s
+epoch  90  loss 0.7944  acc 0.4944  best 0.4970  26.9s
+epoch  95  loss 0.7931  acc 0.4940  best 0.4970  26.9s
+done: final 0.4939, best 0.4970
+[vit_small_c100_s2 e5m2] e01 10-02 16:26
+config e5m2-K32-ocp-w | subset 200 images | golden acc on subset 0.4650
+model-wide SDC rate: 18.6000% [17.2481%, 20.0322%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.7300 vs 0.1672 (4.4x)
+non-finite outputs: scale 6.00%, element 7.62%
+mean images corrupted per fault: scale 26.5, element 15.4 (of 200)
+[vit_small_c100_s2 e4m3] e01 10-02 16:28
+config e4m3-K32-ocp-w | subset 200 images | golden acc on subset 0.4900
+model-wide SDC rate: 11.0000% [9.9298%, 12.1699%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.6400 vs 0.0917 (7.0x)
+non-finite outputs: scale 6.00%, element 1.34%
+mean images corrupted per fault: scale 21.1, element 2.8 (of 200)
+[vit_small_c100_s2 e3m2] e01 10-02 16:30
+config e3m2-K32-ocp-w | subset 200 images | golden acc on subset 0.4650
+model-wide SDC rate: 20.5333% [19.1260%, 22.0161%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.7971 vs 0.1768 (4.5x)
+non-finite outputs: scale 11.59%, element 0.00%
+mean images corrupted per fault: scale 25.9, element 0.2 (of 200)
+[vit_small_c100_s2 e2m3] e01 10-02 16:32
+config e2m3-K32-ocp-w | subset 200 images | golden acc on subset 0.4850
+model-wide SDC rate: 18.3333% [16.9895%, 19.7582%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.7681 vs 0.1551 (5.0x)
+non-finite outputs: scale 11.59%, element 0.00%
+mean images corrupted per fault: scale 24.9, element 0.2 (of 200)
+[vit_small_c100_s2 e2m1] e01 10-02 16:34
+config e2m1-K32-ocp-w | subset 200 images | golden acc on subset 0.4550
+model-wide SDC rate: 6.8333% [5.9845%, 7.7925%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.4677 vs 0.0419 (11.2x)
+non-finite outputs: scale 10.75%, element 0.00%
+mean images corrupted per fault: scale 23.3, element 0.0 (of 200)
+vit_small_c100 s2 e4m3-K32-ocp-w: golden 0.4900
+element faults landing on a special code: 258,082 of 21,460,992 (1.203%)
+whole element space, sampled: 0.012453 -> 0.000439 (28.35x lower); special share of damage 96.6%
+vit_small_c100 s2 e5m2-K32-ocp-w: golden 0.4650
+element faults landing on a special code: 1,575,298 of 21,460,992 (7.340%)
+whole element space, sampled: 0.073919 -> 0.000573 (128.90x lower); special share of damage 99.3%
+LANE_A_DONE 10-02 16:41

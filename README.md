@@ -82,9 +82,14 @@ happens to contain a near-tie image, and it hid the format effect entirely (F52)
 | `mxfi/` | the library: formats, codec, fault model, sampling, statistics, PyTorch wrapper, models, training, campaign runner |
 | `experiments/` | one script per experiment, `e00`–`e24`; each docstring states the question and the run command |
 | `tools/` | GPU patches, fast-injection verifier, and `verify_ground_truth` / `verify_e01` (check a recorded campaign belongs to a checkpoint) |
-| `results/` | every campaign CSV and summary |
+| `results/` | every campaign CSV and summary run on the laptop |
+| `checkpoints/` | every network trained on the laptop (`.pt`) and its per-epoch log |
+| `cluster/` | verbatim mirror of the GPU cluster's checkpoints, results, logs and runners — kept apart because same-named networks on the two machines differ (see `cluster/README.md`) |
+| `data/` | CIFAR-10 and CIFAR-100, archives and extracted (the three files over 100 MB are in Git LFS) |
 | `docs/` | report, findings, figures |
+| `logs/` | laptop run logs |
 | `*.sh` | the long-running sweep drivers (laptop and cluster) |
+| `requirements.txt` | the exact Python environment |
 
 The core (`formats`, `codec`, `faults`, `sampling`, `stats`) is **pure numpy**; only
 `torch_mx`, `models`, `vit`, `data`, `train` and `campaign` need torch. A model name
@@ -96,7 +101,9 @@ ending in `_c100` (e.g. `vit_small_c100`) selects CIFAR-100.
 .venv/Scripts/python.exe -m pytest tests/ -q
 ```
 
-The venv is Python 3.13 with torch 2.14.0+cpu. GPU runs used an A100 cluster
+Clone with Git LFS installed (`git lfs install`) to get the full datasets. Recreate the
+environment with `pip install -r requirements.txt --extra-index-url
+https://download.pytorch.org/whl/cpu`. The venv is Python 3.13 with torch 2.14.0+cpu. GPU runs used an A100 cluster
 (Python 3.8, torch 2.1.2); apply `tools/device_support.py` and `tools/fast_inject.py`
 to a fresh checkout before running there.
 

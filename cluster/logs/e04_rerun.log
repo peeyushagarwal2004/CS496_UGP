@@ -1,0 +1,56 @@
+== vit_small 16:47
+weight fault space (whole model):       21,989,856 bits
+overall: 1.4250% [1.1015%, 1.8417%] (95% CI, n=4000)
+  element  n= 3870  0.0114 [0.0085, 0.0152]  nonfinite 1.11%
+  scale    n=  130  0.1000 [0.0594, 0.1636]  nonfinite 7.69%
+--- by bit (element site) ---
+site             weight   activation   ratio
+element          0.0122       0.0114      1.1x
+scale            0.0978       0.1000      1.0x
+overall          0.0150       0.0143      1.1x
+(weight = mean fraction of the 200-image subset whose prediction changed;
+== repvgg_a0 17:00
+weight fault space (whole model):       58,053,504 bits
+overall: 1.1500% [0.8633%, 1.5304%] (95% CI, n=4000)
+  element  n= 3868  0.0075 [0.0052, 0.0107]  nonfinite 0.72%
+  scale    n=  132  0.1288 [0.0820, 0.1966]  nonfinite 7.58%
+--- by bit (element site) ---
+site             weight   activation   ratio
+element          0.0048       0.0075      0.6x
+scale            0.1171       0.1288      0.9x
+overall          0.0079       0.0115      0.7x
+(weight = mean fraction of the 200-image subset whose prediction changed;
+== vit_small_c100 17:14
+weight fault space (whole model):       22,132,416 bits
+overall: 3.5500% [3.0197%, 4.1695%] (95% CI, n=4000)
+  element  n= 3870  0.0323 [0.0272, 0.0384]  nonfinite 0.98%
+  scale    n=  130  0.1308 [0.0833, 0.1995]  nonfinite 7.69%
+--- by bit (element site) ---
+site             weight   activation   ratio
+element          0.0097       0.0323      0.3x
+scale            0.1152       0.1308      0.9x
+overall          0.0132       0.0355      0.4x
+(weight = mean fraction of the 200-image subset whose prediction changed;
+== repvgg_a0_c100 17:30
+weight fault space (whole model):       59,003,904 bits
+overall: 2.1250% [1.7219%, 2.6200%] (95% CI, n=4000)
+  element  n= 3868  0.0171 [0.0134, 0.0216]  nonfinite 0.70%
+  scale    n=  132  0.1439 [0.0941, 0.2139]  nonfinite 6.82%
+--- by bit (element site) ---
+site             weight   activation   ratio
+element          0.0105       0.0171      0.6x
+scale            0.1554       0.1439      1.1x
+overall          0.0152       0.0213      0.7x
+(weight = mean fraction of the 200-image subset whose prediction changed;
+== resnet8_c100 17:44
+weight fault space (whole model):       686,144 bits
+overall: 2.4250% [1.9920%, 2.9493%] (95% CI, n=4000)
+  element  n= 3759  0.0136 [0.0103, 0.0178]  nonfinite 0.64%
+  scale    n=  241  0.1909 [0.1463, 0.2452]  nonfinite 10.79%
+--- by bit (element site) ---
+site             weight   activation   ratio
+element          0.0173       0.0136      1.3x
+scale            0.3182       0.1909      1.7x
+overall          0.0267       0.0243      1.1x
+(weight = mean fraction of the 200-image subset whose prediction changed;
+E04_DONE

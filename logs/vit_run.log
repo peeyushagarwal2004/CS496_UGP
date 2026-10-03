@@ -1,0 +1,84 @@
+########## ViT SEED 0 START 09-21 20:56 ##########
+done: final 0.8194, best 0.8194
+--- quantised accuracy by format ---
+checkpoint: epoch 99, fp32 test acc 0.8194
+fp32 (BN-folded) accuracy: 0.8194
+  e4m3  8b K=32 ocp  -> 0.8193 (+0.0001)
+  e4m3  8b K=32 fit  -> 0.8181 (+0.0013)
+  e5m2  8b K=32 ocp  -> 0.8174 (+0.0020)
+  e5m2  8b K=32 fit  -> 0.8184 (+0.0010)
+  e3m2  6b K=32 ocp  -> 0.8173 (+0.0021)
+  e3m2  6b K=32 fit  -> 0.8184 (+0.0010)
+  e2m3  6b K=32 ocp  -> 0.8190 (+0.0004)
+  e2m3  6b K=32 fit  -> 0.8185 (+0.0009)
+  e2m1  4b K=32 ocp  -> 0.8108 (+0.0086)
+  e2m1  4b K=32 fit  -> 0.8109 (+0.0085)
+fp32 baseline 0.8194   wrote /data/rajeshr/peeyush/bitflip/results/e00_vit_small_quantized_accuracy.csv
+model-wide SDC rate: 7.1333% [6.2661%, 8.1102%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.2121 vs 0.0665 (3.2x)
+non-finite outputs: scale 7.07%, element 6.58%
+[vit s0 e5m2] 09-21 21:29
+model-wide SDC rate: 4.5667% [3.8760%, 5.3736%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.4646 vs 0.0314 (14.8x)
+non-finite outputs: scale 7.07%, element 1.21%
+[vit s0 e4m3] 09-21 21:30
+model-wide SDC rate: 1.0000% [0.7014%, 1.4240%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.2121 vs 0.0007 (304.2x)
+non-finite outputs: scale 8.33%, element 0.00%
+[vit s0 e3m2] 09-21 21:31
+model-wide SDC rate: 2.3333% [1.8510%, 2.9376%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.3258 vs 0.0094 (34.6x)
+non-finite outputs: scale 8.33%, element 0.00%
+[vit s0 e2m3] 09-21 21:32
+model-wide SDC rate: 5.9667% [5.1740%, 6.8719%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.4074 vs 0.0363 (11.2x)
+non-finite outputs: scale 9.52%, element 0.00%
+[vit s0 e2m1] 09-21 21:34
+=== ViT SEED 0 COMPLETE 09-21 21:34 ===
+########## ViT SEED 1 START 09-21 21:34 ##########
+done: final 0.8085, best 0.8120
+model-wide SDC rate: 7.5000% [6.6109%, 8.4978%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.2424 vs 0.0693 (3.5x)
+non-finite outputs: scale 7.07%, element 6.72%
+[vit s1 e5m2] 09-21 22:03
+model-wide SDC rate: 9.3333% [8.3438%, 10.4269%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.5051 vs 0.0793 (6.4x)
+non-finite outputs: scale 7.07%, element 1.03%
+[vit s1 e4m3] 09-21 22:04
+model-wide SDC rate: 1.3000% [0.9524%, 1.7721%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.2500 vs 0.0021 (119.5x)
+non-finite outputs: scale 8.33%, element 0.00%
+[vit s1 e3m2] 09-21 22:04
+model-wide SDC rate: 4.4000% [3.7226%, 5.1941%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.3561 vs 0.0296 (12.0x)
+non-finite outputs: scale 8.33%, element 0.00%
+[vit s1 e2m3] 09-21 22:05
+model-wide SDC rate: 6.6333% [5.7971%, 7.5805%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.3545 vs 0.0470 (7.5x)
+non-finite outputs: scale 10.58%, element 0.00%
+[vit s1 e2m1] 09-21 22:05
+=== ViT SEED 1 COMPLETE 09-21 22:05 ===
+########## ViT SEED 2 START 09-21 22:05 ##########
+done: final 0.8036, best 0.8038
+model-wide SDC rate: 9.0333% [8.0593%, 10.1122%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.3030 vs 0.0831 (3.6x)
+non-finite outputs: scale 7.07%, element 7.38%
+[vit s2 e5m2] 09-21 22:21
+model-wide SDC rate: 3.7000% [3.0816%, 4.4368%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.3838 vs 0.0252 (15.3x)
+non-finite outputs: scale 7.07%, element 1.48%
+[vit s2 e4m3] 09-21 22:21
+model-wide SDC rate: 2.7667% [2.2374%, 3.4167%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.4242 vs 0.0094 (45.1x)
+non-finite outputs: scale 8.33%, element 0.00%
+[vit s2 e3m2] 09-21 22:22
+model-wide SDC rate: 5.3333% [4.5849%, 6.1960%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.5227 vs 0.0317 (16.5x)
+non-finite outputs: scale 8.33%, element 0.00%
+[vit s2 e2m3] 09-21 22:23
+model-wide SDC rate: 9.2667% [8.2805%, 10.3570%] (95% CI, n=3000)
+scale-vs-element SDC rate: 0.4762 vs 0.0669 (7.1x)
+non-finite outputs: scale 9.52%, element 0.00%
+[vit s2 e2m1] 09-21 22:23
+=== ViT SEED 2 COMPLETE 09-21 22:23 ===
+=== VIT RUN COMPLETE 09-21 22:23 ===
