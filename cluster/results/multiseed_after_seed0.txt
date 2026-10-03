@@ -1,0 +1,2 @@
+complete seeds: [0]
+need at least 2 complete seeds for a multi-seed analysis
