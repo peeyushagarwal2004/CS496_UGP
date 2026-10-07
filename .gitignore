@@ -16,6 +16,8 @@ docs/*.aux
 docs/*.log
 docs/*.out
 docs/*.toc
+docs/*.lof
+docs/*.lot
 texput.log
 study_guide/*.aux
 study_guide/*.log

@@ -90,6 +90,7 @@ def fig_per_bit(d: pd.DataFrame) -> None:
     axes[0].set_ylabel("inferences corrupted per fault")
     fig.tight_layout()
     fig.savefig(FIGS / "fig1_per_bit.pdf", bbox_inches="tight")
+    fig.savefig(FIGS / "png" / "fig1_per_bit.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -135,6 +136,7 @@ def fig_capacity(w: pd.DataFrame) -> None:
     _clean(ax)
     fig.tight_layout()
     fig.savefig(FIGS / "fig2_capacity.pdf", bbox_inches="tight")
+    fig.savefig(FIGS / "png" / "fig2_capacity.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -155,6 +157,7 @@ def fig_layers(d: pd.DataFrame) -> None:
     _clean(ax)
     fig.tight_layout()
     fig.savefig(FIGS / "fig3_layers.pdf", bbox_inches="tight")
+    fig.savefig(FIGS / "png" / "fig3_layers.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -189,11 +192,12 @@ def fig_severity(s: pd.DataFrame) -> None:
     _clean(ax)
     fig.tight_layout()
     fig.savefig(FIGS / "fig4_severity.pdf", bbox_inches="tight")
+    fig.savefig(FIGS / "png" / "fig4_severity.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
 def main() -> None:
-    FIGS.mkdir(parents=True, exist_ok=True)
+    (FIGS / "png").mkdir(parents=True, exist_ok=True)
     made = []
 
     ex = RESULTS / "e06.csv.gz"
