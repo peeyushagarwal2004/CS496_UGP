@@ -3,7 +3,7 @@
 Peeyush Agarwal, Department of Computer Science and Engineering, IIT Kanpur
 CS496 Undergraduate Project, 2026
 
-Full report: [docs/report.pdf](docs/report.pdf) (35 pages, 22 figures)
+Report: [docs/report.pdf](docs/report.pdf) (8 pages)
 
 ## Abstract
 
