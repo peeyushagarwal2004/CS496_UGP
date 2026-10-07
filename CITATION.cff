@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Reliability-Aware Fault Injection for Microscaling-Based DNNs"
+type: software
+authors:
+  - family-names: Agarwal
+    given-names: Peeyush
+    affiliation: "Indian Institute of Technology Kanpur"
+date-released: 2026-10-07
+repository-code: "https://github.com/peeyushagarwal2004/CS496_UGP"
+abstract: >-
+  A fault-injection study of deep neural networks quantised to the OCP Microscaling
+  (MX) formats, with mxfi, a bit-accurate library for injecting faults into MX
+  element codes and shared scales.
+keywords:
+  - microscaling
+  - MXFP
+  - fault injection
+  - DNN reliability
+  - silent data corruption

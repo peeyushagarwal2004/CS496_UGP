@@ -7,8 +7,8 @@
 #   lane B (GPU 0): RepVGG-A0 seeds 0-2, then ResNet8 seeds 0-2
 #   lane C (GPU 1): activation faults under e5m2 (E04)
 #
-# Run on the cluster:  (nohup ./c100_run.sh A > logs/c100_A.log 2>&1 &)
-#                      (nohup ./c100_run.sh B > logs/c100_B.log 2>&1 &)
+# Run on the cluster:  (nohup scripts/c100_run.sh A > logs/c100_A.log 2>&1 &)
+#                      (nohup scripts/c100_run.sh B > logs/c100_B.log 2>&1 &)
 # Stop gracefully:     touch logs/STOP_C100   (halts after the current epoch/step)
 PY=python3
 export PYTHONPATH=.
