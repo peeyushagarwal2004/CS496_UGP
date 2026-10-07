@@ -18,4 +18,4 @@ while true; do
   sleep 60
 done
 echo "gate opened $(date '+%m-%d %H:%M')"
-bash run_width_sweep_seeds.sh
+bash scripts/run_width_sweep_seeds.sh

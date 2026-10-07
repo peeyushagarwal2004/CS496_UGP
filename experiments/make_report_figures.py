@@ -1,6 +1,6 @@
-"""Additional figures for the full report (fig5 onwards).
+"""Extended figures (fig5 onwards), used in the README and docs/figures.
 
-`make_figures.py` draws the four original figures; this script draws the rest from
+`make_figures.py` draws the four report figures; this script draws the rest from
 the same raw results, with the same style, palette and conventions:
 
 * rates are per inference unless a panel says otherwise (the any-image rate only

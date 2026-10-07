@@ -11,7 +11,7 @@
 # campaign whose CSV already holds all 3000 rows is not rerun.  Re-running this
 # script after an interruption resumes where it stopped.
 #
-# Override seeds with e.g.  SEEDS="1 2" bash run_width_sweep_seeds.sh
+# Override seeds with e.g.  SEEDS="1 2" bash scripts/run_width_sweep_seeds.sh
 PY=".venv/Scripts/python.exe"
 SEEDS="${SEEDS:-1 2 3 4}"
 WIDTHS="8 16 24 32 48"
@@ -23,7 +23,7 @@ N=3000
 # Stopping a background task on Windows does not kill its descendants, so a
 # stopped runner can keep going and collide with a fresh one.  See
 # sweep_lock.sh for why the lock records the Windows PID, not $$.
-. ./sweep_lock.sh
+. scripts/sweep_lock.sh
 LOCK="logs/sweep.lock"
 mkdir -p logs
 acquire_lock "$LOCK" || { echo "ABORT: another runner is already active; not starting a second"; exit 1; }

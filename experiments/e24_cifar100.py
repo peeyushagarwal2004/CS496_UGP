@@ -5,7 +5,7 @@ can reach holds. CIFAR-100 is the nearest affordable substitute: ten times the
 classes, a tenth of the images per class, and so networks that sit much closer to
 their decision boundaries -- the property F48-F49 found to govern sensitivity. The
 same three architectures are retrained on it with the CIFAR-10 recipes unchanged
-(`c100_run.sh`), and every campaign scores 200 images, 2 per class, so per-inference
+(`scripts/c100_run.sh`), and every campaign scores 200 images, 2 per class, so per-inference
 rates have the same resolution as on CIFAR-10.
 
 This script sets each CIFAR-100 result beside its CIFAR-10 counterpart:
