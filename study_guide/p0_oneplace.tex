@@ -1,0 +1,62 @@
+\section*{The whole project on one page}
+\addcontentsline{toc}{section}{The whole project on one page}
+\markboth{The whole project on one page}{The whole project on one page}
+
+\textbf{The question.} A neural network's weights and the values it computes while running
+(activations) sit in memory. Sometimes a single bit in memory flips by accident. In an ordinary
+number format, a flipped bit damages one number. In \emph{microscaling} (MX) formats, a block of
+32 numbers shares one 8-bit scale, so a flip in that scale damages all 32 numbers at once. How much
+do these flips actually hurt a network's predictions, and which formats, bits, layers and tensors
+are most dangerous?
+
+\textbf{What you built.} A fault-injection tool called \code{mxfi}. It encodes weights and activations
+into real MX bit patterns, flips a chosen bit in an element or in a scale, decodes, runs the network,
+and compares the predictions with the fault-free ones.
+
+\textbf{What you ran.} About 60 trained networks (ResNet8, RepVGG-A0, a small Vision Transformer;
+CIFAR-10 and CIFAR-100), five element formats, block sizes 8 to 64, weights and activations.
+Roughly 1.44 million sampled weight faults in 119 campaigns, two \emph{exhaustive} campaigns that
+flip every single stored bit of a ResNet8 (1.12 million injections), 390{,}000 multi-bit injections,
+and further campaigns for activations, a NaN guard and CIFAR-100. The work ran on your laptop and on a
+two-A100 server at IIT Kanpur.
+
+\textbf{What you found.}
+\begin{enumerate}
+\item Formats with the same accuracy differ in fault vulnerability by up to three orders of magnitude.
+ Measured per inference, e3m2 $<$ e4m3 $<$ e5m2 on every network tested.
+\item The main cause is the NaN/Infinity codes of the 8-bit formats. On the larger networks 97 to 100\%
+ of element damage comes from flips that land on such a code. Decoding those codes as zero on read cuts
+ element damage by at least $29\times$ on RepVGG and the transformer.
+\item A fault in the shared scale does $13\times$ to over $1000\times$ the damage of a fault in an element.
+\item The usual ``did any test image change?'' metric mostly measures whether the test set contains a
+ borderline image. You replaced it with a per-inference rate.
+\item The severity score in your proposal does not predict failures. A gradient-based score does, and sampling
+ with it needs $57$ to $120\times$ fewer injections.
+\item Both open design choices in the proposal are settled: single-bit injection is enough, and exact
+ enumeration of the code table beats TreeFI-style learned value intervals.
+\end{enumerate}
+
+\textbf{What you corrected along the way.} Eleven earlier conclusions were revised or withdrawn,
+for reasons that come down to three causes: a misleading metric, too few trained networks, and
+mismatched checkpoints and a codec bug. Section~\ref{sec:mistakes} lists all of them.
+
+\textbf{What was not done.} ImageNet and DeiT were not reachable from any machine you could use, so
+CIFAR-100 stands in for them. The optional small language model and MXINT8 were not studied.
+
+\medskip
+\begin{center}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Report & 13 pages, \code{docs/report.pdf} \\
+Findings log & 72 numbered findings, \code{docs/findings.md} \\
+Library & \code{mxfi/}: 11 modules plus \code{__init__}, about 2{,}300 lines \\
+Experiment scripts & \code{experiments/}: 29 scripts, about 5{,}200 lines \\
+Tests & 4 files, about 1{,}100 lines \\
+Repository & \code{github.com/peeyushagarwal2004/CS496_UGP} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\src{README.md, docs/report.tex, docs/findings.md; line counts measured with wc on the repository.}
+
+\newpage

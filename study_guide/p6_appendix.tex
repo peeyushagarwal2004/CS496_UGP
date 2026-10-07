@@ -1,0 +1,218 @@
+\part{Reference material}
+
+\section{Viva practice: questions and short answers}
+\markboth{Viva practice}{Viva practice}
+Short answers you can expand from the rest of this guide.
+
+\begin{enumerate}[leftmargin=0.7cm,itemsep=5pt]
+\item \textbf{What is a microscaling format?} A block of $K$ (usually 32) numbers stored as small element codes (4 to 8 bits) plus one shared 8-bit power-of-two scale. Value $=\operatorname{decode}(\text{code})\times2^{X-127}$.
+\item \textbf{Why is a scale fault worse than an element fault?} It rescales all $K$ values by $2^{\pm2^{\mathrm{bit}}}$ (blast radius $K$), and the top bits give huge factors ($\times256$, $\times2^{128}$). Measured: $13\times$ to over $1000\times$ the per-inference damage.
+\item \textbf{Which formats have special codes?} e4m3 (2 NaN codes) and e5m2 (2 Inf and 6 NaN). e3m2, e2m3, e2m1 have none.
+\item \textbf{What is the OCP scale rule, and why did you add ``fit''?} OCP aligns the block maximum with the top binade, which can clip the maximum by up to 12.5\% (25\% for e2m1). Fit never clips. It is a control to make sure format differences are not clipping differences.
+\item \textbf{What is SDC?} Silent data corruption: the system runs normally but gives a different output. I measure it as a per-inference rate: the fraction of inferences whose prediction changes, averaged over faults.
+\item \textbf{Why not the ``any image changed'' rate?} It saturates with the number of images and mostly reports whether the test set contains a near-tie image. On nine disjoint image sets it moved up to 11$\times$ its own interval width and reversed format orderings; the per-inference rate moved $1.15$--$1.27\times$.
+\item \textbf{What is a near-tie?} An image whose top two logits are almost equal; almost any perturbation flips its prediction.
+\item \textbf{How do you know 3{,}000 injections are enough?} I injected every bit of a ResNet8 (638{,}624 faults in e4m3, 483{,}904 in e3m2) and the sampled estimates were within 2.4\% and their intervals covered the truth.
+\item \textbf{Why did you train so many networks?} Between networks of the same design the sensitivity differs by about ten times the injection uncertainty, so results from one trained network are a sample of size one.
+\item \textbf{Explain the NaN mechanism.} A flip that lands on a NaN/Inf code makes every output NaN, so every inference fails regardless of network size. It carries 97--100\% of element damage on the larger networks. Formats with no such codes cannot suffer it.
+\item \textbf{Why can capacity not absorb NaN?} NaN propagates through every arithmetic operation, whatever the weights are. Bigger networks absorb \emph{perturbations}, not NaNs. The non-finite rate stayed flat across a $35\times$ range of widths.
+\item \textbf{What is \code{margin_shift} and why is it better than the proposal's $d$?} $s_i|v'-v|/\mathrm{rms}$: the fraction of the decision margin the fault uses up. $d$ measures a change in logarithm of magnitude and scores sign flips as zero (AUC 0.435); \code{margin_shift} has AUC 0.990 and flags $>1$ catches 98.5\% of failures in 4.4\% of the space.
+\item \textbf{What is Neyman allocation?} Allocating samples to strata in proportion to $W_h\sigma_h$ (size times spread) to minimise variance for a fixed budget. Quantile strata of the score gave $57$--$120\times$ lower variance.
+\item \textbf{Why does exact enumeration beat learned intervals?} An MX code table has at most 256 entries so every flip's effect is known exactly at no cost; a pilot of a few hundred faults cannot see a tail on a target where 89\% of faults do nothing, and in e4m3 the damaging tail is a discrete set of codes. (Mention the caveat that your learned arm was trained on measured outcomes while TreeFI's trees are trained on value changes.)
+\item \textbf{Is single-bit injection enough?} Yes: a double flip does $1.04$--$1.55\times$ a single flip's damage and is sub-additive; within-word doubles matter only at $p\approx2\times10^{-3}$, where accumulation across words has already broken the one-fault assumption.
+\item \textbf{What does the NaN guard do and what does it cost?} Decodes special element codes as zero on read. Cuts element damage by at least $29\times$ on RepVGG and the ViT; in hardware about one comparator. Evaluated only in software.
+\item \textbf{Weights versus activations?} Per fault about equal ($0.3$--$2.2\times$); they differ in exposure (a weight fault persists, an activation fault lasts one inference).
+\item \textbf{Why CIFAR-100, and what are the limits?} ImageNet was unavailable. CIFAR-100 gives smaller margins. All main results held; the gap between formats narrowed ($461\times\to19\times$ on the ViT). It is not a measurement of DeiT on ImageNet.
+\item \textbf{What was the codec bug?} NaN was mapped to zero when re-quantising activations, erasing NaNs between layers. Found because no activation campaign had ever produced a non-finite output. Fixed; activation results redone; weight results unaffected.
+\item \textbf{What went wrong with checkpoints?} The same filename on the laptop and the cluster held different weights, so a campaign could be scored against the wrong network. A replay check now ties each campaign to its checkpoint.
+\item \textbf{Which format is safest?} Per inference, e3m2 $<$ e4m3 $<$ e5m2 everywhere. Among NaN-free formats the ranking depends on the network and task (e2m1 was safest on the CIFAR-100 ViT).
+\item \textbf{What is TreeFI?} A statistical fault-injection method for FP32 that learns value intervals with regression trees, assigns risk scores and allocates injections by $W\sqrt{r(1-r)}$, cutting injections up to $72.1\times$. It does not handle MX or shared scales.
+\item \textbf{How does your project differ from TreeFI?} It studies MX formats with two fault sites, aims at characterising vulnerability rather than only cheaper sampling, uses exact enumeration instead of learned intervals, and uses a per-inference metric.
+\item \textbf{What is the main design recommendation?} Protect the shared scale first, and neutralise NaN/Inf codes.
+\item \textbf{What are the limits of the fault model?} Only stored weights, activations and scales; uniform per-bit flip probability; one fault per inference; no datapath faults.
+\item \textbf{Why 200 images?} To make millions of injections affordable; the per-inference rate is robust to the choice, and CIFAR-100 uses 2 per class so rates have the same resolution.
+\item \textbf{Why disable TF32 on the GPU?} TF32 lowers matmul precision and could flip borderline predictions, making GPU rates incomparable with CPU ones. With it off, GPU and CPU outcomes agree on 99.97\% of injections.
+\item \textbf{What would you do next with more resources?} Repeat the key campaigns on a pretrained transformer at ImageNet scale, test a hardware NaN guard, and study multi-word accumulation.
+\item \textbf{What is the single most surprising result?} The conventional metric hid a 5--8$\times$ format difference; and the leading cause of vulnerability was not bit position or mantissa width but the special NaN codes.
+\item \textbf{Where is the guard's limit?} It removes only the NaN pathway; the remaining perturbation damage depends on margins and is higher on harder tasks.
+\end{enumerate}
+
+\section{Formulas in one place}
+\markboth{Formulas}{Formulas}
+\renewcommand{\arraystretch}{1.3}
+\begin{center}
+\small
+\begin{tabular}{@{}p{4.4cm}p{11cm}@{}}
+\toprule
+MX value & $v_i=\operatorname{decode}(\text{code}_i)\cdot2^{X-127}$ \\
+Element decode & $(-1)^s(1+f/2^M)2^{e-\mathrm{bias}}$ for $e\ne0$; subnormal when $e=0$; $\mathrm{bias}=2^{\text{exp\_bits}-1}-1$ \\
+OCP scale & $X=\lfloor\log_2\max|v|\rfloor-e_{\max}$ (stored $+127$) \\
+fit scale & $X=\lceil\log_2(\max|v|/\text{largest value})\rceil$ \\
+Worst-case clip & $1-\text{largest value}/2^{e_{\max}+1}$ \\
+Scale-flip multiplier & $2^{\pm2^{b}}$ for bit $b$; flips onto byte 255 give NaN \\
+Proposal severity & $d=|\log v'-\log v|$; $D_s=K|X'-X|\log2$ \\
+Per-bit and word probabilities & $\pi_{\mathrm{site},b}=\pi^0\kappa(b)$; $P(S)=\prod_{b\in S}\pi_b\prod_{b\notin S}(1-\pi_b)$; $H=1-\prod_b(1-\pi_b)$ \\
+Any-image SDC & $\mathbf1[\sum_i\mathbf1(\hat y_i^\varphi\ne\hat y_i)>0]$ \\
+Per-inference rate & mean over faults of $\frac1N\sum_i\mathbf1(\hat y_i^\varphi\ne\hat y_i)$ \\
+Wilson interval & $\dfrac{\hat p+z^2/2n\pm z\sqrt{\hat p(1-\hat p)/n+z^2/4n^2}}{1+z^2/n}$ \\
+Stratified estimator & $\hat p=\sum_hW_h\hat p_h$, $\operatorname{Var}=\sum_hW_h^2\sigma_h^2/n_h$ \\
+Neyman allocation & $n_h\propto W_h\sigma_h$ (binary: $\sigma_h=\sqrt{p_h(1-p_h)}$) \\
+Your allocation (proposal) & $n\propto\pi\cdot W\cdot\sqrt{r(1-r)}\cdot\Phi$, $\Phi=K$ for scale strata \\
+Margin & $m=z_{(1)}-z_{(2)}$ \\
+Sensitivity & $s_i=|\partial m/\partial w_i|\cdot\mathrm{rms}/m$ (max over images) \\
+Severity that works & $\mathrm{margin\_shift}=s_i|v'-v|/\mathrm{rms}$; flips when $>1$ \\
+BN folding & $W'=W\gamma/\sqrt{\sigma^2+\varepsilon}$, $b'=(b-\mu)\gamma/\sqrt{\sigma^2+\varepsilon}+\beta$ \\
+Guarded rate & $f\bar r_{\mathrm{special,guarded}}+(1-f)\bar r_{\mathrm{other}}$ \\
+TreeFI risk score & $r=\sigma\bigl(s(\mathrm{avg\_log}-\beta_\ell)\bigr)$, $\beta_\ell=\log_{10}(\gamma a_{\ell,\max})$ \\
+TreeFI allocation & $n_{\ell,b,k}\propto W_{\ell,b,k}\sqrt{r_{\ell,b,k}(1-r_{\ell,b,k})}$ \\
+TreeFI estimate & $\hat p_{\ell,b}=\sum_kW_{\ell,b,k}\hat p_{\ell,b,k}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\renewcommand{\arraystretch}{1.15}
+
+\section{Cheat sheet of key numbers}
+\markboth{Key numbers}{Key numbers}
+\begin{center}
+\small
+\begin{longtable}{@{}p{7.9cm}p{7.3cm}@{}}
+\toprule
+\textbf{quantity} & \textbf{value} \\
+\midrule
+\endhead
+ResNet8 (w16) parameters / accuracy & 78{,}042 / 87.01\% (first network) \\
+RepVGG-A0 parameters / accuracy (CIFAR-10) & 7.0 M / 91.44\% \\
+ViT parameters / accuracy (CIFAR-10) & 2.69 M / 80.4--81.9\% \\
+CIFAR-100 accuracies (ResNet8, RepVGG, ViT) & 58\%, 70--71\%, 47--49\% \\
+Width sweep widths / parameters & 8, 16, 24, 32, 48 / 19{,}954 to 691{,}834 \\
+Scale share of storage at $K=8,16,32,64$ (8-bit elements) & 11.1\%, 5.9\%, 3.1\%, 1.7\% \\
+Exhaustive e4m3 (ResNet8-w16): faults / truth & 638{,}624 / 0.4171 any-image \\
+Exhaustive e3m2: faults / truth & 483{,}904 / 0.1079 any-image \\
+Sampled estimate vs truth (e4m3, 3{,}000 faults) & 0.4270 [0.4094, 0.4448] vs 0.4171 (2.37\%) \\
+Scale vs element, exhaustive e4m3 & 0.9442 vs 0.4003 (any-image); 49.9 vs 3.27 images \\
+Layer fragility range & stem 0.853 to last conv 0.289 \\
+Format ordering per inference & e3m2 $<$ e4m3 $<$ e5m2 on 8/8 (C10), 9/9 (C100) \\
+ViT e5m2 vs e3m2 per-inference & about $2000\times$ \\
+Scale/element ratio range & $13\times$ to $>1000\times$ ($2.6\times$ for e5m2) \\
+Share of element damage from special codes (larger nets) & 97--100\% \\
+NaN guard reduction (RepVGG, ViT) & at least $29\times$, up to $4100\times$ \\
+Sensitivity vs probe correlation & $+0.998$ \\
+Sensitivity vs perturbation SDC across formats & $+0.925$ to $+0.93$ \\
+Severity AUC: $d$ / \code{rel_error} / \code{delta_rms} / \code{margin_shift} & 0.435 / 0.699 / 0.845 / 0.990 \\
+\code{margin_shift}$>1$: failures caught / space flagged & 98.5\% / 4.4\% \\
+Value-aware sampling gain (per inference, quantile strata) & $57$--$120\times$ \\
+Exact enumeration gain / learned tree gain & $48$--$65\times$ / $0.10$--$0.98\times$ \\
+Multi-bit: double / single damage & $1.04$--$1.55\times$ \\
+Special-code faults, e4m3 / e5m2 (share of element space) & about 1.1--1.3\% / about 5--8\% \\
+Between-network spread / injection noise & about $10\times$ (median $9.9$--$12.8\times$) \\
+Near-tie correlation with any-image SDC (39 cells) & Spearman $+0.89$ \\
+Any-image metric spread across image sets & $3.8$--$11\times$ interval width; per-inference $1.15$--$1.27\times$ \\
+Value-aware: fraction of faults corrupting nothing (e3m2) & 89.2\% \\
+CIFAR-100: ViT e4m3/e3m2 gap & $461\times\to19\times$ \\
+Campaigns / faults rescored & 119 / 1{,}441{,}528 \\
+TreeFI max reduction vs SFI / average (activations) / weights & $72.1\times$ / $44.9\times$ / $11.2\times$ \\
+TreeFI target & 1\% error at 99\% confidence \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Glossary}
+\markboth{Glossary}{Glossary}
+\begin{description}[leftmargin=0.4cm,labelindent=0cm,itemsep=2pt,font=\bfseries]
+\item[Activation] A temporary value computed while one image passes through a layer.
+\item[Any-image SDC] A fault counts as failing if at least one evaluation image's prediction changes.
+\item[AUC] Area under the ROC curve; 0.5 is chance, 1.0 is perfect ranking.
+\item[Bias (exponent)] Offset subtracted from the stored exponent field so it can represent negative powers.
+\item[Binade] Range between consecutive powers of two.
+\item[Blast radius] Number of values one fault changes: 1 for an element, $K$ for a scale.
+\item[Block] A group of $K$ consecutive numbers that share one scale.
+\item[Campaign] A set of fault injections scored against golden predictions.
+\item[Clipping] Squashing a value that exceeds the format's largest value.
+\item[Code (element)] The small bit pattern, 4 to 8 bits, that names an element's value before scaling.
+\item[Confidence interval] A range expected to contain the true value with a stated probability.
+\item[E8M0] The shared scale's format: 8 exponent bits, no mantissa, byte 255 reserved for NaN.
+\item[Element] One value of a block.
+\item[Exhaustive FI] Injecting every possible fault; gives the exact rate.
+\item[Fake quantisation] Rounding values to what a format can store but computing in FP32.
+\item[Fit rule] Scale rule that never clips the block maximum.
+\item[Golden] The fault-free reference run.
+\item[H-model] The proposal's word-corruption probability including multi-bit terms.
+\item[Inclusion weight] Stratum share divided by draws, making stratified estimates unbiased.
+\item[Logit] Raw output score for a class.
+\item[Margin] Gap between the highest and second-highest logit.
+\item[\code{margin_shift}] $s_i|v'-v|/\mathrm{rms}$: the fraction of the decision margin a fault uses up.
+\item[MX / MXFP] Microscaling formats; MXFP8, MXFP6, MXFP4 count bits per element.
+\item[NaN] Not-a-number; contaminates every computation it touches.
+\item[Near-tie] An image with a tiny margin.
+\item[Neyman allocation] Sampling effort proportional to stratum weight times spread.
+\item[Non-finite] Output containing NaN or infinity.
+\item[OCP rule] The spec's scale rule (block maximum into the top binade).
+\item[Per-inference rate] Mean fraction of inferences changed by a fault.
+\item[Replay check] Re-injecting recorded faults to verify a campaign belongs to a checkpoint.
+\item[Seed] Fixes training's random choices; different seeds give different trained networks.
+\item[SDC] Silent data corruption.
+\item[SFI] Statistical fault injection: inject a random sample and bound the error statistically.
+\item[Soft error] A transient bit flip not caused by permanent hardware damage.
+\item[Special code] A bit pattern reserved for NaN or infinity.
+\item[Stratum / stratified sampling] A group of faults sampled separately and recombined with weights.
+\item[Subnormal] A number with exponent field 0 and no implicit leading 1.
+\item[TreeFI] The ICCAD 2026 value-aware SFI method for FP32 (Part~II).
+\item[Variance reduction] Ratio of estimator variances; equals how many times fewer injections give the same precision.
+\item[Wilson interval] Confidence interval for a proportion that behaves at 0 and 1.
+\end{description}
+
+\section{Items to double-check before you present}
+\label{app:check}
+\markboth{Items to double-check}{Items to double-check}
+These are things I noticed while reading your files. They are small, but better caught now than in a viva.
+\begin{enumerate}
+\item \textbf{\code{README.md} says the report is 5 pages.} \code{docs/report.pdf} is now 13 pages after the 5 October rewrite.
+\item \textbf{Figure~4 of the report versus its text.} The ROC legend (\code{docs/figures/fig4_severity.pdf}) shows AUC $0.429$ for \code{log_severity} and $0.698$ for \code{rel_error}, while the report text and \code{findings.md} (F39) give $0.435$ and $0.699$. They are probably computed on slightly different fault subsets, but a reader will notice the mismatch; the other two values (0.845, 0.990) agree.
+\item \textbf{What ``learned intervals'' means.} Your E22 trains a regression tree on a pilot of \emph{measured} impacts; the TreeFI paper trains its tree on the \emph{value change} without evaluating the network (Part~II, Section~on your project). Consider rewording ``the way TreeFI does'' in the README and report.
+\item \textbf{The TreeFI bibliography entry} in \code{report.tex} has no authors. Authors: N.\ Bires, M.\ Traiola, A.\ Kritikakou, E.\ Fromont; ICCAD 2026, San Jose; HAL \code{hal-05704925}.
+\item \textbf{Uncommitted files.} \code{git status} showed \code{docs/report.pdf} and \code{docs/report.tex} modified and \code{docs/report.toc} untracked. The \code{.toc} is a LaTeX intermediate and is not in \code{.gitignore} (which lists \code{.aux}, \code{.log}, \code{.out}).
+\item \textbf{The F1 recheck is not in \code{findings.md}.} \code{results/e05c_single_model_recheck.csv} holds the tie-robust recheck of F1 (e3m2 against e5m2: $1.77\times$ any-change but $0.44\times$ for $\ge3$ images), yet F26 in the log still says the F1 and F17--F20 comparisons ``have not been re-examined yet''. The final story (F55) supersedes them, but the log reads as if the recheck had not happened.
+\item \textbf{Withdrawn claims still in \code{findings.md}.} F13 and F43 and the activation half of F12 remain in the log with ``withdrawn/revised'' notes; make sure no one quotes them as current.
+\end{enumerate}
+
+\section{How to rebuild and rerun things}
+\markboth{Rebuilding}{Rebuilding}
+\textbf{Environment.}
+\begin{verbatim}
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt \
+    --extra-index-url https://download.pytorch.org/whl/cpu
+.venv/Scripts/python -m pytest tests -q
+\end{verbatim}
+Clone with Git LFS installed, otherwise the three largest dataset files arrive as small pointer files. Set \code{PYTHONPATH=.} when running from the repository root.
+
+\textbf{Typical commands.}
+\begin{verbatim}
+python -m mxfi.train --model resnet8 --epochs 60
+python -m experiments.e01_uniform_baseline --model resnet8 --fmt e4m3
+python -m experiments.e06_exhaustive --model resnet8_w16 --fmt e4m3 --device cuda
+PYTHONPATH=. python -m tools.verify_ground_truth <csv> --fmt e4m3 --train-seed 9
+\end{verbatim}
+A model name ending in \code{_c100} (for example \code{vit_small_c100}) trains and evaluates on CIFAR-100. The report builds with plain \code{pdflatex} run twice from \code{docs/} (\code{latexmk} needs Perl, which is not installed). This guide builds the same way from \code{study_guide/}.
+
+\section{Where things are}
+\markboth{File map}{File map}
+\begin{center}
+\small
+\begin{tabular}{@{}lp{11.3cm}@{}}
+\toprule
+\code{mxfi/} & the library (formats, codec, faults, sampling, stats, torch wrapper, campaign, models, ViT, data, training) \\
+\code{experiments/} & one script per experiment, \code{e00} to \code{e24}, plus width-sweep analysis, architecture comparison, figures \\
+\code{tests/} & unit tests (pytest) \\
+\code{tools/} & GPU patches and replay-check scripts \\
+\code{results/} & raw campaign CSVs from the laptop (names like \code{e01_resnet8_w16_s1_e4m3-K32-ocp-w-n3000.csv}) \\
+\code{checkpoints/} & trained laptop networks and per-epoch logs \\
+\code{cluster/} & verbatim mirror of the server's checkpoints, results, logs, archive and run scripts (kept separate on purpose) \\
+\code{data/} & CIFAR-10 and CIFAR-100 \\
+\code{docs/} & \code{report.pdf/.tex}, \code{findings.md} (72 findings), \code{figures/} \\
+\code{papers/} & the two proposals \\
+\code{study_guide/} & this guide (a build of these \code{.tex} files; not part of your submission) \\
+\bottomrule
+\end{tabular}
+\end{center}
+Result file names encode the experiment, model, seed and configuration: \texttt{e01\_<model>[\_s<seed>]\_<format>-K<block>-<scale rule>-<w|wa>-n<faults>.csv}.

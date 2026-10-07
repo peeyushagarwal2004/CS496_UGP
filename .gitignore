@@ -15,7 +15,13 @@ __pycache__/
 docs/*.aux
 docs/*.log
 docs/*.out
+docs/*.toc
 texput.log
+study_guide/*.aux
+study_guide/*.log
+study_guide/*.out
+study_guide/*.toc
+study_guide/main.pdf
 
 # live control files for the sweep runners: a committed STOP would halt every
 # rerun after a clone, and a lock would block it

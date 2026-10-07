@@ -1,0 +1,404 @@
+\part{The work, in the order it was done}
+
+Each phase below is told the same way: the question you were asking, what you did, what you found, and what it changed. Dates are from your report and findings log.
+Where a result was later revised, I say so at the point it first appears, and Section~\ref{sec:mistakes} collects all revisions.
+
+\begin{center}
+\small
+\begin{tabular}{@{}rp{3.3cm}p{9.7cm}@{}}
+\toprule
+ & dates (2026) & phase \\
+\midrule
+1 & 9--11 Sep & Scope, hardware, the tool; first campaigns on ResNet8 \\
+2 & 11 Sep & A first attempt at cheaper campaigns (stratified sampling) \\
+3 & 11--12 Sep & Weights versus activations; block size \\
+4 & 12--13 Sep & A second architecture; the NaN mechanism; first width sweep \\
+5 & 17--20 Sep & More seeds; the near-tie puzzle \\
+6 & 20--22 Sep & GPU server: exhaustive ground truth, ten seeds, a transformer \\
+7 & 22--25 Sep & The 6-bit puzzle, sensitivity, a severity measure that works \\
+8 & 25--27 Sep & Two mistakes caught; the change of metric; value-aware sampling re-derived \\
+9 & 28 Sep--1 Oct & The proposal's two open design choices settled \\
+10 & 1--2 Oct & The read-side NaN guard \\
+11 & 2--3 Oct & A bug in your own codec; CIFAR-100 \\
+12 & 3--5 Oct & Wrap-up, push, report rewrite \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\section{Phase 1: Scope, hardware, the tool, first campaigns (9--11 Sept)}
+\markboth{Phase 1}{Phase 1}
+
+\subsection{What was decided}
+\begin{itemize}
+\item The project is the characterisation study (decided 10 September; see Part~III). TreeFI-style sampling is a supporting tool only.
+\item The dev machine has no CUDA GPU, so ImageNet/DeiT cannot be run locally: one ImageNet validation pass would take about half an hour and a campaign needs thousands. Decision: start at CIFAR scale with ResNet8 and RepVGG-A0, keep the code portable so heavy runs can move to a GPU.
+\item You \emph{measured} the cost of an injection: 47 ms on 100 images on four CPU threads (89 ms on 200). At that speed the \emph{entire} e4m3 weight bit space of ResNet8 (638{,}624 faults) is about a 16-hour run. Your first guess had been months, because you had assumed every fault would be scored on all 10{,}000 test images.
+ Knowing that exhaustive truth was affordable changed what the project could promise.
+\end{itemize}
+
+\subsection{The first network}
+ResNet8 trained on CIFAR-10 to \textbf{87.01\%} top-1, matching the MLPerf Tiny reference (82 s per epoch on the laptop).
+
+\subsection{The first campaigns and what they showed}
+3{,}000 uniformly sampled weight faults per format, $K=32$, any-image metric, 200-image subset:
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+format & bits & accuracy & any-image SDC [95\% CI] & non-finite outputs \\
+\midrule
+e5m2 & 8 & 84.80\% & 28.9\% [27.3, 30.6] & 7.7\% \\
+e3m2 & 6 & 84.85\% & 51.3\% [49.5, 53.1] & 0.0\% \\
+e4m3 & 8 & 85.08\% & 32.3\% [30.7, 34.0] & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item \textbf{The hypothesis looked right immediately.} e5m2 and e3m2 differ by 0.05 accuracy points but $1.77\times$ in vulnerability, with disjoint intervals (F1). The 6-bit format looked \emph{worse}; that direction was later shown to be a metric artefact, but the larger point, that equal accuracy does not mean equal reliability, survived everything.
+\item \textbf{The failure \emph{modes} differ} (F2). e5m2 fails rarely but catastrophically: it has special codes, and 7.7\% of its faults gave NaN/Inf. e3m2 fails often but mildly and never produced a non-finite output. This was the first hint of the central mechanism. Worst e5m2 bit: exponent bit 3 (65.8 images changed, 32.7\% non-finite). Worst e3m2 bit: the sign bit.
+\item \textbf{The proposal's severity metric did not work} (F3). Over 8{,}374 element faults the rank correlation of $d=|\log v'-\log v|$ with observed failure was $0.026$. A sign flip leaves $|v|$ unchanged, so $d$ scores it zero, yet the zero-severity bucket had the \emph{highest} failure rate (49.8\%), and the sign bit was the single most damaging bit in e4m3 (52.8\%) and e3m2 (56.1\%).
+ A sampler built on $d$ would give the most dangerous bit almost no budget. \code{rel_error} did better (0.231).
+\item \textbf{Scale faults dominated} (F4, F5). Scale faults were 2--3$\times$ more likely than element faults to change a prediction (e4m3: 30.3\% element against 91.8\% scale), changed 37--41 of 200 predictions on average against 0.7--15.6 for elements, and 9--13\% gave non-finite outputs. But scale bits are only 3.09\% of storage, so a 3{,}000-fault campaign drew only 97--125 scale faults: the most important stratum was the least measured.
+\item \textbf{The OCP rule can flip a format ranking} (F6). At $K=32$, e4m3: OCP 0.8508 against fit 0.8610; e2m3: OCP 0.8572 against fit 0.8578. Under OCP the 6-bit format beat the 8-bit one; under fit the order flipped back, because e2m3 clips less (93.75\% headroom against 87.5\%). (Later, on RepVGG, this ranking reversal did not replicate; what survives is that OCP clipping costs accuracy, severely for MXFP4.)
+\item \textbf{Block size is nearly free in accuracy} (F7): under 1 point across $K=8$ to 64, so block size is a clean reliability axis.
+\end{enumerate}
+
+\begin{plain}
+\textbf{Why $d$ fails, in one line.} The proposal measures how much a value's \emph{size} (its logarithm) changes. But a network cares about how much the value \emph{moves}, including its sign. Flipping the sign of a weight changes its contribution to the output by twice the weight, though its size is unchanged.
+\end{plain}
+
+% =====================================================================
+\section{Phase 2: A first attempt at cheaper campaigns (11 Sept)}
+\markboth{Phase 2}{Phase 2}
+The shortage of scale samples suggested stratified sampling. Three allocations at the same 3{,}000-injection budget (e4m3, pilot rates from E01):
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+arm & scale samples & model-wide SDC & scale-stratum SDC \\
+\midrule
+uniform & 96 & $0.3252\pm0.0158$ & $0.9062\pm0.0593$ \\
+Neyman & 61 & $0.3279\pm0.0163$ & $0.8852\pm0.0809$ \\
+Neyman with $\Phi=K$ & 1{,}083 & $0.3274\pm0.0195$ & $0.8947\pm0.0183$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item All three agree to within 0.003 although they differ $18\times$ in scale samples (F8): the inclusion-weighted estimator is unbiased.
+\item $\Phi$ moves 36.1\% of the budget to scale bits (3.09\% of storage) and cuts the scale-stratum interval from $\pm0.0593$ to $\pm0.0183$, a \textbf{$10.5\times$ variance reduction} on that stratum (F9).
+\item But it \emph{widens} the model-wide interval from $\pm0.0158$ to $\pm0.0195$ ($0.65\times$, worse). Oversampling 3\% of the space necessarily undersamples the 97\% that dominates the overall rate. So $\Phi$ is a trade: it chooses \emph{which estimate is precise} (F10).
+\item Plain layer$\times$site Neyman scored $0.94\times$, slightly worse than uniform, because per-layer rates clustered tightly around 0.3 so $\sqrt{r(1-r)}$ was almost constant (F11).
+\end{itemize}
+\textbf{Lesson.} The variance is not across layers. It lives within the value distribution, which is where TreeFI looks. You parked sampling until you had ground truth to test against; you returned to it in Phase 7.
+
+% =====================================================================
+\section{Phase 3: Weights versus activations; block size (11--12 Sept)}
+\markboth{Phase 3}{Phase 3}
+
+\subsection{Why weights and activations need a different metric}
+A weight fault is exposed to all 200 inferences; an activation fault can only touch the single inference it lands in. So ``any image changed'' understates activation faults by about two orders of magnitude. The fair quantity is the probability that \emph{a given inference} is corrupted, the per-inference rate (F12).
+You introduced it here for activations only; it took two more weeks to see it should be used everywhere. The activation numbers measured in this phase were also affected by the NaN-erasing codec bug (Phase 11), so only the normalisation argument survives.
+
+\subsection{Block size: a genuine trade (O3)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & $K=8$ & $K=16$ & $K=32$ & $K=64$ \\
+\midrule
+scale bits, share of storage & 11.1\% & 5.9\% & 3.1\% & 1.7\% \\
+scale-fault any-image SDC (e4m3) & 0.731 & 0.890 & 0.924 & 0.941 \\
+images corrupted per scale fault (of 200) & 40.1 & 45.3 & 48.7 & 50.1 \\
+element-fault per-inference rate (later rescoring) & 0.0241 & 0.0208 & 0.0159 & 0.0136 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Doubling $K$ halves the scale-bit footprint but makes each scale fault more damaging (F14). On the element side (E03b, matched faults) the \emph{frequency} of failure is flat in $K$ while the \emph{severity} falls, because a larger block has a larger maximum, so typical values sit further below the shared scale, land in lower binades and a flipped bit moves them less in absolute terms (F16).
+The two sites move in opposite directions along this axis, which is why block size cannot be tuned on a single aggregate number.
+
+\subsection{The OCP rule and block size}
+With one fixed set of faults injected at every $K$, the element any-image rate under OCP was $0.1973,\,0.3113,\,0.3200,\,0.1447$ for $K=8,16,32,64$ (a non-monotone $2.21\times$ swing), against $0.2220,\,0.2273,\,0.2307,\,0.2313$ under fit ($1.04\times$, flat) (F15).
+Mechanism: small blocks mean more block maxima, and OCP clips every one of them by up to 12.5\%. You concluded at the time that ``OCP clipping fabricates a block-size trend''. Rescored per inference two weeks later (F57) this was overstated: there is a real, monotone trend under \emph{both} rules, and OCP only exaggerates it under the any-image metric.
+
+% =====================================================================
+\section{Phase 4: A second architecture; the NaN mechanism; the first width sweep (12--13 Sept)}
+\markboth{Phase 4}{Phase 4}
+
+\subsection{RepVGG-A0}
+Trained to 91.44\% (7.0 million parameters after fusion). The matched-accuracy result replicated but its \emph{direction} reversed (F17):
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+model & accuracy gap e5m2/e3m2 & e5m2 SDC & e3m2 SDC & verdict \\
+\midrule
+ResNet8 & 0.05 pp & 0.2890 & 0.5127 & e3m2 $1.77\times$ worse \\
+RepVGG-A0 & 0.07 pp & 0.0597 & 0.0083 & e3m2 $7.2\times$ safer \\
+\bottomrule
+\end{tabular}
+\end{center}
+At the time you concluded ``never quote a format ranking from one architecture''. That warning was sound but for the wrong reason (Phase 8).
+
+\subsection{Why the failure mode shifts: the first version of the NaN mechanism (F18)}
+Share of element-fault failures that were non-finite:
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+model & e5m2 element SDC & of which non-finite & e3m2 element SDC & of which non-finite \\
+\midrule
+ResNet8 & 0.2711 & 28.2\% & 0.4946 & 0.0\% \\
+RepVGG-A0 & 0.0541 & \textbf{100.0\%} & 0.0007 & 0.0\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+On RepVGG \emph{all 158} of e5m2's element failures were non-finite events; not one ordinary perturbation changed a prediction. ResNet8's e3m2 produced 1{,}422 failures by perturbation alone, RepVGG's produced 2. Your explanation: a large network absorbs mild perturbations that a small one cannot;
+what capacity cannot absorb is a NaN/Inf, which propagates unconditionally; and only formats with special codes can produce one. So \emph{as capacity grows, vulnerability stops depending on how much a flip perturbs a value and starts depending on whether the format can represent NaN at all.}
+It made two falsifiable predictions: the effect should be graded by special-code count, and a transformer should show it sharply.
+
+Scale dominance also strengthened with size (F19): e4m3 scale/element ratio $3.0\times$ on ResNet8 ($0.9175/0.3031$) and $17.8\times$ on RepVGG ($0.2073/0.0117$), because capacity absorbs a single corrupted weight but not 32 at once.
+
+\subsection{The width sweep (E05): isolating capacity}
+RepVGG and ResNet8 differ in depth, topology, training budget and accuracy all at once, so to test the capacity explanation you trained ResNet8 at five widths with identical topology, data and a 30-epoch budget:
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+width & 8 & 16 & 24 & 32 & 48 \\
+parameters & 19{,}954 & 78{,}042 & 174{,}274 & 308{,}650 & 691{,}834 \\
+accuracy & 0.7997 & 0.8508 & 0.8773 & 0.8840 & 0.8956 \\
+\bottomrule
+\end{tabular}
+\end{center}
+On seed 0 the benefit of capacity ranked in the predicted order: SDC at $w=48$ over $w=8$ was $0.06\times$ for e3m2 (0 special codes), $0.16\times$ for e4m3 (2) and $0.27\times$ for e5m2 (8). The two mechanisms separated as predicted: perturbation-driven SDC fell with width for every format, the non-finite \emph{rate} stayed flat in width (e5m2 0.073 to 0.080 across $35\times$ capacity),
+and the non-finite \emph{share} of failures rose (e5m2 0.162 to 0.662). But the curves in between were badly non-monotone (e4m3 at $w=32$: 0.0024; e3m2 at $w=24$: 0.5366), with one trained model per width. The clear next step was more seeds.
+
+% =====================================================================
+\section{Phase 5: More seeds, and the near-tie puzzle (17--20 Sept)}
+\markboth{Phase 5}{Phase 5}
+
+\subsection{More seeds}
+You wrote restartable sweep scripts that retrain every width under further seeds. With two seeds (F23) the predicted three-way ordering held in only 1 of 2 (the extremes did separate: $\text{slope}[e3m2]-\text{slope}[e5m2]=-0.463\pm0.210$, negative in 2/2 seeds, $t=-2.2$; adjacent pairs inconclusive).
+The \emph{mechanism} replicated (F24): non-finite rate flat in width (e4m3 0.0122--0.0134; e5m2 0.0710--0.0831; e3m2 exactly 0).
+
+The between-seed spread of fault sensitivity (standard deviation across seeds divided by the standard deviation expected from 3{,}000 injections alone) had a \textbf{median of 12.8$\times$} (F25; $9.9\times$ with three seeds). Two trained models of the same width, identical except for the seed, differ in sensitivity by about an order of magnitude more than the injection interval.
+\emph{More injections would not have helped; only more trained networks could.} A single-model result is a sample of size one from a wide distribution, even when its confidence interval is tight.
+
+\subsection{The near-tie puzzle (F26)}
+One cell stayed odd: e4m3 at $w=32$ was anomalously robust in \emph{both} seeds. You injected the same 60 random sign flips into the same seed-0 $w=32$ network under each format:
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+format & sign-flip SDC (of 60) & median max $|\Delta\text{logit}|$ & max $|\Delta\text{logit}|$ \\
+\midrule
+e4m3 & \textbf{1} & 0.125 & 2.09 \\
+e3m2 & \textbf{26} & 0.118 & 2.23 \\
+e5m2 & 27 & 0.118 & 2.23 \\
+\bottomrule
+\end{tabular}
+\end{center}
+The faults move the logits by the same amount, yet SDC differs $26\times$. So the difference is in the \emph{network receiving the fault}, not in the fault. The two e4m3 $w=32$ networks were the only ones of 39 (widths 8--48, seeds 0--2, three formats) with \emph{no} image having a top-1 versus top-2 margin below 0.2
+(smallest margins 0.340 and 0.216). Across all 39, perturbation-driven SDC tracked the golden near-tie count at Spearman $+0.89$ ($p=4\times10^{-14}$). The same effect explained the e3m2 $w=24$ outlier: an exact tie (margin 0.0000) gave 0.537 SDC while the seed-1 model of that width gave 0.024.
+
+\begin{plain}
+\textbf{Why this matters.} Suppose one picture sits exactly on the line between ``cat'' and ``dog''. Almost any nudge, however harmless, flips it. If your 200-image test set contains such a picture, then ``did \emph{any} image change?'' will be ``yes'' for nearly every fault, so the metric reports the test set, not the fault.
+\end{plain}
+
+Why do formats differ on the same model? e3m2 and e5m2 both keep 2 mantissa bits, so over the range the weights occupy they round alike and their golden logits and near-ties nearly coincide; e4m3 rounds to 3 mantissa bits, which moves its logits by a few hundredths, enough to create or remove a tie.
+Under a tie-robust metric (``$\ge3$ of 200 images change'') seed spreads shrink (e.g.\ $22.3\times\to6.7\times$ for e3m2 at $w=24$) and every format falls steadily with width. The non-finite rate, F24, was untouched: a NaN invalidates every prediction however large the margins are.
+
+\textbf{F1 rechecked} (numbers from \code{results/e05c_single_model_recheck.csv}, which I re-read while preparing this guide): ResNet8's e3m2 golden model has an essentially exact tie (smallest margin $4.9\times10^{-5}$) and 78\% of its failures flip exactly one image. Comparing e3m2 with e5m2: any-change $1.77\times$ (F1) but $\ge3$ images $0.44\times$ and $\ge1$ pp accuracy drop $0.14\times$.
+RepVGG-A0 has no near-ties (smallest margin at least 0.20), so its numbers were robust and e3m2 was already $0.14\times$ e5m2 ($0.0083$ against $0.0597$). So the ``direction reverses across architectures'' claim of Phase 4 was an artefact: both models agree e3m2 is safer. (This recheck is not written into \code{findings.md}; see Section~\ref{app:check}.)
+
+You decided to let the running sweep finish unchanged and then change \code{campaign.py} to log which images changed.
+
+% =====================================================================
+\section{Phase 6: The GPU server (20--22 Sept)}
+\markboth{Phase 6}{Phase 6}
+Access to the IITK server (2$\times$A100, no internet, no ImageNet) made three things possible.
+
+\subsection{Exhaustive ground truth}
+ResNet8-w16 under e4m3: all \textbf{638{,}624} bits flipped and scored, in about 1.1 hours (about 170 injections per second).
+\begin{center}
+\small
+\begin{tabular}{lc}
+\toprule
+exhaustive truth (any-image) & \textbf{0.4171} \\
+a 3{,}000-fault sample & 0.4270, interval [0.4094, 0.4448] \\
+error & $+0.0099$ (2.37\% relative), interval covers the truth \\
+\bottomrule
+\end{tabular}
+\end{center}
+Every sampled number in the study rests on the assumption that 3{,}000 uniform injections estimate the true rate within the stated interval; it was now \emph{checked}. The exact enumeration also gave (F54):
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+site & faults & SDC rate & images corrupted & non-finite \\
+\midrule
+element & 618{,}880 & 0.4003 & 3.27 & 1.27\% \\
+scale & 19{,}744 & 0.9442 & 49.89 & 12.33\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+a $2.36\times$ gap in rate and $15.3\times$ in blast radius. Scale bits 3 and 7 were catastrophic \emph{without exception} (SDC 1.000): bit 7 shifts the exponent by 128 (past the float32 range, giving infinity) and bit 3 scales the block by 256. By bit position (element) the any-image rates were:
+$0.130,0.212,0.314,0.421,0.532,0.528,0.474,\mathbf{0.593}$ for bits 0--7, the sign bit worst (F27; later qualified, Phase 9).
+
+\subsection{Per layer: the smallest layer is the most fragile}
+Layer by layer (F28): \code{conv1} 0.853; \code{layer2.shortcut.0} 0.726; \code{layer1.conv2} 0.724; \code{layer2.conv1} 0.667; \code{layer1.conv1} 0.650; \code{layer2.conv2} 0.560; \code{fc} 0.550; \code{layer3.conv1} 0.448; \code{layer3.shortcut.0} 0.411; \code{layer3.conv2} 0.289.
+Vulnerability runs \emph{opposite} to size. The stem's errors propagate through the whole network. A uniform campaign samples layers in proportion to size, so it spends 48\% of its budget on the most robust layer and 0.6\% on the most fragile.
+\begin{center}
+\includegraphics[width=0.52\linewidth]{fig3_layers.pdf}
+\captionof{figure}{Exhaustive any-image SDC of each ResNet8 layer against its storage in bits (e4m3). The stem convolution (3{,}584 bits) is the most fragile; the last convolution (304{,}128 bits) is the most robust.}
+\end{center}
+
+\subsection{Ten seeds per width}
+You retrained the whole width sweep on the GPU with ten seeds per width: 50 networks, 150 campaigns, 450{,}000 injections, all trained and measured on one device. The capacity slope $\mathrm{d}\log(\text{SDC})/\mathrm{d}\log(\text{params})$ (F29):
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+format & special codes & slope \\
+\midrule
+e3m2 & 0 & $-1.095\pm0.098$ \\
+e4m3 & 2 & $-0.705\pm0.038$ \\
+e5m2 & 8 & $-0.495\pm0.032$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Paired within a seed (the same trained model for all three formats, so model-to-model variance cancels): e3m2$-$e4m3 $=-0.390\pm0.097$ ($t=-4.00$, negative in 9/10 seeds); e4m3$-$e5m2 $=-0.210\pm0.052$ ($t=-4.01$, 8/10); e3m2$-$e5m2 $=-0.600\pm0.075$ ($t=-8.01$, 10/10). \textbf{Both adjacent pairs separate, and the slopes are monotone in special-code count.}
+The simple endpoint-ratio test held in only 5 of 10 seeds (F30): it throws information away. The lesson: use the statistic with the most power and say so. The control stayed clean (F31): non-finite rate e4m3 0.0107--0.0128 ($1.20\times$), e5m2 0.0714--0.0774 ($1.08\times$), e3m2 exactly 0; model-to-model spread still about $9.8\times$ the injection uncertainty.
+
+\subsection{A vision transformer}
+2.69M parameters, three seeds, 80.4--81.9\% on CIFAR-10. Quantised accuracy within 0.2 points of FP32 for every format except MXFP4 (e4m3 0.8193, e2m3 0.8190, e5m2 0.8174, e3m2 0.8173, e2m1 0.8108, FP32 0.8194). The cleanest matched-accuracy comparison of the project (F32):
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+format & NaN/Inf codes & element SDC & element non-finite & scale SDC / element SDC \\
+\midrule
+e5m2 & 8 & $0.0730\pm0.0089$ & 0.0689 & $3.4\times$ \\
+e4m3 & 2 & $0.0453\pm0.0296$ & 0.0124 & $12.1\times$ \\
+e3m2 & 0 & $0.0041\pm0.0047$ & 0.0000 & $156\times$ \\
+e2m3 & 0 & 0.0236 & -- & $21.0\times$ \\
+e2m1 & 0 & 0.0500 & -- & $8.6\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+e5m2 and e3m2 differ by \textbf{0.01 points of accuracy} yet e5m2 is $17.8\times$ more vulnerable (any-image), and 94\% of its element failures are non-finite (27\% for e4m3). F18 had predicted a transformer would behave this way, and it does, more sharply, because the ViT is accurate enough that ordinary perturbations rarely flip a prediction while a NaN always does.
+Neither LayerNorm nor the softmax masked the damage. Scale faults also gave non-finite outputs in 7--10\% of cases for \emph{every} format (including those without special element codes), because E8M0 has its own NaN code and its top bit is worth 128 exponent steps (F33).
+
+One result did not fit (F34): e3m2 and e2m3 are both 6-bit, NaN-free and equally accurate, yet differ $5.8\times$ in element SDC (0.0041 against 0.0236). Special codes cannot explain that.
+
+% =====================================================================
+\section{Phase 7: The 6-bit puzzle, sensitivity and a severity measure that works (22--25 Sept)}
+\markboth{Phase 7}{Phase 7}
+
+\subsection{Ruling things out (E08--E10, F35)}
+Pooled over three ViT seeds the gap is 35/8604 against 203/8604 failures (Fisher exact $p=2.5\times10^{-30}$), spread uniformly across bits and layers. You tested explanations one by one and refuted each:
+\begin{itemize}
+\item \textbf{Not perturbation size.} Enumerating every (element, bit) pair exactly, e2m3 perturbs weights \emph{less} than e3m2 (mean $|\Delta w|$ 0.656 against 0.717 layer-RMS units). Yet within matched perturbation bins e2m3 fails $7.0\times$ more often (0.1045 against 0.0178 in the largest bin).
+\item \textbf{Not which weights are hit.} In matched bins the two strike weights of similar magnitude; renormalising per output neuron changes the gap not at all ($6.4\times$ against $6.3\times$).
+\item \textbf{Not margin compression.} Median normalised margins 2.853 against 2.863.
+\end{itemize}
+
+\subsection{The fragility belongs to the quantised network (F36)}
+You perturbed one random weight by a fixed multiple of the layer RMS, a probe with no bit patterns in it at all:
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+network & mantissa bits & $0.5$ rms & $1.5$ rms & $3.0$ rms \\
+\midrule
+e5m2 & 2 & 0.0000 & 0.0000 & 0.0013 \\
+e3m2 & 2 & 0.0000 & 0.0000 & 0.0013 \\
+e4m3 & 3 & 0.0080 & 0.0493 & 0.1380 \\
+e2m3 & 3 & 0.0013 & 0.0187 & 0.0513 \\
+e2m1 & 1 & 0.0160 & 0.0740 & 0.1407 \\
+\bottomrule
+\end{tabular}
+\end{center}
+At 1.5 RMS the 2-mantissa networks never flipped a prediction in 1{,}500 trials; the 3-mantissa networks flipped 2--5\% of the time. Since the probe never touches a code, the difference cannot come from how faults are encoded: \emph{two quantised networks of equal accuracy and margins can differ by more than an order of magnitude in how a weight perturbation of a given size disturbs them.}
+You first wrote this as ``mantissa width tracks vulnerability'' (F37).
+
+\subsection{A sensitivity measure (E11, F38)}
+Let $m=z_{(1)}-z_{(2)}$ be an image's margin. Moving weight $w_i$ by $\delta$ shifts the margin by about $\delta\,\partial m/\partial w_i$ to first order, and the prediction flips when this exceeds $m$. So define the dimensionless \emph{sensitivity}
+\[
+s_i=\frac{|\partial m/\partial w_i|\cdot\mathrm{rms}}{m},
+\]
+maximised over the evaluation images (a weight fault is exposed to all of them), where rms is the layer's weight RMS. A perturbation of $\delta\cdot\mathrm{rms}$ should flip a prediction roughly when $s_i\delta>1$. $s$ is computed by backpropagation, one pass per image. It predicts the format-agnostic probe at \textbf{correlation $+0.998$} across 15 (format, size) cells. For example at 1.5 rms, predicted against measured: e4m3 0.0471/0.0493; e2m3 0.0154/0.0187; e2m1 0.0677/0.0740.
+Decomposing $s$: mean margin (3.59 against 3.63), logit spread and mean $|\partial m/\partial w|\cdot$rms agree across formats to three digits; only the \emph{tail} differs (99th percentile 0.161 against 2.309).
+
+\subsection{Extending to all five formats breaks the mantissa story (F45)}
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+format & mantissa & accuracy & median $s$ & perturbation-driven SDC \\
+\midrule
+e5m2 & 2 & 0.8174 & 0.0122 & 0.0040 \\
+e3m2 & 2 & 0.8173 & 0.0121 & 0.0041 \\
+e4m3 & 3 & 0.8193 & 0.1249 & 0.0329 \\
+e2m3 & 3 & 0.8190 & 0.0492 & 0.0236 \\
+e2m1 & \textbf{1} & 0.8108 & \textbf{0.1187} & \textbf{0.0500} \\
+\bottomrule
+\end{tabular}
+\end{center}
+e2m1 has the \emph{fewest} mantissa bits and the \emph{highest} perturbation failure rate. Across the five formats, median sensitivity predicts perturbation-driven SDC at $r=+0.925$; mantissa bits at $r=-0.251$. Mantissa width was a correlate inside one group of formats, not a cause. The design guidance changed from ``prefer coarser mantissas'' (unsupportable) to: avoid special codes, and \emph{measure $s$ on the quantised network}.
+
+\subsection{A severity measure that predicts failure (E12, F39)}
+For a fault changing a weight from $v$ to $v'$:
+\[
+\mathrm{margin\_shift}_i=s_i\cdot\frac{|v_i'-v_i|}{\mathrm{rms}},
+\]
+the fraction of the decision margin the fault uses up. Four measures were compared over 39{,}337 ViT element faults that stayed finite:
+\begin{center}
+\small
+\begin{tabular}{lccp{5.4cm}}
+\toprule
+measure & AUC & Spearman & what it knows \\
+\midrule
+\code{log_severity} (the proposal's $d$) & \textbf{0.435} & $-0.035$ & number system only \\
+\code{rel_error} $=|v'-v|/|v|$ & 0.699 & 0.107 & number system only \\
+\code{delta_rms} $=|v'-v|/\mathrm{rms}$ & 0.845 & 0.184 & number system and layer scale \\
+\code{margin_shift} & \textbf{0.990} & 0.261 & number system and the network \\
+\bottomrule
+\end{tabular}
+\end{center}
+The proposal's measure ranks failures slightly worse than chance. Its threshold needs no tuning: flagging $\mathrm{margin\_shift}>1$ catches \textbf{98.5\%} of all failures while flagging \textbf{4.4\%} of the fault space (precision 0.544).
+\begin{center}
+\includegraphics[width=0.55\linewidth]{fig4_severity.pdf}
+\captionof{figure}{ROC curves: how well each severity measure ranks the faults that actually failed. A curve on the diagonal is chance; the proposal's \code{log_severity} sits below it, \code{margin_shift} hugs the top-left corner.}
+\end{center}
+(The figure legend shows AUC 0.429 and 0.698 for the first two measures while the report text says 0.435 and 0.699; they are computed on slightly different fault subsets. See the list of items to double-check in Section~\ref{app:check}.)
+It also carries a caveat: severity is \emph{not} a property of the number system alone, since the same flip in the same format has different consequences in two networks of equal accuracy.
+
+\subsection{Firming up, and a first test of value-aware sampling}
+\begin{itemize}
+\item \textbf{Second exhaustive campaign} (F41): e3m2, 483{,}904 injections, in which \emph{not one fault} produced a non-finite value; the sample again covered the truth (0.1070 [0.0964, 0.1186] against truth 0.1079). Scale/element $10.2\times$.
+\item \textbf{RepVGG with three seeds} (F42; 91.45\% each): e5m2 element 0.0583 (non-finite 0.0538, i.e.\ 92\%), e4m3 0.0107, e3m2 0.0012 (non-finite 0). Scale/element $5.1\times$, $28.7\times$, $232\times$.
+\item \textbf{Value-aware sampling against exhaustive ground truth} (E15, F46--F47; replayed 400 times without new injections). Splitting the fault space at $\mathrm{margin\_shift}$ of 0.1 and 1.0: on e3m2 the low stratum (38.6\% of the space) held \emph{zero} failures, the high stratum (14.2\%) had rate 0.744. Neyman allocation with a 20\% pilot gave a \textbf{$7.0\times$ variance reduction} on e3m2 (AUC 0.989) and $2.1$--$2.3\times$ on e4m3 (AUC 0.882),
+ growing as the failure rate falls. (The first version reported no gain on e4m3 because of the checkpoint mismatch in Phase 8.)
+\end{itemize}
+
+\subsection{What $s$ really measures: the last open question (E16, E17; F48, F49)}
+You had concluded by elimination that the difference in $s$ between formats must be \emph{alignment} (whether per-position terms of the gradient reinforce each other). Elimination is only as good as the list. A permutation test destroyed the alignment while preserving every value of both marginals: the tail moved by at most 2\% (gain $1.00$--$1.02\times$ for all formats), so the guess was wrong.
+Splitting $s$ into its two factors gave the answer:
+\begin{center}
+\small
+\begin{tabular}{lc}
+\toprule
+quantity & spread across the five formats \\
+\midrule
+$s$, median & $10.29\times$ \\
+$s$, 99th percentile & $22.24\times$ \\
+gradient factor $|\partial m/\partial w|\cdot\mathrm{rms}$ & $\approx1.01$--$1.08\times$ \\
+$s$ with the margin divided out (median and 99th percentile) & \textbf{$1.08\times$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+The gradient field is the same in every format. The entire spread comes from the margin of \emph{one} evaluation image, the closest to a decision boundary (smallest margin 0.0070 for e2m1 against 0.2330 for e5m2, a $33\times$ range), and because $s$ is defined as a maximum over images, that one image raises $s$ for every weight at once.
+And that image belongs to the evaluation set rather than the network: $1/\min m$ ranked fifteen networks (3 seeds $\times$ 5 formats) by failure rate at Spearman $+0.983$ on the campaign's own 200 images but only $+0.209$ on 2{,}000 fresh images. The seed-to-seed component of vulnerability is a real property of the network (Spearman $+1.000$ on fresh images in all 5 formats),
+but the format-to-format component, at 200 images, is a property of the (network, evaluation set) pair.

@@ -1,0 +1,352 @@
+\part{The TreeFI paper}
+
+This part explains the paper in the file \code{hal.pdf} that you attached. It is the prior work your project cites. Everything in
+this part is taken from that paper; where I add my own explanation or comparison with your project I mark it.
+
+\section{The paper at a glance}
+\markboth{TreeFI at a glance}{TreeFI at a glance}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{11cm}@{}}
+\toprule
+Title & \emph{TreeFI: Value-Aware Statistical Fault Injection for Deep Neural Networks} \\
+Authors & Noam Bires, Marcello Traiola, Angeliki Kritikakou, Elisa Fromont (Inria, IRISA, Univ Rennes, CNRS, Rennes, France) \\
+Venue & ICCAD 2026 (IEEE/ACM International Conference on Computer-Aided Design), November 2026, San Jose, USA \\
+Archive & HAL id \code{hal-05704925}, submitted 27 July 2026, licence CC BY 4.0 \\
+Code & \code{gitlab.inria.fr/nbires/treefi} \\
+Length & 10 pages including the HAL cover page \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keyidea}
+\textbf{One sentence.} When you test a neural network by flipping random bits, \emph{what a flip does depends strongly on the value
+that is being corrupted}; TreeFI uses this by grouping the possible values into intervals that behave alike under a bit flip, and then spending
+more test injections on the intervals that matter, so that the same statistical accuracy is reached with up to $72.1\times$ fewer injections.
+\end{keyidea}
+
+\textbf{The headline claims (from the abstract).}
+\begin{itemize}
+\item It is a statistical fault-injection (SFI) method for \textbf{FP32 single-bit faults} in DNN \textbf{activations and weights}.
+\item It partitions each layer's value distribution into intervals with similar expected bit-flip behaviour, \emph{learned using regression trees},
+ and allocates injections across the intervals according to how relevant they are to the failure-rate estimate.
+\item On ResNet8, where exhaustive injection is feasible, it gives more accurate estimates than the state-of-the-art SFI baselines under the same campaign setting.
+\item Across the evaluated models it cuts the required injections by \textbf{up to $72.1\times$}; on average $44.9\times$ for activation faults and
+ $11.2\times$ for the executed weight campaigns.
+\end{itemize}
+
+\section{The problem: testing is too expensive}
+\markboth{The problem TreeFI solves}{The problem TreeFI solves}
+
+\subsection{Why anyone injects faults}
+DNNs are used in safety-critical systems (the paper's introduction gives the general motivation: dependability matters as much as predictive
+performance). Transient hardware faults caused by radiation or electrical noise can flip a bit, silently corrupt a computation and change the prediction.
+To judge how reliable a system is, one \emph{injects} faults on purpose and counts how often the output changes.
+
+\subsection{Why you cannot inject everything}
+The number of possible injections is the number of (location, bit, input) combinations. The paper's Table~1 shows how big it gets for
+\emph{activation} faults:
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+ & ResNet8 & RepVGG-A0 & DeiT-Tiny & DeiT-Small & DeiT-Base \\
+\midrule
+exhaustive injections & 9{,}437{,}184 & 14{,}024{,}704 & 58{,}097{,}664 & 116{,}195{,}328 & 232{,}390{,}656 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Hundreds of millions of injections, each needing network executions, are out of reach. So the field uses \term{statistical fault injection (SFI)}:
+inject a random sample and use sampling theory to say ``the true failure rate is within $\pm E$ of my estimate with confidence $C$''. The paper's target is
+$E=1\%$ absolute error at $99\%$ confidence. The question is how \emph{few} injections will do.
+
+\subsection{The two baselines TreeFI is compared with}
+\begin{description}[leftmargin=1.4cm,style=nextline]
+\item[SFI (``data-aware one-shot'', Ruospo et al., DATE 2023)] A statistical method that fixes the budget up front using a proxy to decide how
+ many injections go to each layer and bit position. The paper says it was originally proposed for \emph{weight} faults and is less favourable for \emph{activation} faults,
+ whose values are more heterogeneous and depend on the input.
+\item[IFI (iterative SFI, Ruospo et al., IEEE Trans.\ Computers 2025)] Starts with a loose error target (5\%) and \emph{refines} the campaign using intermediate results
+ until 1\% is reached. The paper names two practical limitations: it can spend many injections in early iterations on bits that have little impact, and its iterative nature makes
+ the total runtime hard to predict in advance.
+\end{description}
+Both allocate injections across \emph{layers and bit positions}. Neither organises sampling by the \emph{value} being corrupted. That is TreeFI's contribution.
+
+\section{Background and related work, as the paper presents it}
+\markboth{TreeFI: related work}{TreeFI: related work}
+
+The paper's Section~2 places TreeFI among several families of work. It helps to know them because your own report cites some of the same ones.
+\begin{itemize}
+\item \textbf{Levels of abstraction.} Reliability can be studied with real \emph{radiation} experiments (realistic, but needs irradiation facilities, costly and inflexible),
+ at \emph{RTL/architecture level} (more faithful to hardware, needs detailed hardware models, expensive), or with \emph{software-implemented fault injection} (less accurate, hardware-agnostic,
+ usable early in development). TreeFI, like your project, uses software injection and says it is used ``solely to define a fully characterizable reference population''.
+\item \textbf{Software frameworks} that make software injection routine: Ares, TensorFI, PyTorchFI, MRFI (references 14 to 17 in the paper; your report cites Ares and PyTorchFI).
+\item \textbf{Statistical FI.} Instead of exhaustive injection, SFI uses classical sampling theory (Leveugle et al., DATE 2009; Cochran's \emph{Sampling Techniques}) to reach a given confidence level and error margin.
+\item \textbf{Complementary approaches} that the paper explicitly says it does not replace: finding critical bits or parameters (binary-search-like localisation, bit-level sensitivity analysis, Hessian-guided
+ ranking, machine-learning-guided ranking); analytical or hybrid vulnerability estimation and cross-layer simulation; and work that uses numerical-format effects to \emph{protect} the model (format-aware analysis, numerical-range squeezing,
+ trainable activation shaping, fault-aware training). The paper says its focus ``is not to harden the model, but to evaluate its vulnerability more efficiently under a statistical FI methodology''.
+\end{itemize}
+
+\section{The key observation: damage depends on the value}
+\markboth{TreeFI: key observation}{TreeFI: key observation}
+
+The paper motivates the method with its Figure~2: a representative ResNet8 activation layer, 65{,}536 single-bit injections per plot. Both plots fix one bit position
+(bit 30, the exponent's most significant bit; bit 27) and plot, for each injected value, the model's accuracy after the flip against the value's original (golden) magnitude.
+
+What it shows, in plain terms: for one fixed bit position, \emph{in some value ranges the flip has little or no visible effect, while in other ranges the very same bit causes a sharp accuracy drop.}
+So two injections at the same layer and the same bit position can have completely different outcomes, because the corrupted values belong to different ranges.
+
+\begin{plain}
+In FP32, what flipping a given bit does depends on what the number already was. Take the top exponent bit (bit 30). In a small number such as 0.001 that bit is 0, and setting it multiplies the number by about $2^{128}$: an astronomically large value that wrecks the network.
+In a number that already has that bit set (any value of 2 or more), clearing it turns the number into almost zero, a change no bigger than the number itself, which a network often survives. A sampling plan that ignores this wastes effort on values where the flip is harmless.
+(This is my own illustration of the idea; the paper's figure shows the effect on a real layer.)
+\end{plain}
+
+\section{The method in detail}
+\markboth{TreeFI: the method}{TreeFI: the method}
+
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize, node distance=3mm,
+  box/.style={draw, rounded corners, align=center, minimum width=2.7cm, minimum height=1.5cm, inner sep=3pt},
+  arr/.style={-{Stealth[length=2mm]}, thick}]
+  \node[box, fill=blue!8] (a) {(a) Value distribution\\analysis\\[2pt]histogram of\\golden values};
+  \node[box, fill=orange!10, right=of a] (b) {(b) Learn value\\intervals\\[2pt]regression tree,\\risk score $r$};
+  \node[box, fill=green!10, right=of b] (c) {(c) Interval\\frequency\\[2pt]weights $W$};
+  \node[box, fill=yellow!15, right=of c] (d) {(d) Stratified\\injection\\[2pt]$n\propto W\sqrt{r(1-r)}$};
+  \node[box, fill=violet!10, right=of d] (e) {(e) Aggregate\\[2pt]$\hat p=\sum_k W_k\hat p_k$};
+  \draw[arr] (a)--(b); \draw[arr] (b)--(c); \draw[arr] (c)--(d); \draw[arr] (d)--(e);
+  \draw[decorate,decoration={brace,amplitude=4pt}] ([yshift=3mm]a.north west) -- ([yshift=3mm]c.north east)
+     node[midway,above=4pt]{\small Phase 1: offline characterisation (no injections)};
+  \draw[decorate,decoration={brace,amplitude=4pt}] ([yshift=3mm]d.north west) -- ([yshift=3mm]e.north east)
+     node[midway,above=4pt]{\small Phase 2: the injection campaign};
+\end{tikzpicture}
+\captionof{figure}{The TreeFI workflow (the paper's Figure~1, redrawn).}
+\end{center}
+
+\subsection{Phase 1(a): value distribution analysis}
+For each target layer, run the network once, fault-free (the \emph{golden} execution), and build a histogram of the values in that layer. For \emph{activations} this means running the validation set and recording
+the layer's outputs; for \emph{weights} the values are read directly from the model parameters.
+
+Two practical points the paper stresses. First, no subsampling: all tensor values are accumulated. Second, to keep this cheap the method stores only \emph{weighted histogram counts} and discards the raw values; values that differ
+by less than $10^{-4}$ share a bin. The authors say this reproduces \emph{identical} intervals to those from raw values, and that sorting raw values on large models can take more than a day, versus a few seconds with histograms.
+
+\subsection{Phase 1(b): learning value intervals}
+This is the heart of the method. For each \emph{(layer, bit position)} pair a one-dimensional \term{regression tree} is trained along the value axis. A regression tree is a model that repeatedly splits the axis
+at the points where the quantity being predicted changes most, ending in ``leaves'', each leaf being an interval of values.
+
+\textbf{What the tree predicts.} Only \emph{how much the value itself changes when that bit is flipped}. In the paper's words, TreeFI ``does not yet perform full inferences through the DNN or evaluate the effect on the model output''. It uses the
+numerical difference between the original value and the bit-flipped value, nothing about the network.
+
+\textbf{Settings.} Minimum leaf weight 10 samples, at most 100 leaf nodes, weighted-MSE split threshold $10^{-4}$. In practice the learned trees have at most about 15 leaves per layer-bit pair. Training is weighted by the histogram counts so that rare bins do not distort the splits.
+
+\textbf{From intervals to a risk score.} For each learned interval $k$ of layer $\ell$ and bit $b$, TreeFI averages a \emph{severity}, the log-distance between each original value and its flipped counterpart, giving $\mathrm{avg\_log}_{\ell,b,k}$.
+This is turned into a \term{risk score} between 0 and 1 by a sigmoid:
+\begin{equation}\label{eq:risk}
+r_{\ell,b,k}=\sigma\bigl(s\,(\mathrm{avg\_log}_{\ell,b,k}-\beta_\ell)\bigr),\qquad \beta_\ell=\log_{10}(\gamma\cdot a_{\ell,\max}).
+\end{equation}
+Here $\sigma(x)=1/(1+e^{-x})$; $s$ controls how sharp the transition is (the paper fixes $s=2$ for all layers); $a_{\ell,\max}$ is the largest golden value in the layer; $\gamma$ is a scaling constant
+(they test $1,2,5,10$). In words: intervals where a flip changes the value a lot get a risk close to 1; intervals where it changes the value little get a risk close to 0; the layer-dependent bias $\beta_\ell$ decides what ``a lot'' means relative to the layer's own scale.
+
+\subsection{Phase 1(c): interval frequency}
+Using the histogram from (a), compute how often each interval actually occurs in the golden run: the weight $W_{\ell,b,k}$ (the interval's frequency for the layer-bit pair). These weights play two roles: they decide how many injections an interval gets, and they are used to recombine the results.
+
+\subsection{Phase 2(d): stratified injection}
+Now the budget is divided across intervals using the classical stratified-sampling rule (Neyman, 1934, the paper's reference 31):
+\begin{equation}\label{eq:alloc}
+n_{\ell,b,k}\;\propto\;W_{\ell,b,k}\,\sqrt{r_{\ell,b,k}\,(1-r_{\ell,b,k})}.
+\end{equation}
+Read it as: \emph{more injections for intervals that are frequent (large $W$) and uncertain (risk near 0.5, where $r(1-r)$ is largest).} Intervals with risk near 0 or 1 are nearly certain, so they need few injections. The total per layer-bit pair is chosen
+so that the final failure-rate estimate meets the desired confidence and error margin.
+
+\begin{worked}[Illustrative example (numbers invented by me, to show the arithmetic)]
+Suppose one layer-bit pair has three intervals:
+\begin{center}\small
+\begin{tabular}{lccccc}
+\toprule
+interval & frequency $W$ & risk $r$ & $\sqrt{r(1-r)}$ & $W\sqrt{r(1-r)}$ & share of budget \\
+\midrule
+1 (small values) & 0.60 & 0.02 & 0.14 & 0.084 & 31.8\% \\
+2 (middle) & 0.30 & 0.50 & 0.50 & 0.150 & 56.8\% \\
+3 (large values) & 0.10 & 0.90 & 0.30 & 0.030 & 11.4\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+With a budget of 1{,}000 injections, uniform-by-frequency sampling would give 600/300/100. The rule above gives about 318/568/114: it takes injections away from the very common but very predictable interval 1 and
+puts them where the outcome is genuinely uncertain. After injecting, suppose the measured failure rates in the three intervals are 0.03, 0.48 and 0.88. The estimate is then
+\[
+\hat p=\sum_k W_k\hat p_k=0.6\times0.03+0.3\times0.48+0.1\times0.88=0.250,
+\]
+weighted by how common each interval really is.
+\end{worked}
+
+\subsection{Phase 2: how the injection is carried out}
+\begin{itemize}
+\item \textbf{Activation faults.} Activation values depend on the input. For each input, TreeFI looks for activation values whose golden value lies in the chosen interval, picks one location at random among these candidates, and flips the chosen bit. So an activation location is eligible only if
+ its value, for the current input, belongs to the interval selected for sampling.
+\item \textbf{Weight faults.} The weight value is stored in the parameters and does not depend on the input. TreeFI picks a parameter whose value falls in the interval and flips the chosen bit; the same corrupted parameter can then be evaluated on all the considered inputs.
+\item \textbf{Fault model.} A single-bit flip in FP32. The paper chooses this because it is standard in software-implemented reliability studies and gives a simple, controlled setting; it says that real hardware faults may be multi-bit or correlated, but modelling those is out of scope.
+\item \textbf{Failure.} The faulty output is compared with the fault-free output and a failure is recorded if the top-1 prediction changes.
+\end{itemize}
+
+\subsection{Phase 2(e): aggregating the outcomes}
+The failure rate for one layer and bit is the frequency-weighted sum of the interval failure rates:
+\begin{equation}\label{eq:agg}
+\hat p_{\ell,b}=\sum_k W_{\ell,b,k}\,\hat p_{\ell,b,k}.
+\end{equation}
+The paper explains why the weighting matters: without it, intervals that are injected often (because they are uncertain) would contribute equally to the estimate even if they rarely occur. Weighting by empirical frequency makes the estimate representative of the actual layer behaviour,
+and the paper lists this as one of the main differences from SFI methods that do not distinguish value ranges.
+
+\section{Experimental set-up}
+\markboth{TreeFI: set-up}{TreeFI: set-up}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{11cm}@{}}
+\toprule
+Models & ResNet8 and RepVGG-A0 on CIFAR-10 (trained on the 50{,}000-image training split; injections evaluated on the separate 10{,}000-image test split); DeiT-Tiny, DeiT-Small and DeiT-Base on ImageNet, using ImageNet-pretrained checkpoints and the ImageNet validation set \\
+Fault model & FP32 single-bit flips, in activations and in weights \\
+Target & absolute error margin $E=1\%$ at $99\%$ confidence \\
+Baselines & SFI (data-aware one-shot) and IFI (iterative); IFI starts from a looser target ($E=5\%$) and refines to $1\%$ as recommended \\
+TreeFI settings & activations: $\gamma\in\{1,2,5,10\}$ (``TreeFI-$1\times$ \ldots $10\times$'') with $s=2$; weights: TreeFI-$20\times$ \\
+Ground truth & exhaustive activation FI on ResNet8, over 5{,}000 inputs \\
+Repetition & 15 independent TreeFI campaigns with different random seeds on ResNet8 activations, to measure estimation error and its variability \\
+Metric & mean absolute error (MAE) of the failure rate against the exhaustive reference, in percentage points; number of injections; wall-clock time \\
+Hardware & one NVIDIA H100 GPU with 96 GB of memory \\
+\bottomrule
+\end{tabular}
+\end{center}
+The ``TreeFI-$10\times$'' naming means $\gamma=10$. My reading of equation~(\ref{eq:risk}) (not a sentence from the paper): a larger $\gamma$ raises the bias $\beta_\ell$, which lowers the risk score of every interval, so fewer intervals count as risky and the allocation shrinks.
+
+\section{The results}
+\markboth{TreeFI: results}{TreeFI: results}
+
+\subsection{Activation faults on ResNet8, checked against exhaustive FI}
+Using the exhaustive campaign as ground truth, TreeFI-$10\times$ gets failure rates very close to the exhaustive ones, reproducing \emph{the same most failure-prone bits and layers}. The paper concludes the reduction in injections
+``does not come from overlooking sensitive cases, but from distributing injections more effectively across the value space''.
+
+MAE against the exhaustive reference is below the $1\%$ target for all methods; TreeFI achieves lower MAE than SFI and IFI especially around the most failure-prone layers and bits (the paper's Figure~3). It also has lower per-layer MAE because it combines interval-level results using the
+\emph{true interval frequencies} observed in the golden pass; SFI and IFI do not reweight in this way. The gap between TreeFI-$1\times$ and TreeFI-$10\times$ stays below $0.05$ percentage points across layers and bits, one order of magnitude below the $1\%$ target.
+
+\subsection{How many injections? (the paper's Table 1)}
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+method & ResNet8 & RepVGG-A0 & DeiT-Tiny & DeiT-Small & DeiT-Base \\
+\midrule
+Exhaustive & 9{,}437{,}184 & 14{,}024{,}704 & 58{,}097{,}664 & 116{,}195{,}328 & 232{,}390{,}656 \\
+SFI & 740{,}354 & 1{,}812{,}919 & 1{,}664{,}695 & 1{,}749{,}489 & 1{,}781{,}928 \\
+IFI & 979{,}021 & 2{,}173{,}770 & n/a & n/a & n/a \\
+TreeFI $1\times$ & 100{,}046 & 308{,}303 & 137{,}091 & 113{,}820 & 121{,}702 \\
+TreeFI $2\times$ & 76{,}810 & 227{,}601 & 100{,}891 & 77{,}458 & 84{,}379 \\
+TreeFI $5\times$ & 49{,}840 & 145{,}525 & 57{,}519 & 41{,}291 & 45{,}672 \\
+TreeFI $10\times$ & \textbf{34{,}934} & \textbf{103{,}552} & \textbf{34{,}816} & \textbf{24{,}254} & \textbf{26{,}970} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Exhaustive FI needs about $270\times$ more injections than TreeFI-$10\times$ on ResNet8. IFI is not run for the DeiT models because its iterative nature makes the total number of injections impossible to predict and a full-model run is intractable in the authors' set-up.
+
+\textbf{Reduction versus SFI} (the paper's Figure~4): from $5.9\times$ (RepVGG-A0, $\gamma=1$) up to $\mathbf{72.1\times}$ (DeiT-Small, $\gamma=10$). On average TreeFI-$10\times$ reaches the same statistical result as SFI with $44.9\times$ fewer injections.
+The gains grow with model size, which the authors read as evidence that the benefit grows with the size of the fault space and the heterogeneity of the value distributions.
+
+\subsection{Time}
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+ResNet8 activations & injections & wall-clock \\
+\midrule
+SFI & 740{,}354 & 7 h 13 min \\
+IFI & 979{,}021 & 9 h 35 min \\
+TreeFI-$10\times$ & 34{,}934 & 28 min \\
+\bottomrule
+\end{tabular}
+\end{center}
+That is a theoretical reduction of about $21.2\times$ versus SFI and $28.0\times$ versus IFI, and a measured wall-clock reduction of $15.5\times$ and $20.5\times$. On RepVGG-A0 (full activation campaign on the H100): IFI 33 h 47 min, SFI 26 h 46 min,
+TreeFI-$10\times$ 1 h 41 min, about $20.1\times$ and $15.9\times$ faster. On the first layer of DeiT-Tiny: IFI 36 h 43 min, SFI 40 h 55 min, TreeFI-$10\times$ 20 min; TreeFI-$10\times$ needed 1{,}042 injections against 124{,}089 (IFI) and 139{,}778 (SFI), about $119\times$ and $134\times$ fewer.
+A full DeiT-Tiny analysis with TreeFI-$10\times$ took 6 h 42 min, while SFI needed 111 h 30 min just to complete the first three layers.
+
+\subsection{Scalability on RepVGG and DeiT}
+Where exhaustive FI is infeasible the paper compares per-layer and per-bit failure-rate trends (its Figures~5 and 6). TreeFI-$10\times$ follows the same main trends as IFI and SFI with far fewer injections. The small differences it reports in absolute failure rates on DeiT come mainly from the \emph{reweighting step}:
+when the authors applied the same reweighting to the SFI results, they obtained estimates matching those of TreeFI-$10\times$.
+
+\subsection{The hyperparameter study (ResNet8 activations)}
+To justify the sigmoid parameters, the authors tried $88$ combinations of sharpness $s\in\{1,2,3,4,6,8,16,32\}$ and bias multiplier $\gamma\in\{1,2,5,10,20,50,200,2000,10000,20000,50000\}$. They kept configurations that stayed within the $1\%$ layer-by-bit error criterion:
+$60$ of $88$ did. The pattern: for $s\ge16$ only three biases passed, so very sharp transitions concentrate the injections too narrowly and degrade quality; for all $s\le3$ every bias passed. So $s$ matters more than $\gamma$, and they recommend starting from moderate sharpness ($s=2$) and only increasing selectivity if preliminary
+experiments justify it. The chosen setting ($s=2$, $\gamma=10$) sits in a conservative part of the trade-off curve (their Figure~7).
+
+\subsection{Weight faults}
+Weights do not depend on the input, so there is less structure to exploit. The paper runs all layers of ResNet8, 10 layers of RepVGG-A0 and 6 layers of DeiT-Tiny with TreeFI-$20\times$.
+\begin{center}
+\small
+\begin{tabular}{lrrr}
+\toprule
+injections (weights) & ResNet8 (all layers) & RepVGG-A0 (10 layers) & DeiT-Tiny (6 layers) \\
+\midrule
+SFI & 753{,}050 & 1{,}108{,}540 & 310{,}446 \\
+IFI & 1{,}043{,}629 & 1{,}560{,}584 & 694{,}557 \\
+TreeFI-$20\times$ & \textbf{79{,}426} & \textbf{62{,}063} & \textbf{48{,}465} \\
+reduction vs SFI / IFI & $9.5\times$ / $13.1\times$ & $17.9\times$ / $25.1\times$ & $6.4\times$ / $14.3\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Run times: ResNet8 1 h 30 (TreeFI) against 14 h 34 (SFI) and 20 h 06 (IFI); RepVGG-A0 1 h 55 against 34 h 27 and 49 h 03; DeiT-Tiny 15 h 46 against 110 h 55 and 227 h 27. The largest difference between the TreeFI estimate and the baselines' is $0.0437$ percentage points (RepVGG-A0, all bits, against IFI),
+more than $20\times$ smaller than the $1\%$ target. Reductions for weights are smaller than for activations, as expected: ``weight values vary less, leaving less structure for TreeFI to exploit''.
+
+\section{What the authors conclude, and what they leave open}
+\markboth{TreeFI: conclusions}{TreeFI: conclusions}
+
+\textbf{Conclusions.} TreeFI partitions the value distribution into intervals, derives an interval risk score from the severity of bit flips within each interval, and uses it to allocate injections; the final reliability estimate is computed from the measured outcomes. It reduces the injections needed
+compared with state-of-the-art SFI while keeping the error within the target margin and preserving the main per-layer and per-bit trends. It is especially attractive for large-scale studies where exhaustive evaluation is infeasible.
+
+\textbf{What they explicitly leave for the future.} The experiments use FP32 single-bit flips. The authors state that the method only requires a fault model that defines how a bit flip modifies a value together with a value distribution that can be collected and partitioned into intervals, so the same interval-learning and
+stratified-allocation principle could extend to other numerical formats such as \textbf{FP16, bfloat16 or integer}; ``validating this experimentally is an important direction for future work''. Multi-bit and spatially correlated faults are out of scope.
+
+\textbf{Reproducibility.} The code and artifacts are at \code{gitlab.inria.fr/nbires/treefi}; the paper's repository gives ready-to-run activation and weight examples. The work was supported by the French government (France 2030, PEPR Intelligence Artificielle, project AdaptING, ANR-23-PEIA-0009) and computing from SLICES-FR/Inria.
+
+\section{How TreeFI relates to your project}
+\markboth{TreeFI vs your project}{TreeFI vs your project}
+\emph{This section is my comparison; the facts about TreeFI above are from the paper and the facts about your project are from your repository.}
+
+\subsection{What you took from it}
+\begin{itemize}
+\item \textbf{The framing.} Your proposal says ``value-aware stratified sampling (in the spirit of TreeFI, ICCAD 2026) is used as a supporting tool''; your report cites TreeFI as prior work.
+\item \textbf{The allocation rule.} $n\propto W\sqrt{r(1-r)}$ is TreeFI's equation~(\ref{eq:alloc}); your MX-TreeFI draft multiplies it by a blast-radius weight $\Phi$. Your \code{neyman_allocation()} implements the rule with and without $\Phi$.
+\item \textbf{The model families.} TreeFI used ResNet8, RepVGG-A0 and DeiT-Tiny/Small/Base; your proposal used ResNet8 and RepVGG-A0 on CIFAR-10 and DeiT-Tiny/Small on ImageNet.
+\item \textbf{Exhaustive ground truth on ResNet8.} TreeFI did this for activations (9.4 million faults, 5{,}000 inputs); you did it for weights (638{,}624 and 483{,}904 faults, 200 images).
+\item \textbf{The 72$\times$ figure.} The ``up to 72$\times$'' in your MX-TreeFI draft is TreeFI's.
+\end{itemize}
+
+\subsection{Where your project differs}
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+ & TreeFI (the paper) & Your project \\
+\midrule
+Number format & FP32, each value a self-contained 32-bit word & MX: 4--8-bit elements plus a shared 8-bit scale \\
+Fault sites & one: the value & two: element (1 value) and shared scale ($K$ values) \\
+What is the goal & fewer injections for a target statistical accuracy & characterise \emph{which formats, bits, layers, tensors} are vulnerable and \emph{why}; sampling is only a supporting tool \\
+Failure metric & top-1 prediction change & per-inference rate (and the older any-image rate), plus non-finite rate \\
+Impact characterisation & regression tree on the \emph{value change}, no network evaluation, then sigmoid risk score & exact enumeration of the code table; a gradient-based \texttt{margin\_shift} score \\
+Tensors & activations and weights & weights (main) and activations \\
+Models & ResNet8, RepVGG-A0, DeiT-T/S/B (ImageNet, pretrained) & ResNet8, RepVGG-A0, small ViT (CIFAR-10/100, trained by you) \\
+Validation & exhaustive FI on ResNet8 activations & exhaustive FI on ResNet8 weights, two formats \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{careful}[A point to check before your viva: what ``learned intervals'' means]
+In your E22 experiment and in the report you describe the TreeFI approach as learning value intervals \emph{from a pilot of injected faults} (a regression tree is fitted to each fault's measured network impact), and you found that
+this never beat uniform sampling ($0.10$ to $0.98\times$). The README says ``learning value intervals from a pilot run, the way TreeFI does''.
+
+Reading the TreeFI paper (Section~3.3(b)), the tree is trained on \emph{how much the value itself changes under a flip}, ``without evaluating the effect on the model output'', and the risk score comes from the sigmoid of that value change. There is no pilot of injections in the interval-learning step.
+So your E22 ``learned tree'' arm tests a pilot-trained variant, which is a legitimate and informative experiment, but it is not necessarily the same as TreeFI as published. A faithful arm would build intervals from the log-distance severity alone.
+
+I have not run that experiment, so I cannot say what it would show. It is possible, from your own finding F3 (the proposal's log-distance severity scores sign flips as zero), that it would struggle on MX weights; TreeFI's FP32 activation plots show the sign bit with a very low failure rate, so the two settings may genuinely differ. That is my inference, not a statement from either document.
+Safer wording for the report and README: ``an interval-learning approach in the style of TreeFI, trained on a pilot''. Confirm with your supervisor.
+\end{careful}
+
+\subsection{Why your project is a natural next step for the paper}
+TreeFI's own future-work paragraph names other number formats as an open direction. MX is such a format, with a feature TreeFI never had to consider (a shared scale with blast radius $K$) and a code space small enough to enumerate exactly. Your E22 result,
+that exact enumeration of the code table beats interval learning by about $50\times$ on MX, is a statement about \emph{why the FP32 solution does not carry over unchanged}: TreeFI needs learned intervals because an FP32 alphabet has $2^{32}$ values, and MX does not have that problem.

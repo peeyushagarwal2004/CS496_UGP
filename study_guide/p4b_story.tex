@@ -1,0 +1,264 @@
+% =====================================================================
+\section{Phase 8: Two mistakes caught, and the change of metric (25--27 Sept)}
+\label{sec:phase-metric}
+\markboth{Phase 8}{Phase 8}
+
+\subsection{Mistake one: the campaigns were recorded on different networks (F50)}
+Training is not bit-reproducible across machines. Of the 24 checkpoint names existing on both the laptop and the cluster, \textbf{none} has identical weights, yet accuracies agree within a few tenths of a point. You wrote a replay check: take 300 recorded faults, re-inject them in the checkpoint in hand, compare outcomes.
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+exhaustive campaign & agrees with checkpoint A & agrees with checkpoint B \\
+\midrule
+e3m2, 483{,}904 faults & 253/300 & \textbf{300/300} \\
+e4m3, 638{,}624 faults & \textbf{300/300} & 202/300 \\
+\bottomrule
+\end{tabular}
+\end{center}
+The two exhaustive campaigns were recorded on \emph{two different trained networks}. So the comparison you had quoted as ``exhaustive confirmation'' of the mantissa effect (element rates 0.0785 for e3m2 against 0.4003 for e4m3, a factor of five) put one network's e3m2 next to another network's e4m3, and given the tenfold network-to-network spread it said nothing about the formats.
+The first version of the e4m3 sampling result (AUC 0.705, ``no gain'') had the same flaw; matched, it is AUC 0.882 and $2.3\times$. Since then every campaign is tied to its checkpoint, the replay check runs automatically, and the two exhaustive campaigns are used as two independent references, never as a format comparison.
+
+\subsection{Mistake two: the metric itself (F51, F52)}
+To redo the comparison properly you replayed one fixed list of 1{,}500 element faults per format against \textbf{nine disjoint, class-balanced sets of 200 images}, on each of two networks. (On network A's original images the e4m3 rate came out 0.4087 against its exhaustive 0.4003, so the set-up reproduces the reference.)
+\begin{center}
+\small
+\begin{tabular}{llccc}
+\toprule
+metric & network & e3m2 & e4m3 & e4m3/e3m2 (per-fold range) \\
+\midrule
+any-image & A & 0.2152 & 0.2214 & $1.03\times$ ($0.34$--$2.58\times$) \\
+any-image & B & 0.1623 & 0.1504 & $0.93\times$ ($0.47$--$2.14\times$) \\
+per-inference & A & 0.00202 & 0.01124 & $\mathbf{5.57\times}$ \\
+per-inference & B & 0.00129 & 0.00987 & $\mathbf{7.64\times}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Under the any-image metric the formats look equal, their order reverses from one image set to the next, and the rate moves up to 3.8--11$\times$ its own confidence-interval width between sets, tracking each set's smallest margin (Spearman $+0.80$ to $+0.93$).
+Per inference, the same faults on the same image sets give $5.6\times$ and $7.6\times$ between the formats, with the e4m3 rate stable to $1.27\times$ and $1.15\times$ across image sets. Two independently trained networks agree.
+
+\begin{keyidea}
+The any-image metric \textbf{saturates}: it grows with the number of images and tends to 1, so beyond a few dozen images it mostly reports whether the set contains a near-tie input. The Wilson interval is not wrong; it answers a narrower question than it appears to. It covers the uncertainty from sampling \emph{faults}, while the choice of evaluation images is a second and larger source that no number of injections reduces.
+From here on, the \textbf{per-inference rate is the primary metric}.
+\end{keyidea}
+
+\subsection{Rescoring everything (E19, F55--F59)}
+Because every campaign had always recorded \code{changed} per fault, all \textbf{119 weight campaigns (1{,}441{,}528 faults, 8 model configurations)} could be rescored per inference without a single new injection.
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+network & seeds & e3m2 & e4m3 & e5m2 & any-image order & per-inference order \\
+\midrule
+RepVGG-A0 & 3 & 0.00001 & 0.00688 & 0.05381 & holds & holds \\
+ViT & 3 & 0.00003 & 0.01258 & 0.06897 & holds & holds \\
+ResNet8 (reference) & 1 & 0.00332 & 0.01699 & 0.07801 & reversed & holds \\
+ResNet8 w8 & 5 & 0.01003 & 0.02005 & 0.08143 & reversed & holds \\
+ResNet8 w16 & 5 & 0.00180 & 0.01374 & 0.07831 & holds & holds \\
+ResNet8 w24 & 4 & 0.00121 & 0.01210 & 0.07585 & reversed & holds \\
+ResNet8 w32 & 4 & 0.00060 & 0.01354 & 0.07934 & reversed & holds \\
+ResNet8 w48 & 4 & 0.00035 & 0.01302 & 0.07812 & reversed & holds \\
+\bottomrule
+\end{tabular}
+\end{center}
+e3m2 $<$ e4m3 $<$ e5m2 holds on \textbf{8 of 8} models per inference, with disjoint 95\% intervals everywhere, against 3 of 8 under the any-image rate. So the Phase 4 finding ``the ranking reverses across architectures'' was a metric artefact. On the ViT one e5m2 element fault is about $2000\times$ as likely as one in e3m2 to corrupt a given inference, at 0.01 points of accuracy difference.
+
+\textbf{Scale dominance survives and grows where the element rate is low} (F56): scale/element per inference: RepVGG e3m2 8424$\times$ (lower bound of order $10^3$, since the denominator is $0.00001$ [0.00000, 0.00003]); ViT e3m2 3212$\times$; ResNet8-w48 e3m2 $434\times$; ResNet8-w16 e4m3 $13.3\times$; ResNet8-w16 e5m2 $2.6\times$. The direction never reverses.
+
+\textbf{The capacity result sharpened} (F58). Ratio of the widest to the narrowest ResNet8 ($35\times$ parameters); below 1 means capacity helps:
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+format & special codes & any-image & per inference \\
+\midrule
+e3m2 & 0 & $0.11\times$ & \textbf{$0.04\times$} (25$\times$ better) \\
+e4m3 & 2 & $0.13\times$ & $0.65\times$ \\
+e5m2 & 8 & $0.27\times$ & \textbf{$0.96\times$} (no benefit) \\
+\bottomrule
+\end{tabular}
+\end{center}
+96.9\% of e5m2's per-inference element damage is non-finite. Capacity absorbs perturbations and cannot absorb a NaN.
+\begin{center}
+\includegraphics[width=0.58\linewidth]{fig2_capacity.pdf}
+\captionof{figure}{Per-inference rate of element faults against parameter count, ResNet8 at five widths. Faint lines are single trained networks, bold lines are means. Capacity helps most where there are no special codes, and not at all for e5m2.}
+\end{center}
+
+\textbf{Block-size story weaker than first claimed} (F57): per inference, a genuine monotone block-size trend exists under both scale rules (RepVGG e4m3: OCP spread $5.76\times$, fit $4.66\times$; ResNet8: $1.77\times$ and $1.43\times$). \textbf{The sensitivity result needed no change} (F59): correlations of median $s$ with perturbation-driven SDC were identical to three decimals under both metrics ($+0.928$ against mantissa bits $-0.248$ and $-0.225$).
+
+\subsection{Value-aware sampling, re-derived for the per-inference rate (E20, F60, F61)}
+The earlier gains were for the any-image rate, so they were redone. The target changes shape: on ResNet8 under e3m2, \textbf{89.2\%} of the 483{,}904 faults corrupt \emph{no} inference at all; among the other 10.8\% the mean corruption is 0.081 (about 16 images) and the maximum is 1.0.
+The estimator changes too. A per-inference rate is a \emph{mean of per-fault proportions}, so each stratum's variance has to be estimated from the pilot instead of assumed to be $p(1-p)$, and Neyman allocation becomes $n_k\propto w_k\sigma_k$.
+\begin{center}
+\small
+\begin{tabular}{p{6.6cm}cc}
+\toprule
+stratification & e3m2 variance ratio & e4m3 variance ratio \\
+\midrule
+fixed cuts (0.1 and 1, tuned for the old target) & $6.8$--$8.3\times$ & $1.5$--$1.8\times$ \\
+quantile cuts of the score (50/75/90/97/99.5th percentiles, 6 strata); budgets 500/1000/3000 & $120/102/115\times$ & $64/83/57\times$ \\
+equivalent uniform budget at 3{,}000 & 346{,}106 & 171{,}165 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Both estimators are unbiased at every budget. Why quantile cuts: the rank correlation of the score with the per-inference rate is only moderate ($\rho=0.53$ to $0.70$), but the job is not to rank everything well, it is to \emph{isolate the thin high-value tail}, and the data's own top percentiles do that. A 3{,}000-injection stratified campaign matches a uniform campaign of 171{,}000 to 346{,}000.
+This supersedes the earlier any-image figures as sampling guidance.
+
+% =====================================================================
+\section{Phase 9: The proposal's two open design choices (28 Sept--1 Oct)}
+\markboth{Phase 9}{Phase 9}
+
+\subsection{Single-bit or multi-bit? (E21, F62--F64)}
+\label{sec:multibit}
+The proposal adopted single-bit flips and listed the multi-bit H-model as an open extension. Design: on each of two ResNet8-w16 networks and in each of e3m2, e4m3, e5m2, sample 1{,}500 element words and 500 scale bytes and inject \emph{every} single-bit and \emph{every} two-bit pattern of each word: \textbf{390{,}000 injections}, recording which images changed.
+(Check: the single-bit rates reproduce the exhaustive campaign: e3m2 element 0.00103 against 0.00113, scale 0.1875 against 0.1887.)
+\begin{center}
+\small
+\begin{tabular}{llcc}
+\toprule
+format & site & $r_2/r_1$ (random double / single), two networks & adjacent$/r_1$ \\
+\midrule
+e3m2 & element & 1.55 / 1.42 & 0.94 / 0.93 \\
+e4m3 & element & 1.11 / 1.20 & 1.10 / 1.13 \\
+e5m2 & element & 1.04 / 1.04 & 0.86 / 0.88 \\
+e3m2 & scale & 1.48 / 1.46 & 1.06 / 1.05 \\
+e4m3 & scale & 1.32 / 1.30 & 0.85 / 0.85 \\
+e5m2 & scale & 1.46 / 1.45 & 1.01 / 1.01 \\
+\bottomrule
+\end{tabular}
+\end{center}
+A double flip corrupts $1.04$--$1.55\times$ as many inferences as a single flip, and an \emph{adjacent} double (the pattern a multi-cell upset produces) $0.85$--$1.13\times$. The format ordering and scale dominance are unchanged. Double flips are \textbf{sub-additive}, doing only 52--85\% of the union of their two single flips, for two reasons:
+\begin{itemize}
+\item a second flip can move a word \emph{off} the NaN code its partner would have reached (a special code is one bit pattern, and flipping another bit leaves it);
+\item two scale bits of opposite value cancel: $X\oplus(2^a+2^b)$ shifts $X$ by $\pm(2^b-2^a)$; for adjacent scale bits 2 and 3 on e3m2, 0.21 and 0.19 singly but 0.08 together.
+\end{itemize}
+Plugging the measured rates into the H-model's own expansion, with per-bit probability $p$ and word width $W$,
+\[
+\text{expected damage}=\sum_b p(1-p)^{W-1}r_b+\sum_{a<b}p^2(1-p)^{W-2}r_{ab}+O(p^3),
+\]
+the double-flip term reaches 1\% of the total only at $p=1.9$--$2.9\times10^{-3}$, and 10\% at $p\approx2$--$3\times10^{-2}$. At $p=2\times10^{-3}$ ResNet8-w16's 484k--639k weight bits already contain about 1{,}000--1{,}300 flipped bits at once, so the one-fault-per-inference assumption fails through \emph{accumulation across words}
+three orders of magnitude in $p$ before multiplicity \emph{within} a word matters. \textbf{Settled: single-bit injection is sufficient.}
+
+\subsection{Learned intervals or exact enumeration? (E22, F65, F66)}
+The second open choice, inherited from TreeFI. Every strategy is replayed against the two exhaustive campaigns 400 times per budget and scored by the variance of its per-inference estimate relative to uniform sampling (both networks replay-verified, 200/200). Variance ratio over uniform at budgets 500/1000/3000 with 6 strata:
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+arm & e3m2 & e4m3 \\
+\midrule
+learned tree (value) & $0.33/0.36/0.98$ & $0.18/0.14/0.25$ \\
+learned tree (value + layer) & $0.10/0.11/0.69$ & $0.13/0.13/0.20$ \\
+\ldots with proportional allocation & $0.80/0.90/0.84$ & $0.82/0.97/0.86$ \\
+\textbf{exact $|\Delta v|/\mathrm{rms}$ enumeration} & $\mathbf{48/48/55}$ & $\mathbf{65/65/60}$ \\
+exact \code{margin_shift} (adds the gradient) & $99/127/114$ & $74/83/74$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The learned tree never beats uniform sampling. Exact enumeration of the decoded change alone (table look-ups and one RMS per layer, no gradient, no injections) cuts variance $48$--$65\times$; adding the gradient roughly doubles it on e3m2 but adds only 15--30\% on e4m3, so most of the gain comes from enumerating the code table exactly.
+Why learning fails (F66):
+\begin{itemize}
+\item \textbf{A pilot cannot see a zero-inflated tail.} With 89\% of faults corrupting nothing, a pilot of 100--600 faults sees a handful of failures; leaves where none were seen get zero variance, Neyman starves them, and they hold variance after all. (A tree fitted to the \emph{whole} truth, an oracle, reaches $20$--$39\times$ at 6 leaves, so the information is in the features; learning it is what costs more injections than it saves.)
+\item \textbf{On e4m3 the tail is a set of discrete codes.} $1.27\%$ of e4m3's element faults (7{,}853 of 618{,}880) are (code, bit) pairs that flip into NaN; each corrupts every inference ($r=1.000$), together carrying 77.6\% of element damage and 52.2\% of all damage in the model. They are properties of specific bit patterns, not of a value range, so a partition of value space spreads them thinly. A code table identifies all of them exactly.
+\end{itemize}
+\textbf{Settled:} for MX, characterise impact by exact per-code enumeration. TreeFI's interval learning solves a problem (an alphabet of $2^{32}$ values) that MX does not have.
+
+\subsection{The sign bit, revisited (F67)}
+\begin{center}
+\includegraphics[width=\linewidth]{fig1_per_bit.pdf}
+\captionof{figure}{Exhaustive damage per bit, per inference (ResNet8-w16, e4m3, $K=32$, 638{,}624 injections), split by whether the output stayed finite. Left: element bits. Right: scale bits.}
+\end{center}
+Among faults whose output stays finite, the sign bit is still the worst element bit ($0.0073$ against $0.0052$ for the next). But in total damage it ranks \textbf{seventh of eight} in e4m3: the 1.27\% of element faults that flip into the NaN code each corrupt every inference and carry 77.6\% of all element damage, with 85--95\% of the damage of every bit from 0 to 4 being non-finite.
+A sign flip never changes the magnitude bits, so it is the one bit that can never reach NaN. The any-image metric hid this because a sign flip changes \emph{some} image in 59\% of cases but few of them, while a NaN flip changes all 200 and scores the same single unit.
+
+On the scale (bytes lie in 114--120 on this network, so bits 4--6 are always set and bit 3 almost never): flipping bit 3 multiplies the block by 256 and corrupts 75\% of inferences, bit 7 overflows it (98\%), while flipping bits 4--6 divides the block towards zero and corrupts only 3\%. \textbf{Growing a block is catastrophic; shrinking it is mild.}
+
+% =====================================================================
+\section{Phase 10: A read-side guard for special codes (1--2 Oct)}
+\markboth{Phase 10}{Phase 10}
+If most element damage comes from one transition, into a special code, an obvious defence is to \textbf{decode any special element code as zero when it is read}. A fault that would have produced NaN then merely zeroes one weight.
+
+\textbf{Method (E23).} Every element fault that lands on a special code is found by enumeration, so its share $f$ of the element space is exact. 1{,}000 of them are injected twice (unguarded and guarded); 2{,}000 uniformly drawn \emph{other} element faults are injected once (the guard does not change them). Then
+\[
+\text{rate}_{\text{unguarded}}=f\,\bar r_{\text{special}}+(1-f)\,\bar r_{\text{other}},\qquad
+\text{rate}_{\text{guarded}}=f\,\bar r_{\text{special, guarded}}+(1-f)\,\bar r_{\text{other}},
+\]
+needing no earlier campaign and so unable to be scored against the wrong network. Check: against ResNet8 train-seed 9's exhaustive e4m3 campaign the sampled estimate is $0.016357\to0.003749$ against exhaustive $0.016354\to0.003747$, four significant digits.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llp{2.9cm}p{2.9cm}p{2.6cm}@{}}
+\toprule
+network & format & special faults, share of space & share of element damage & reduction, at least \\
+\midrule
+ResNet8 (2 nets) & e4m3 & 1.27--1.29\% & 77.6--92.8\% & $3.9$--$10.7\times$ \\
+ResNet8 (2 nets) & e5m2 & 7.6--7.7\% & 97.5--98.7\% & $30$--$53\times$ \\
+RepVGG-A0 (3 seeds) & e4m3 & 0.80\% & 99.5--99.9\% & $115$--$389\times$ \\
+RepVGG-A0 (3 seeds) & e5m2 & 5.35--5.38\% & 99.9--100\% & $319$--$4112\times$ \\
+ViT (3 seeds) & e4m3 & 1.12--1.13\% & 97.1--99.5\% & $29$--$133\times$ \\
+ViT (3 seeds) & e5m2 & 6.86--6.95\% & 99.9--100\% & $43$--$2479\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The reduction is the unguarded rate divided by a 95\% \emph{upper bound} on the guarded rate, so it is a lower bound. Unguarded, a special-code fault corrupts 99.95--100\% of inferences; guarded, essentially none, on all sixteen networks and formats, and no guarded fault produced a non-finite output.
+Guarded e5m2 lands in the same range as e3m2's element rate on RepVGG and the ViT. On ResNet8 the reduction is smaller because a small network is also fragile to ordinary perturbations, which the guard does not touch. A guarded special code still costs one weight (it reads as zero), which is why the guarded rate is not exactly zero.
+The guard was \emph{simulated in software}; in hardware it is one comparator on the read path. It turns ``prefer formats without special codes'' from a constraint into a choice.
+
+% =====================================================================
+\section{Phase 11: A bug in your own codec, and a harder dataset (2--3 Oct)}
+\label{sec:phase-c100}
+\markboth{Phase 11}{Phase 11}
+
+\subsection{The codec bug (F69)}
+While preparing activation experiments for CIFAR-100 you noticed that \emph{no activation campaign, on any model, had ever recorded a non-finite output}, although enumeration showed that activations have the same share of special-code faults as weights (1.1--1.4\% across ten images against 1.24\%). The cause: \code{quantize()} mapped a NaN input to zero. An activation-quantised layer re-encodes its input,
+so a NaN created by an activation fault was erased by the next layer. The OCP conversion does the opposite: the shared scale is taken from the block maximum, so a NaN anywhere in a block makes the whole block NaN (Algorithm~1 of the MX paper). You fixed the codec, added a test that pins the behaviour, and reran every activation campaign (100 images, 4{,}000 faults), each on the checkpoint that produced the weight campaign it is compared with.
+Weight campaigns were unaffected, since trained weights contain no NaN to re-encode. The old outputs are kept in \code{cluster/archive/e04_buggy_codec/}.
+
+\begin{center}
+\small
+\begin{tabular}{llccc}
+\toprule
+network & format & weight & activation [95\% CI] & weight/activation \\
+\midrule
+ResNet8 & e4m3 & 0.0170 & 0.0122 [0.0077, 0.0182] & $1.4\times$ \\
+RepVGG-A0 & e4m3 & 0.0048 & 0.0075 [0.0049, 0.0101] & $0.64\times$ \\
+ViT & e4m3 & 0.0122 & 0.0114 [0.0080, 0.0150] & $1.07\times$ \\
+ResNet8 & e5m2 & 0.0780 & 0.0359 [0.0302, 0.0421] & $2.2\times$ \\
+RepVGG-A0 & e5m2 & 0.0549 & 0.0378 [0.0319, 0.0442] & $1.45\times$ \\
+ViT & e5m2 & 0.0659 & 0.0486 [0.0420, 0.0554] & $1.36\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The corrected numbers \textbf{withdraw} the earlier claim that activation faults barely matter on the larger models (it had said, for example, that none of 2{,}000 transformer activation faults changed an inference). Per inference an element fault in a weight does $0.3$--$2.2\times$ the damage of one in an activation, and under e4m3 the two are statistically indistinguishable on CIFAR-10.
+Same reason in both tensors: about 1\% of faults land on a special code and destroy the inference. The real difference is \emph{exposure}: a weight fault persists across every inference until the memory is rewritten; an activation fault lives for one. Scale faults dominate in both ($14\times$ in activations and $11\times$ in weights on ResNet8).
+(The lesson you drew: an absent non-finite output where one was expected is what exposed the bug.)
+
+\subsection{CIFAR-100 in place of ImageNet (E24, F70--F72)}
+The proposal's transformer study was DeiT on ImageNet, which no machine you could use held. CIFAR-100 was the nearest affordable substitute: ten times the classes and a tenth of the images per class, so networks sit much closer to decision boundaries, which is exactly the property the margin results had shown to matter. All three architectures were retrained with unchanged recipes, three seeds each:
+ResNet8 58\%, RepVGG-A0 70--71\%, ViT 47--49\%. Every campaign scores 200 images (2 per class).
+
+\textbf{Everything replicated} (F70): formats matched in accuracy (four formats within 0.01 points on the ViT); e3m2 $<$ e4m3 $<$ e5m2 on all nine networks; scale faults outweigh element faults everywhere ($1.7\times$ to $3600\times$); NaN codes carry 94--100\% of e4m3/e5m2 element damage on the larger models.
+
+\textbf{What changed was the floor} (F71):
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+network & e3m2 (no special codes) & e4m3 & e5m2 & e4m3/e3m2 gap \\
+\midrule
+ViT & $2.7\text{e-}5\to6.1\text{e-}4$ ($22\times$) & $0.0126\to0.0114$ & $0.069\to0.077$ & $461\times\to19\times$ \\
+RepVGG-A0 & $1.4\text{e-}5\to5.6\text{e-}5$ ($3.9\times$) & $0.0069\to0.0081$ & $0.054\to0.057$ & $476\times\to144\times$ \\
+ResNet8 & $1.8\text{e-}3\to5.7\text{e-}3$ ($3.2\times$) & $0.0137\to0.0169$ & $0.078\to0.082$ & $7.6\times\to3.0\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+With smaller margins the formats without special codes became $3$--$22\times$ more vulnerable, while e4m3 and e5m2 barely moved, since a NaN corrupts an inference however wide the margins are. So the gap narrows: the advantage of NaN-free formats is smaller exactly on the harder tasks real deployments face. Among NaN-free formats the ordering does \emph{not} carry over:
+on CIFAR-10 the ViT ranks e3m2 $<$ e2m3 $<$ e2m1, on CIFAR-100 e2m1 $<$ e2m3 $\approx$ e3m2, on all three seeds, which is what the sensitivity result predicts. The read-side guard still works, with reductions of at least $13$--$1387\times$ on RepVGG and $24$--$168\times$ on the ViT (ResNet8: $3.5$--$16\times$) (F72).
+
+% =====================================================================
+\section{Phase 12: Wrap-up (3--5 Oct)}
+\markboth{Phase 12}{Phase 12}
+The last runs added seeds to ResNet8 on CIFAR-100 and repeated the activation campaigns under e5m2 on all six models (weight/activation $0.3$--$2.2\times$; e5m2 weights $1.4$--$2.2\times$ worse on CIFAR-10 because fewer activation faults reach a special code). On 3 October you pushed the library, every experiment script, the trained networks and the raw campaign outputs to the repository.
+On 5 October the report was rewritten as a 13-page document organised around the five objectives, with sections on methodological findings, design guidance and limitations, and the ImageNet gap stated openly.
+
+\textbf{Totals.} About 1.44 million sampled weight faults in 119 campaigns on CIFAR-10; two exhaustive campaigns (1.12 million injections); 390{,}000 multi-bit injections; further campaigns for activations, the NaN guard and CIFAR-100; more than sixty independently trained networks; 72 numbered findings including those later revised.

@@ -1,0 +1,293 @@
+\part{The project: design and method}
+
+\section{The starting point: your proposal}
+\markboth{The proposal}{The proposal}
+
+\subsection{Two drafts, one project}
+In August 2026 you wrote two working drafts, both in \code{papers/}:
+\begin{enumerate}
+\item \emph{Reliability-Aware Fault Injection for Microscaling-Based DNNs: Problem Statement, Fault Model \& Study Design}. A
+ \textbf{characterisation} study: how reliable are MX-based networks and why?
+\item \emph{MX-TreeFI: Value-Aware Statistical Fault Injection for Microscaling (MXFP) Neural Networks}. A \textbf{method} paper: extend TreeFI from FP32 to MX.
+\end{enumerate}
+On 10 September you settled which one the project is: \textbf{the first}. MX-TreeFI was kept as reference only. The proposal says so itself, in a box: \emph{``TreeFI-style value-aware stratified sampling is referenced only to make the multi-axis campaign affordable.
+The contribution of this work is the reliability characterization of microscaling DNNs, not a faster injection method.''}
+
+\subsection{The core hypothesis and the five objectives}
+\begin{keyidea}
+\textbf{Core hypothesis.} Reliability of microscaling DNNs varies substantially across formats \emph{even at comparable inference accuracy}, and faults in the shared scale behave very differently from faults in individual elements, because a single scale fault rescales an entire block of $K$ values at once.
+\end{keyidea}
+\begin{description}[leftmargin=1.2cm,style=nextline]
+\item[O1 Fault propagation] How do single-bit faults in elements versus shared scales propagate, and how big is the difference?
+\item[O2 Format sensitivity] Measure sensitivity across MXFP8/6/4 and element variants; test whether reliability differs at comparable accuracy.
+\item[O3 Block-size effect] How does the scale-sharing granularity trade efficiency against reliability?
+\item[O4 Tensor and location] Compare weights versus activations, and fault locations (scale bit versus element bit, MSB versus LSB, per layer).
+\item[O5 Vulnerability drivers] Which representation characteristics (dynamic range, exponent/mantissa split, scale granularity) explain the observed vulnerability?
+\end{description}
+
+\subsection{The fault model in the proposal, symbol by symbol}
+The proposal separates fault \emph{occurrence} (where and how often bits flip) from fault \emph{impact} (how much the decoded value changes).
+
+\textbf{Impact.} For an element flip of bit $b$ the proposal defines the severity
+\[
+d=\bigl|\log v'-\log v\bigr|,
+\]
+the distance on a logarithmic scale between the new and old value (affects 1 value). For a scale flip, every value in the block becomes $v'_{i,s}=m_{i,s}\,2^{X'-\mathrm{bias}}$ and the \emph{block severity} is
+\[
+D_s=\sum_i\bigl|\log v'-\log v\bigr|=K\cdot|X'-X|\cdot\log2 .
+\]
+In words: a scale flip rescales the whole block by $2^{X'-X}$, so the damage is $K$ times a single-value log change.
+
+\textbf{Occurrence.} Each bit position $b$ of a site has a flip probability $\pi_{\mathrm{site},b}=\pi^{0}_{\mathrm{site}}\,\kappa_{\mathrm{site}}(b)$: a base rate times a position profile $\kappa(b)$ whose average is 1. $\kappa\equiv1$ gives the uniform single-bit model (every bit equally likely). Since bits flip independently,
+the probability of a specific flip pattern $S$ is the \emph{Poisson-binomial} expression
+\[
+P(S)=\prod_{b\in S}\pi_b\prod_{b\notin S}(1-\pi_b),
+\qquad
+H_{\mathrm{site}}=1-\prod_b(1-\pi_b)\approx\sum_b\pi_b+\sum_{b<b'}\pi_b\pi_{b'}+O(\pi^3).
+\]
+$H$ is the probability that a word is corrupted at all. The first term is the single-bit contribution; the second is the multi-bit tail, the proposal's ``H-model''. Your project settled whether that tail needs its own campaign (it does not; Section~\ref{sec:multibit}).
+
+\subsection{The study design table}
+\begin{center}
+\small
+\begin{tabular}{@{}lp{11.5cm}@{}}
+\toprule
+Format & MXFP8 (E4M3, E5M2), MXFP6 (E3M2, E2M3), MXFP4 (E2M1); optional MXINT8. Shared scale E8M0. \\
+Block size & 8 / 16 / 32 / 64 (fewer values per scale means a smaller blast radius) \\
+Tensor type & weights (input-independent) and activations (input-dependent) \\
+Fault location & scale bit versus element bit; MSB to LSB within each field; per-layer position \\
+Models & ResNet8, RepVGG-A0 (CIFAR-10); DeiT-Tiny/Small (ImageNet); optional small LLM \\
+Fault model & single-bit flip at both sites; multi-bit (H-model) as an extension \\
+Metrics & top-1 change / accuracy drop; per-site failure and SDC rate; per-bit and per-layer maps \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The methodology the proposal prescribes}
+\begin{description}[leftmargin=1.2cm,style=nextline]
+\item[Quantization] Quantize weights and activations to each MX configuration; confirm baseline accuracy so reliability is compared at matched accuracy.
+\item[Injection engine] A bit-addressable MX representation: faults at a chosen bit of the scale or of an element; weights are static, activations are injected per input through hooks; golden-versus-faulty comparison detects top-1 changes and SDC.
+\item[Campaign] For each cell of the study matrix, run a statistical FI campaign at a target confidence; value-aware stratified sampling in the spirit of TreeFI is a supporting tool.
+\item[Ground truth] Exhaustive FI on a small model (ResNet8) to validate the statistical estimates.
+\item[Analysis] Compare sensitivity across the four axes; contrast scale versus element faults; correlate vulnerability with representation characteristics to explain trends.
+\end{description}
+
+\subsection{Expected outcomes and open choices}
+The proposal expected: shared-scale faults with significantly larger impact; reliability varying across formats at equal accuracy; a block-size trade-off; per-tensor and per-location maps of what needs protection; and design guidance. It listed three open design choices, \emph{settled empirically}: learned versus exact interval characterisation; single-bit versus multi-bit; and the block-size/format grid actually swept, bounded by compute.
+
+\section{The tool: \code{mxfi}}
+\markboth{The tool mxfi}{The tool mxfi}
+
+\subsection{Architecture}
+\begin{center}
+\begin{tikzpicture}[font=\small, node distance=6mm,
+  layer/.style={draw, rounded corners, text width=12.6cm, minimum height=1.05cm, align=center, inner sep=4pt},
+  arr/.style={-{Stealth[length=2.2mm]}, thick}]
+  \node[layer, fill=blue!8] (core) {\textbf{numpy core} (no torch):\ \code{formats.py}, \code{codec.py}, \code{faults.py}, \code{sampling.py}, \code{stats.py}};
+  \node[layer, fill=green!9, below=of core] (torch) {\textbf{PyTorch layer}:\ \code{torch_mx.py} (MXModel, fault contexts, activation hooks), \code{campaign.py} (Evaluator, run\_campaign)};
+  \node[layer, fill=yellow!14, below=of torch] (models) {\textbf{models and training}:\ \code{models.py} (ResNet8, RepVGG, folding, fusion), \code{vit.py}, \code{data.py}, \code{train.py}};
+  \node[layer, fill=orange!12, below=of models] (exp) {\textbf{experiments}:\ \code{experiments/e00..e24}, \code{tools/} (GPU patches, replay checks), run scripts (\code{*.sh})};
+  \node[layer, fill=violet!10, below=of exp] (out) {\textbf{outputs}:\ \code{results/*.csv}, \code{checkpoints/*.pt}, \code{docs/} (findings, report, figures)};
+  \draw[arr] (core)--(torch); \draw[arr] (torch)--(models); \draw[arr] (models)--(exp); \draw[arr] (exp)--(out);
+\end{tikzpicture}
+\captionof{figure}{How the pieces of the repository fit together. The bottom of the stack uses everything above it.}
+\end{center}
+The core is pure numpy so the representation-level analysis (formats, codec, fault tables, sampling, statistics) runs anywhere; only \code{torch_mx.py} imports torch.
+
+\subsection{\code{formats.py}: the exact alphabets}
+Defines an \code{ElementFormat} (exponent bits, mantissa bits, has\_inf, has\_nan) and builds an \emph{exact lookup table over every possible code}. Because the alphabets are tiny (16 to 256 codes), the table is both the decoder and the ``exact enumeration'' used later for analysis.
+Handles subnormals, e4m3's convention (only the all-ones mantissa at the top exponent is NaN) and e5m2's IEEE-style specials (mantissa 0 is Inf, anything else is NaN). Also the E8M0 scale encode/decode, with code 255 as NaN, computed in float64 so $2^{127}$ cannot overflow before conversion. Aliases such as \code{mxfp8}, \code{mxfp6}, \code{mxfp4} are accepted.
+
+\subsection{\code{codec.py}: bit-addressable encoding}
+\code{quantize()} turns a float tensor into an \code{MXTensor} holding two separately addressable \code{uint8} arrays: \code{scales[..., n_blocks]} (site X, 8 bits each) and \code{codes[..., n_blocks, block_size]} (site r, $w$ bits each). Steps inside:
+\begin{enumerate}
+\item move the blocking axis to the end and pad the last block with zeros if needed (padding lanes are marked invalid and never injected);
+\item compute the block maximum, then the scale by the OCP or fit rule; all-zero blocks get scale exponent 0;
+\item \textbf{if any element of a block is NaN, the block's scale is set to the NaN code 255} (the fix you made on 2 October; see Section~\ref{sec:phase-c100});
+\item divide by the scale, round to the nearest representable magnitude (ties to even) and saturate at the largest value, then set the sign bit.
+\end{enumerate}
+\code{decode()} reverses this; a faulted scale can reach $2^{127}$ and the product legitimately overflows to infinity, so that warning is suppressed on purpose.
+
+\subsection{\code{faults.py}: injecting and enumerating}
+\code{Fault(site, index, bit)} names a flip; \code{inject()} XORs one bit on a \emph{copy}. \code{fault_space()} counts addressable bits per site (padding excluded). The two impact tables enumerate \textbf{every (code, bit) and every (scale byte, bit)} flip in closed form:
+\begin{itemize}
+\item \code{element_impact_table(fmt)}: before and after values, \code{log_severity} (the proposal's metric), \code{rel_error}, a sign-flip mask, and whether the flip goes to or comes from NaN/Inf.
+\item \code{scale_impact_table()}: for every byte and bit, the exponent change $\pm2^{\mathrm{bit}}$, the multiplier, whether the flip reaches the NaN byte, and whether it overflows float32. Exactly eight bytes flip into the NaN scale (a test pins this).
+\end{itemize}
+A comment in the file already records the finding that the proposal's severity is blind to the sign bit.
+
+\subsection{\code{sampling.py} and \code{stats.py}}
+\code{sample_uniform} draws every stored bit with equal probability (a multinomial over (tensor, site) strata weighted by bit counts, then a uniform slot and bit inside); \code{sample_stratified} draws a requested number from each stratum and returns \emph{inclusion weights}
+(stratum share divided by draws) so a weighted mean stays unbiased. \code{neyman_allocation} implements $W\sqrt{r(1-r)}\,\Phi$ with a floor, using largest-remainder rounding; \code{default_blast_weight} sets $\Phi=K$ for scale strata. In \code{stats.py}: Wilson intervals, the stratified estimator and its variance,
+\code{required_samples}, and \code{injection_reduction} (the ``$N\times$ fewer injections'' figure).
+
+\subsection{\code{torch_mx.py}: putting MX inside a PyTorch model}
+\code{MXModel} wraps a model without copying it.
+\begin{itemize}
+\item \textbf{Blocking follows the reduction axis}, as hardware reads a tensor: a \code{Linear} weight $(\text{out},\text{in})$ is blocked along \code{in}; a \code{Conv2d} weight $(\text{out},\text{in},k_h,k_w)$ is viewed as $(\text{out},\text{in}\cdot k_h k_w)$ and blocked along that flattened axis.
+\item \code{quantize_weights()} encodes every target layer, stores the pristine FP32 weights and the \code{MXTensor}, and writes the decoded values back.
+\item \code{fault(site)} is a context manager: it patches only the weights the fault touches (one value for an element fault, up to $K$ for a scale fault), yields, then restores them exactly. \code{word_fault()} does the same for a multi-bit mask confined to one word (used by E21).
+\item Activations: forward \emph{pre-hooks} quantise a layer's input to MX (blocks along channels for conv, features for linear), optionally flip one bit of the encoding, and decode before the layer runs; \code{activation_space()} captures the MX form of each layer's input for one batch to define the fault space.
+\item \code{MXConfig} holds one cell of the study grid: format, block size, scale mode, whether to quantise weights and/or activations, skip-first/last layer options.
+\end{itemize}
+
+\subsection{\code{campaign.py}: the evaluation loop}
+\code{Evaluator} materialises the fixed evaluation set into batches once, so every injection replays identical inputs; \code{predict()} returns top-1 predictions and whether any logit was non-finite (a NaN row is marked class $-1$ so it always counts as changed). \code{Golden} stores the fault-free predictions and accuracy.
+\code{run_campaign()} injects each fault, scores it, and writes one CSV row. Each row records:
+\begin{itemize}
+\item \textbf{what was injected}: \code{tensor, site, bit, index};
+\item \textbf{what happened}: \code{changed} (number of predictions changed), \code{change_rate}, \code{sdc} (changed $>0$), \code{accuracy}, \code{acc_drop}, \code{nonfinite};
+\item \textbf{what the representation predicted}: \code{code, value_before, value_after, log_severity, rel_error, sign_flip, to_nonfinite, blast_radius}, and the inclusion \code{weight}.
+\end{itemize}
+Carrying the predicted severity next to the observed outcome is what made the severity-versus-failure analysis possible. Recording the \emph{count} \code{changed} per fault, even in the first campaigns, is also what let you rescore everything per inference later without a single new injection.
+
+\subsection{\code{models.py}, \code{vit.py}, \code{data.py}, \code{train.py}}
+\begin{itemize}
+\item \textbf{Deployment form.} \code{to_deploy()} converts a trained model to what an accelerator would run. For ResNet8 it \emph{folds batch normalisation into the convolution}: with BN scale $g=\gamma/\sqrt{\sigma^2+\varepsilon}$, the folded weights are $W'=W\cdot g$ and bias $b'=(b-\mu)g+\beta$. For RepVGG it \emph{fuses the three branches} into one $3\times3$ convolution (the $1\times1$ kernel is zero-padded to $3\times3$, the identity branch becomes an identity kernel, each is first BN-folded, then kernels and biases are summed, and the block's ReLU is kept).
+ Why this matters: an unfolded BatchNorm would renormalise whatever a corrupted convolution produced and hide damage, so measured failure rates would describe a network nobody ships.
+\item \textbf{Registry.} \code{MODELS} holds \code{resnet8}, \code{repvgg_a0}, \code{vit_small}, the width variants \code{resnet8_w8..w64}, and \code{_c100} variants with a 100-class head. A \code{_c100} suffix both selects the architecture's 100-class head and the dataset, so checkpoint and result names from CIFAR-10 and CIFAR-100 cannot collide.
+\item \textbf{ViT.} Patch embedding by a strided convolution, a class token, learned positional embeddings, 6 pre-norm blocks (LayerNorm, attention with explicit \code{qkv} and \code{proj} \code{Linear} layers, GELU MLP with ratio 4) and a linear head. Written out so the quantiser sees every projection; LayerNorm stays unquantised.
+\item \textbf{Data.} CIFAR-10/100 with standard normalisation. \code{campaign_subset} draws a \emph{fixed, class-balanced} subset of the test set (seed 0), materialised in memory: 200 images in every campaign (20 per class on CIFAR-10, 2 per class on CIFAR-100), so per-inference rates have the same resolution everywhere.
+\item \textbf{Training.} Resumable (saves every epoch), seed-aware checkpoint names (\code{model_cifar10.pt} for seed 0, \code{model_s1_cifar10.pt} for seed 1, \ldots), optional AdamW, label smoothing, a \code{STOP_FILE} so a long sweep can halt cleanly after the current epoch. On CUDA, TF32 is disabled and cuDNN set deterministic so GPU numbers stay comparable with CPU ones.
+\end{itemize}
+
+\subsection{The tests (about 1{,}100 lines)}
+\begin{itemize}
+\item \code{test_codec.py}: exhaustive checks over the whole code space: alphabet geometry, monotone positive half, known spec values, $e_{\max}$ values, E8M0 round trip, representable values encode exactly, round-to-nearest-even, quantisation is idempotent, scaled blocks land in range, the scale rule matches the OCP formula, headroom values, OCP clips and fit never clips, all-zero blocks,
+ shapes and axes, padding, bit accounting, deep copy, and (added after the bug) \emph{a NaN input makes its own block NaN and only its block}.
+\item \code{test_faults.py}: injection does not mutate the original; it is an involution; bad sites and bits are rejected; blast radius is 1 for elements and $K$ for scales; the scale fault rescales exactly; fault-space accounting; the sign bit is invisible to the log-severity metric; exponent-bit severity doubles per position; only FP8 can flip into non-finite; exactly eight bytes flip into the NaN scale; the scale MSB is the most damaging bit.
+\item \code{test_sampling.py}: population matches storage; padding excluded; uniform sampling hits sites in proportion to bits; Neyman favours uncertain strata; $\Phi$ up-weights the scale stratum; the stratified estimate is unbiased against a known truth; Wilson edge cases; required-sample scaling.
+\item \code{test_torch_pipeline.py}: ResNet8 shape and size; BN folding preserves the function and removes every BatchNorm; conv weights are blocked along the reduction axis; restoring weights is exact; the fault context restores the quantised weights; the blast radius shows in the weights; \code{word_fault} matches the whole-tensor path; the campaign is deterministic and side-effect free;
+ RepVGG reparameterisation is exact and keeps the ReLU; checkpoint names are seed-aware; CIFAR-100 models are named and sized apart; the ViT geometry and quantisation.
+\end{itemize}
+
+\subsection{The tools in \code{tools/}}
+\begin{description}[leftmargin=1.2cm,style=nextline]
+\item[\code{device_support.py}] An idempotent patch that adds GPU support: batches live on the device, activation hooks return tensors on the model's device, training takes \code{--device}. The MX codec stays on the CPU in numpy (exact and cheap); only forward passes move to the GPU.
+\item[\code{fast_inject.py}] An idempotent patch that makes weight injection $O(K)$ instead of $O(\text{parameters})$: before, each injection decoded the whole tensor twice. Measured on an A100, ResNet8-w16 went from 24.6 ms to 8.1 ms per injection and w48 from 31.8 ms to 13.9 ms.
+\item[\code{verify_fast_inject.py}] Proves the fast path equals the original over 1{,}290 faults, including padding lanes, the scale MSB and flips onto the NaN scale; also checks weights are restored exactly.
+\item[\code{verify_ground_truth.py}, \code{verify_e01.py}] Replay a sample (about 300) of a recorded campaign's faults against a checkpoint and compare outcomes: a matched pair agrees on essentially every fault; a mismatched one lands near 0.67 to 0.85. Born from the checkpoint mismatch of September (Section~\ref{sec:phase-metric}).
+\end{description}
+
+\section{Networks, training and campaign protocols}
+\markboth{Protocols}{Protocols}
+
+\subsection{Training recipes}
+\begin{center}
+\small
+\begin{tabular}{@{}lp{11cm}@{}}
+\toprule
+CNNs (ResNet8, RepVGG) & SGD with Nesterov momentum 0.9, learning rate 0.1, weight decay $10^{-4}$, batch 128, cosine learning-rate schedule, cross-entropy, random crop (padding 4) and horizontal flip, per-dataset mean/std normalisation. 60 epochs for the first ResNet8 (87.01\%); 30 epochs for RepVGG-A0 (91.44\%) and for every width-sweep network. \\
+ViT & AdamW, learning rate $10^{-3}$, weight decay 0.05, label smoothing 0.1, 100 epochs; 80.4--81.9\% on CIFAR-10 over three seeds. \\
+CIFAR-100 & the same recipes unchanged: ResNet8 $\approx58\%$, RepVGG-A0 70--71\%, ViT 47--49\%, three seeds each. \\
+Seeds & seed 0 keeps the unsuffixed checkpoint name; seed $s>0$ adds \code{_s<s>}; the ten-seed width sweep used seeds 0--9. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The weight campaign, step by step}
+\begin{enumerate}
+\item Train and load the network; convert to deployment form.
+\item Quantise every Conv2d/Linear weight tensor to MX (format, $K=32$, OCP rule) and write the decoded values back. Record quantised accuracy (E00).
+\item Choose the fixed 200-image class-balanced subset; compute golden predictions.
+\item Draw 3{,}000 faults uniformly over every stored bit (elements and scales, all layers; padding excluded); a fixed random seed makes the fault list reproducible.
+\item For each fault: apply it (patch the touched weights), run the 200 images, record which and how many predictions changed and whether any logit was non-finite, restore the weights.
+\item Write the CSV; summarise with Wilson intervals (any-image) or interval on the mean of \code{change_rate} (per inference).
+\end{enumerate}
+
+\subsection{The other protocols}
+\begin{description}[leftmargin=1.2cm,style=nextline]
+\item[Exhaustive (E06)] Replace the random draw with a fixed enumeration of every (layer, row, block, lane, bit) and every (layer, row, block, scale-bit). Streams to CSV in chunks and is resumable. ResNet8-w16: 638{,}624 faults in e4m3 and 483{,}904 in e3m2.
+\item[Activations (E04)] Per-inference protocol: batch of one, the fault injected into that inference's own activation buffer. Activation blocks run down the channel axis and the batch axis is separate, so batch-of-one is the \emph{exact} per-inference fault space, not an approximation. After the codec fix: 100 images, 4{,}000 faults per campaign.
+\item[Matched block-size study (E03b)] One fixed set of (layer, weight position, bit) triples injected at every block size, re-mapped as \texttt{(row, col//K, col\%K)}, so only the grouping varies.
+\item[Multi-bit (E21)] Sample words (1{,}500 element codes and 500 scale bytes per format), inject every single-bit and every two-bit mask of each; record which images changed as a packed bit string so a double flip can be compared with the union of its two single flips.
+\item[Replay studies (E15, E18--E22)] Because the exhaustive campaigns recorded every fault's outcome, any sampling strategy can be replayed against the truth hundreds of times without a further inference.
+\end{description}
+
+\subsection{Quality controls built into the work}
+Every control exists because something went wrong without it:
+\begin{itemize}
+\item the exhaustive campaigns validate the sampling (the 3{,}000-fault estimate covered the truth twice);
+\item the fast injection path is proven identical to the slow one; GPU and CPU agree on 99.97\% of per-injection outcomes (one borderline case in 3{,}000);
+\item E21's single-bit rates reproduce the exhaustive campaign (e3m2 element 0.00103 against 0.00113, scale 0.1875 against 0.1887);
+\item E23's sampled NaN-guard estimate matches the exhaustive figure to four significant digits;
+\item replay checks tie each campaign to its checkpoint (E15 refuses to continue below 0.98 agreement);
+\item a unit test pins the NaN behaviour of the codec.
+\end{itemize}
+
+\section{Index of the experiments}
+\markboth{Experiment index}{Experiment index}
+Each script in \code{experiments/} has a docstring stating the question and how to run it. Numbers in brackets are the finding numbers in \code{docs/findings.md}.
+
+\begin{center}
+\footnotesize
+\begin{longtable}{@{}p{3.0cm}p{5.0cm}p{7.2cm}@{}}
+\toprule
+script & question & outcome \\
+\midrule
+\endhead
+e00 & MX-quantised accuracy across the grid; which formats are accuracy-matched? & formats within a fraction of a point at $K=32$, MXFP4 lower; baseline for every rate \\
+e01 & uniform 3{,}000-fault baseline per format & the first results; scale faults dominate [F1--F5] \\
+e02 & uniform versus Neyman versus Neyman+$\Phi$ at equal budget & unbiased; $\Phi$ gives $10.5\times$ on the scale stratum but widens the model-wide interval [F8--F11] \\
+e03, e03b & block size, independent and matched faults & scale side monotone worse with $K$; OCP clipping distorts the any-image trend [F14--F16, F57] \\
+e04 & weights versus activations, per inference & scale dominates in both; after the codec fix weights $\approx$ activations per fault [F12, F13, F69] \\
+e05c & are any-image SDC rates measuring near-ties? (signflip, margins, robust) & yes; Spearman $+0.89$ with near-tie count [F26] \\
+width\_sweep\_* & capacity versus vulnerability, single and multi-seed & dose-response by special-code count [F21--F25, F29--F31] \\
+e06 & exhaustive ground truth on ResNet8 & truth 0.4171 (e4m3), 0.1079 (e3m2); sampling validated [F27, F28, F41, F53, F54] \\
+e08, e09, e09b & why do e3m2 and e2m3 (both 6-bit) differ $5.8\times$? & not perturbation size, not which weights [F35] \\
+e10, e11 & margins; sensitivity $s$ & fragility is a property of the quantised network; $s$ predicts the probe at $+0.998$ [F36--F38] \\
+e12 & a severity measure that predicts failure & \code{margin_shift}, AUC 0.990 [F39] \\
+e14, e16, e17 & where the sensitivity tail comes from & not marginals, not alignment; it is the hardest image's margin [F44, F48, F49] \\
+e15 & value-aware sampling against exhaustive truth & $7.0\times$ (e3m2), $2.3\times$ (e4m3), any-image [F46, F47] \\
+e18 & how much of a rate belongs to the evaluation set? & nine image sets: the any-image metric is the confound [F50--F52] \\
+e19 & every campaign rescored per inference & ordering holds on 8 of 8 models [F55--F59] \\
+e20 & value-aware sampling re-derived per inference & $57$--$120\times$ [F60, F61] \\
+e21 & single versus multi-bit & single-bit is sufficient [F62--F64] \\
+e22 & learned intervals versus exact enumeration & enumeration $48$--$65\times$; learned $\le1\times$ [F65, F66] \\
+e23 & read-side NaN guard & $\ge29\times$ on RepVGG and ViT [F68, F72] \\
+e24 & CIFAR-100 as the ImageNet stand-in & everything replicates; gap narrows [F70--F72] \\
+compare\_arch\ldots, make\_figures & cross-architecture check; the report's four figures & \\
+\bottomrule
+\end{longtable}
+\end{center}
+E07 (the ViT study) has no script of its own: it was run by \code{vit_run.sh}. There is no script named \code{e13}, and the numbering has other gaps; the findings log attributes work to the numbers.
+
+\section{Infrastructure and bookkeeping}
+\markboth{Infrastructure}{Infrastructure}
+
+\subsection{The two machines}
+\begin{center}
+\small
+\begin{tabular}{@{}lp{6.2cm}p{6.2cm}@{}}
+\toprule
+ & Laptop & IITK GPU server \\
+\midrule
+Hardware & Intel i5-1035G1 (4 cores/8 threads at 1.0 GHz), 11.7 GB RAM, integrated graphics, no CUDA & 2$\times$ NVIDIA A100-PCIE-40GB (often shared with other users), 32 CPU cores, no job scheduler \\
+Software & Python 3.13, torch 2.14.0+cpu (\code{.venv}) & Python 3.8.5, torch 2.1.2+cu121, numpy 1.24.3, pandas 1.4.4 \\
+Network & slow (about 100 kB/s; CIFAR-10 took about 35 min) & no outbound internet, so no downloads and no ImageNet \\
+Space & ample & \code{/home} and \code{/data} 100\% full; work in \code{/data/rajeshr/peeyush/bitflip} \\
+Speeds & ResNet8 training 82 s/epoch; 47 ms per injection (100 images) & 8.1 ms (w16) per injection after the patch; 4--10$\times$ the server's 32 cores, 13--30$\times$ the laptop; exhaustive w16 about 1.1--1.4 h \\
+\bottomrule
+\end{tabular}
+\end{center}
+Long jobs on the server are launched detached so they survive the SSH session, with the parentheses form \texttt{(nohup env ... python -m experiments.X > log 2>\&1 \&)} so only the python command is backgrounded.
+
+\subsection{Run scripts}
+\code{run_repvgg_experiments.sh} waits for RepVGG training then runs E00, E01 and E03b; \code{run_width_sweep.sh} and \code{run_width_sweep_seeds.sh} (seed-first, restartable) run the CPU width sweeps; \code{sweep_lock.sh} and \code{logs_wait_then_sweep.sh} stop two runners starting at once;
+\code{gpu_width_sweep.sh} runs ten seeds per width on the A100; \code{remaining_gpu.sh} (RepVGG three seeds, exhaustive e3m2, activations on RepVGG and ViT); \code{vit_run.sh} (ViT three seeds, five formats); \code{c100_run.sh} (CIFAR-100 in two GPU lanes plus an activations lane);
+and under \code{cluster/}: \code{e04_rerun.sh}, \code{e21_run.sh}, \code{e22_run.sh}, \code{e23_run.sh}. All are restartable: a trained width is not retrained and a finished campaign is not rerun, and \code{touch logs/STOP} halts them cleanly.
+
+\subsection{Lessons about long jobs on Windows}
+\begin{itemize}
+\item Stopping a background task does \emph{not} kill its children: in September two runners trained the same checkpoint in lockstep for about 17 hours. A lock file now records the Windows PID (Git Bash's \texttt{\$\$} is an MSYS PID that \code{tasklist} cannot find).
+\item Never run a long job inside a monitor; never edit a bash script while it is running (bash reads it incrementally).
+\item The laptop sleeps (inflating epoch time from minutes to hours) and Windows Update rebooted it once, killing a run; sleep must be set to never and updates paused by the user.
+\end{itemize}
+
+\subsection{Checkpoint provenance}
+Training is not bit-reproducible across machines or library versions. Of the 24 checkpoint names that exist both on the laptop and on the cluster, \emph{none} has identical weights, yet accuracies agree within a few tenths of a point, so nothing looks wrong. Result files were copied in both directions, so a result and a checkpoint with the same name could come from different networks.
+Consequently the repository keeps the cluster's outputs in \code{cluster/} separately (57 same-named files differ), and the verification scripts exist. Known identities: the laptop's \code{resnet8_w16} is the cluster's \code{resnet8_w16_s9}; the e3m2 exhaustive campaign is cluster train-seed 0 and the e4m3 one is train-seed 9.
+
+\subsection{The repository and its history}
+Everything is tracked: code, results, trained weights, the CIFAR datasets (the three files over GitHub's 100 MB limit go through Git LFS), logs, and \code{cluster/}, a verbatim mirror of the server's outputs checked file by file against its MD5 sums (425 checkpoint and result files). Only \code{.venv}, caches, LaTeX intermediates and the live \code{STOP} files are ignored.
+Fifteen commits from \emph{Initial commit} (22 September) to \emph{Update report} (5 October), pushed to \code{github.com/peeyushagarwal2004/CS496_UGP}.

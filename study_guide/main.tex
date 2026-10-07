@@ -1,0 +1,119 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs,array,tabularx,longtable,multirow}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing,shapes.geometric,fit,calc}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{tocloft}
+\cftsetindents{section}{0em}{2.4em}
+\cftsetindents{subsection}{2.4em}{3.2em}
+\usepackage[hidelinks,bookmarks=true]{hyperref}
+
+\graphicspath{{../docs/figures/}}
+
+% ------------------------------------------------------------ look and feel
+\definecolor{accent}{HTML}{1F4E79}
+\definecolor{plainc}{HTML}{2E75B6}
+\definecolor{keyc}{HTML}{2E7D32}
+\definecolor{exc}{HTML}{B26A00}
+\definecolor{warnc}{HTML}{B71C1C}
+\definecolor{srcc}{HTML}{555555}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist{itemsep=2pt,topsep=3pt,parsep=2pt}
+\renewcommand{\arraystretch}{1.15}
+\captionsetup{font=small,labelfont=bf}
+\sloppy
+\emergencystretch=2em
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{srcc}{BitFlip: complete study guide}}
+\fancyhead[R]{\small\textcolor{srcc}{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newtcolorbox{plain}{enhanced,breakable,colback=plainc!6,colframe=plainc,
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title=In plain words,fonttitle=\bfseries\small,coltitle=white,colbacktitle=plainc}
+\newtcolorbox{keyidea}{enhanced,breakable,colback=keyc!6,colframe=keyc,
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title=Key idea,fonttitle=\bfseries\small,coltitle=white,colbacktitle=keyc}
+\newenvironment{worked}[1][Worked example]{%
+  \begin{tcolorbox}[enhanced,breakable,colback=exc!6,colframe=exc,
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title={#1},fonttitle=\bfseries\small,coltitle=white,colbacktitle=exc]}%
+  {\end{tcolorbox}}
+\newenvironment{careful}[1][Be careful here]{%
+  \begin{tcolorbox}[enhanced,breakable,colback=warnc!5,colframe=warnc,
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title={#1},fonttitle=\bfseries\small,coltitle=white,colbacktitle=warnc]}%
+  {\end{tcolorbox}}
+
+% identifiers, file names, code: underscores and friends print literally
+\DeclareRobustCommand{\code}[1]{\texttt{\detokenize{#1}}}
+% where a fact came from
+\newcommand{\src}[1]{\par\smallskip{\footnotesize\textcolor{srcc}{\textit{Source: #1}}}}
+\newcommand{\term}[1]{\textbf{\textit{#1}}}
+
+% numbers used all the time
+\newcommand{\ee}[1]{\texttt{#1}}
+
+\title{\textbf{BitFlip}\\[4pt]\Large A complete guide to the project\\ and to the TreeFI paper it builds on}
+\author{Prepared for Peeyush Agarwal\\[2pt]\small CS496 Undergraduate Project, Indian Institute of Technology Kanpur}
+\date{6 October 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+\noindent This guide explains your whole project, \emph{Reliability-Aware Fault Injection for
+Microscaling-Based DNNs}, from the first idea to the last result, and it explains the TreeFI
+paper (Bires, Traiola, Kritikakou and Fromont, ICCAD 2026) that your project builds on. It starts
+from zero: what a neural network stores, what a bit flip is, what microscaling formats are. Then
+it explains how the tool \code{mxfi} was built and how every experiment was run, tells the work
+in the order it happened, with the numbers, and ends with the corrections you made, the design
+guidance, the limits of the study, and practice questions for a viva.
+
+\medskip\noindent Every number here comes from your repository (the report, \code{docs/findings.md},
+the code, the result files) or from the TreeFI paper. Where a statement is my own explanation
+or interpretation rather than something written in those sources, I say so.
+\end{abstract}
+
+\vspace{4pt}
+\begin{plain}
+\textbf{How to use this guide.} Part~I teaches the background. If you already know it, skip to
+Part~II (the TreeFI paper) or Part~III (how your project works). Part~IV is the story with all the
+results, and Part~V is the summary you would use to explain the project to someone else.
+Part~VI has viva questions, a glossary, a cheat sheet of key numbers and a list of items to double-check.
+Coloured boxes: \textcolor{plainc}{blue} = plain-language restatement, \textcolor{keyc}{green} = the
+key idea, \textcolor{exc}{orange} = a worked example with real numbers, \textcolor{warnc}{red} = a trap or
+caveat.
+\end{plain}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{p0_oneplace}
+\input{p1_foundations}
+\input{p2_treefi}
+\input{p3_project}
+\input{p4_story}
+\input{p4b_story}
+\input{p5_synthesis}
+\input{p6_appendix}
+
+\end{document}
