@@ -1,0 +1,1021 @@
+label,bit_was,site,tensor,index,bit,above_band,base,nonfinite,guard,nonfinite_guard,relu,nonfinite_relu,golden
+E2,0,element,layer1.conv1,"(13, 2, 31)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,0,element,layer1.conv1,"(8, 0, 31)",5,False,0.035,False,0.035,False,0.035,False,0.795
+E2,0,element,layer1.conv1,"(5, 1, 31)",5,False,0.06,False,0.06,False,0.06,False,0.795
+E2,0,element,layer1.conv2,"(2, 3, 8)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer1.conv2,"(2, 4, 1)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer1.conv2,"(0, 3, 19)",5,False,0.01,False,0.01,False,0.01,False,0.795
+E2,0,element,layer1.conv2,"(1, 3, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer2.conv2,"(9, 4, 26)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer2.conv2,"(26, 1, 6)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,0,element,layer2.conv2,"(31, 3, 27)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer2.conv2,"(15, 6, 4)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer2.conv2,"(28, 1, 21)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer2.conv2,"(31, 4, 3)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer2.conv2,"(23, 8, 17)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,0,element,layer2.conv2,"(3, 0, 21)",5,False,0.025,False,0.025,False,0.025,False,0.795
+E2,0,element,layer2.conv2,"(4, 6, 30)",5,False,0.025,False,0.025,False,0.025,False,0.795
+E2,0,element,layer2.conv2,"(7, 3, 30)",5,False,0.025,False,0.025,False,0.025,False,0.795
+E2,0,element,layer3.conv1,"(39, 0, 28)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(51, 2, 5)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(12, 1, 12)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(9, 7, 28)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(1, 0, 2)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(58, 7, 21)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(11, 6, 30)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(38, 1, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(6, 2, 9)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,0,element,layer3.conv1,"(61, 7, 5)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,0,element,layer3.conv1,"(36, 6, 4)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv1,"(29, 7, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(20, 1, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(43, 14, 8)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(6, 12, 30)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(56, 6, 20)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(38, 5, 19)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(62, 11, 18)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(34, 14, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(51, 6, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(46, 15, 0)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(32, 3, 26)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(21, 12, 31)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(4, 5, 3)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(62, 16, 7)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(23, 6, 31)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(40, 6, 22)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(37, 0, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(25, 6, 27)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(34, 5, 14)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(22, 0, 1)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(25, 6, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(59, 16, 9)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(33, 16, 1)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(62, 17, 9)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(29, 12, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(7, 17, 12)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(57, 11, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(8, 0, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.conv2,"(39, 7, 19)",5,False,0.02,False,0.02,False,0.02,False,0.795
+E2,0,element,layer3.shortcut.0,"(49, 0, 17)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,layer3.shortcut.0,"(51, 0, 29)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,0,element,fc,"(2, 0, 15)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,conv1,"(4, 0, 25)",5,False,0.07,False,0.07,False,0.07,False,0.795
+E2,1,element,layer1.conv1,"(1, 0, 16)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer1.conv1,"(12, 2, 27)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,1,element,layer1.conv2,"(15, 1, 14)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer1.conv2,"(3, 2, 28)",5,False,0.06,False,0.06,False,0.06,False,0.795
+E2,1,element,layer2.conv1,"(2, 0, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer2.conv1,"(8, 1, 31)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer2.conv1,"(31, 2, 13)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer2.conv1,"(23, 3, 4)",5,False,0.02,False,0.02,False,0.02,False,0.795
+E2,1,element,layer2.conv2,"(2, 8, 11)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer2.conv2,"(6, 6, 26)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer2.conv2,"(29, 1, 15)",5,False,0.01,False,0.01,False,0.01,False,0.795
+E2,1,element,layer2.conv2,"(24, 5, 24)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,1,element,layer2.conv2,"(0, 1, 31)",5,False,0.01,False,0.01,False,0.01,False,0.795
+E2,1,element,layer2.conv2,"(8, 2, 24)",5,False,0.01,False,0.01,False,0.01,False,0.795
+E2,1,element,layer2.shortcut.0,"(24, 0, 13)",5,False,0.025,False,0.025,False,0.025,False,0.795
+E2,1,element,layer3.conv1,"(3, 0, 11)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(30, 6, 19)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(22, 4, 1)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(35, 6, 6)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(15, 6, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(50, 6, 14)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(29, 0, 9)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(0, 0, 4)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(13, 4, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv1,"(35, 8, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(6, 17, 2)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(35, 12, 13)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(21, 4, 26)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(51, 9, 11)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(47, 0, 0)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(12, 9, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(40, 6, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(37, 7, 31)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(13, 11, 27)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(56, 5, 31)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(38, 4, 30)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(18, 6, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(35, 7, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(35, 4, 23)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(59, 5, 27)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(38, 13, 10)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(40, 10, 25)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(6, 11, 31)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(30, 13, 27)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(27, 5, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(49, 9, 12)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(52, 13, 24)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(43, 13, 17)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(35, 7, 12)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(43, 13, 11)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(51, 16, 19)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,1,element,layer3.conv2,"(13, 1, 8)",5,False,0.005,False,0.005,False,0.005,False,0.795
+E2,1,element,layer3.conv2,"(54, 6, 22)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(30, 16, 9)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(57, 3, 4)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.conv2,"(12, 3, 23)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.shortcut.0,"(2, 0, 23)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,layer3.shortcut.0,"(31, 0, 18)",5,False,0.0,False,0.0,False,0.0,False,0.795
+E2,1,element,fc,"(3, 0, 22)",5,False,0.015,False,0.015,False,0.015,False,0.795
+E3,0,element,conv1,"(14, 0, 17)",4,False,0.07,False,0.07,False,0.07,False,0.795
+E3,0,element,layer1.conv2,"(8, 3, 2)",2,False,0.025,False,0.025,False,0.025,False,0.795
+E3,0,element,layer2.conv1,"(6, 0, 23)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer2.conv2,"(20, 0, 2)",4,False,0.005,False,0.005,False,0.005,False,0.795
+E3,0,element,layer2.conv2,"(27, 6, 26)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer2.conv2,"(0, 8, 18)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer2.conv2,"(9, 5, 1)",3,False,0.01,False,0.01,False,0.01,False,0.795
+E3,0,element,layer2.conv2,"(21, 1, 15)",3,False,0.005,False,0.005,False,0.005,False,0.795
+E3,0,element,layer2.conv2,"(4, 2, 28)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer2.conv2,"(15, 7, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer2.conv2,"(16, 0, 11)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer2.conv2,"(3, 3, 14)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(32, 8, 15)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(59, 2, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(11, 5, 28)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(47, 5, 9)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(24, 7, 17)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(35, 6, 12)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(31, 6, 1)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(61, 7, 1)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(0, 3, 27)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(54, 6, 23)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(18, 3, 10)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(31, 8, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(57, 6, 14)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(58, 0, 25)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(43, 7, 22)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(10, 2, 24)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(51, 3, 11)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(24, 0, 13)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(20, 0, 2)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(27, 5, 10)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(24, 5, 11)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv1,"(19, 4, 12)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(18, 12, 17)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(60, 4, 27)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(61, 13, 5)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(3, 7, 1)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(56, 1, 10)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(3, 10, 29)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(36, 11, 25)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(55, 16, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(52, 1, 9)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(38, 14, 26)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(12, 8, 0)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(27, 8, 23)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(38, 8, 21)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(29, 12, 9)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(38, 7, 11)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(34, 7, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(36, 2, 0)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(41, 3, 16)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(41, 13, 19)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(23, 10, 22)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(35, 6, 14)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(42, 4, 2)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.conv2,"(29, 16, 17)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,layer3.shortcut.0,"(45, 0, 22)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3,0,element,fc,"(2, 1, 1)",3,False,0.04,False,0.04,False,0.04,False,0.795
+E3,0,element,fc,"(7, 1, 27)",4,False,0.025,False,0.025,False,0.025,False,0.795
+E3a,0,element,layer1.conv2,"(9, 1, 5)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv1,"(28, 4, 11)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv1,"(17, 2, 2)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv1,"(21, 2, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(27, 7, 0)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(31, 0, 13)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(6, 6, 2)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(18, 4, 15)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(23, 0, 26)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(8, 2, 8)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(5, 6, 16)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer2.conv2,"(8, 2, 8)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(60, 8, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(40, 0, 17)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(4, 7, 9)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(54, 6, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(25, 0, 23)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(24, 5, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(49, 5, 9)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(4, 2, 15)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(57, 0, 21)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(31, 7, 26)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(17, 3, 21)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(55, 8, 29)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(57, 0, 21)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv1,"(50, 3, 21)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(24, 9, 10)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(17, 16, 15)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(57, 7, 18)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(54, 3, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(23, 6, 19)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(24, 11, 4)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(55, 15, 24)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(26, 16, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(27, 16, 4)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(26, 15, 2)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(45, 17, 22)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(57, 7, 13)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(12, 17, 15)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(5, 14, 20)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(13, 14, 7)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(52, 17, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(49, 16, 22)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(6, 17, 26)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(34, 5, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(22, 11, 19)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(22, 15, 2)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(34, 3, 20)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(1, 8, 20)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(59, 13, 17)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(20, 4, 26)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(36, 10, 0)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(62, 12, 11)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(55, 7, 21)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(21, 11, 29)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(62, 10, 28)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(59, 13, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.conv2,"(35, 11, 14)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.shortcut.0,"(17, 0, 20)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3a,0,element,layer3.shortcut.0,"(50, 0, 0)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer1.conv1,"(7, 0, 10)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer1.conv1,"(7, 1, 6)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer1.conv2,"(15, 0, 11)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer1.conv2,"(14, 1, 9)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer1.conv2,"(4, 0, 21)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer1.conv2,"(15, 1, 14)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv1,"(21, 2, 27)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv1,"(12, 0, 6)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv1,"(9, 1, 3)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(30, 7, 12)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(0, 1, 18)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(7, 6, 14)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(10, 1, 27)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(10, 8, 20)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(29, 8, 19)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(3, 8, 21)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer2.conv2,"(11, 5, 13)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(42, 2, 0)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(54, 1, 31)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(55, 3, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(40, 4, 19)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(54, 1, 10)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(22, 5, 21)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(8, 7, 9)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(51, 7, 15)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(38, 3, 19)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(28, 4, 5)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(7, 6, 11)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(4, 0, 0)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(9, 1, 1)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(62, 4, 14)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(33, 5, 11)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(14, 2, 26)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv1,"(20, 3, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(33, 4, 4)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(48, 4, 28)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(0, 2, 8)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(6, 4, 1)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(24, 14, 20)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(4, 2, 19)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(27, 2, 3)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(22, 15, 15)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(40, 7, 23)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(9, 7, 1)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(28, 16, 30)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(38, 1, 10)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(48, 13, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(38, 0, 26)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(39, 14, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(31, 1, 5)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(61, 8, 26)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(26, 12, 28)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(55, 4, 2)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(1, 6, 15)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(43, 14, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.conv2,"(44, 13, 22)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.shortcut.0,"(17, 0, 1)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,layer3.shortcut.0,"(16, 0, 29)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,fc,"(4, 0, 2)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E3b,0,element,fc,"(3, 0, 10)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer1.conv1,"(14, 0, 4)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer1.conv2,"(14, 4, 0)",4,False,0.005,False,0.005,False,0.005,False,0.795
+E4,1,element,layer1.conv2,"(6, 2, 0)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer1.conv2,"(11, 4, 1)",3,False,0.01,False,0.01,False,0.01,False,0.795
+E4,1,element,layer2.conv1,"(7, 3, 25)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv1,"(1, 2, 14)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv1,"(6, 2, 3)",3,False,0.005,False,0.005,False,0.005,False,0.795
+E4,1,element,layer2.conv2,"(9, 5, 26)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv2,"(31, 8, 11)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv2,"(27, 1, 25)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv2,"(31, 5, 22)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv2,"(11, 4, 20)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer2.conv2,"(1, 6, 20)",4,False,0.01,False,0.01,False,0.01,False,0.795
+E4,1,element,layer2.conv2,"(25, 5, 11)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(52, 3, 9)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(39, 6, 30)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(8, 8, 30)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(45, 2, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(20, 0, 12)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(51, 2, 27)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(24, 1, 17)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(32, 2, 30)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(28, 3, 7)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(58, 0, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(34, 3, 26)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(60, 2, 8)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(28, 3, 11)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv1,"(40, 2, 25)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(14, 12, 27)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(26, 12, 1)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(43, 3, 10)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(20, 3, 11)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(21, 5, 25)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(45, 12, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(62, 9, 24)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(32, 2, 1)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(61, 17, 19)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(5, 16, 17)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(20, 3, 28)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(13, 4, 0)",2,False,0.005,False,0.005,False,0.005,False,0.795
+E4,1,element,layer3.conv2,"(23, 4, 25)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(40, 15, 31)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(20, 0, 29)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(46, 3, 10)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(24, 4, 6)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(19, 6, 14)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(34, 4, 25)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(40, 11, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(41, 1, 29)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(53, 0, 21)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(34, 8, 15)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(48, 9, 9)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(60, 7, 6)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(52, 13, 15)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.conv2,"(27, 17, 13)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.shortcut.0,"(31, 0, 5)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.shortcut.0,"(37, 0, 23)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.shortcut.0,"(2, 0, 4)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,layer3.shortcut.0,"(0, 0, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4,1,element,fc,"(1, 1, 12)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv1,"(13, 2, 28)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv1,"(3, 4, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv1,"(15, 3, 8)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv1,"(5, 3, 19)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv1,"(1, 0, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv1,"(3, 0, 5)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer1.conv2,"(0, 0, 22)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv1,"(19, 3, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv1,"(21, 1, 28)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv1,"(15, 3, 29)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv1,"(11, 1, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv1,"(22, 3, 19)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv2,"(21, 4, 30)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv2,"(7, 7, 26)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv2,"(2, 5, 9)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv2,"(25, 0, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.conv2,"(5, 2, 24)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer2.shortcut.0,"(10, 0, 12)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(58, 5, 31)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(21, 6, 7)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(2, 8, 15)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(34, 3, 13)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(25, 5, 9)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(52, 1, 16)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(14, 0, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(14, 7, 24)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(36, 3, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(30, 3, 13)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(9, 1, 24)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(24, 5, 20)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(59, 4, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv1,"(2, 2, 20)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(34, 8, 10)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(62, 8, 1)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(1, 10, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(22, 9, 25)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(27, 13, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(56, 6, 28)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(15, 3, 15)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(32, 4, 2)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(11, 11, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(8, 9, 23)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(46, 10, 15)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(15, 11, 14)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(30, 2, 11)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(33, 3, 1)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(48, 16, 16)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(28, 12, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(58, 7, 10)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(49, 17, 21)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(50, 9, 13)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(25, 8, 26)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(54, 3, 8)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(50, 0, 6)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(22, 3, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(42, 2, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(26, 13, 24)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(26, 0, 11)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(21, 2, 24)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4a,1,element,layer3.conv2,"(34, 15, 19)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer1.conv2,"(6, 0, 19)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv1,"(7, 0, 19)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv1,"(12, 1, 18)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv1,"(15, 4, 2)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv1,"(1, 1, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv2,"(26, 6, 8)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv2,"(23, 4, 2)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv2,"(27, 4, 27)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv2,"(22, 5, 0)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.conv2,"(11, 2, 20)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer2.shortcut.0,"(11, 0, 8)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(12, 4, 2)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(31, 3, 4)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(34, 1, 28)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(31, 1, 6)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(44, 2, 0)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(4, 6, 21)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(37, 0, 18)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(6, 5, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(11, 0, 23)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(19, 7, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(41, 1, 8)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(16, 0, 16)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(58, 2, 16)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(8, 3, 3)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(42, 3, 7)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(60, 6, 23)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(31, 1, 20)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv1,"(44, 8, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(22, 1, 3)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(22, 15, 25)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(12, 15, 13)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(46, 1, 11)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(14, 12, 23)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(60, 15, 9)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(27, 0, 30)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(35, 16, 19)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(39, 4, 25)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(28, 7, 8)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(9, 11, 31)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(54, 1, 29)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(49, 0, 6)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(36, 16, 4)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(44, 9, 14)",2,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(41, 12, 28)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(3, 1, 7)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(1, 15, 4)",3,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(34, 0, 7)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(12, 13, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(61, 6, 21)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(38, 9, 18)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(26, 3, 1)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(17, 16, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(49, 13, 17)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(61, 13, 22)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(51, 8, 29)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(33, 1, 22)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.conv2,"(17, 8, 16)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.shortcut.0,"(15, 0, 0)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E4b,1,element,layer3.shortcut.0,"(17, 0, 27)",4,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,conv1,"(0, 0, 19)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer1.conv2,"(15, 0, 13)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer1.conv2,"(10, 1, 26)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv1,"(27, 1, 26)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv1,"(26, 0, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv1,"(14, 3, 26)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv1,"(18, 2, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv1,"(14, 2, 20)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv1,"(10, 1, 23)",1,False,0.005,False,0.005,False,0.005,False,0.795
+E5,0,element,layer2.conv1,"(7, 3, 28)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(15, 3, 1)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(10, 6, 25)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(8, 5, 20)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(23, 2, 28)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(8, 7, 4)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(8, 5, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(11, 0, 14)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(7, 4, 3)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer2.conv2,"(18, 5, 2)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(51, 8, 15)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(48, 3, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(4, 6, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(38, 0, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(38, 5, 29)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(47, 8, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(9, 2, 12)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv1,"(54, 5, 3)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(60, 6, 8)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(33, 17, 25)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(13, 15, 0)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(46, 0, 25)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(45, 11, 0)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(8, 14, 28)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(5, 10, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(54, 16, 9)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(32, 0, 2)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(16, 7, 30)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(24, 10, 10)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(32, 13, 1)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(43, 0, 23)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(13, 11, 24)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(22, 4, 1)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(19, 16, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(59, 8, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(33, 5, 22)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(62, 13, 1)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(17, 3, 31)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(61, 3, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(62, 13, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(31, 5, 24)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(58, 8, 18)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(10, 5, 29)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(53, 3, 9)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(18, 16, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(57, 7, 20)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(37, 13, 29)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(39, 1, 22)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.conv2,"(46, 14, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.shortcut.0,"(16, 0, 18)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5,0,element,layer3.shortcut.0,"(33, 0, 21)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer1.conv1,"(3, 4, 11)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv1,"(13, 0, 28)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv1,"(14, 0, 16)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(13, 4, 11)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(14, 6, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(23, 4, 12)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(1, 0, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(27, 7, 0)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(9, 2, 28)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(22, 1, 25)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(10, 7, 23)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer2.conv2,"(24, 3, 25)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(4, 7, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(24, 5, 30)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(24, 5, 30)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(62, 2, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(40, 0, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(54, 6, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(17, 2, 12)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(55, 8, 24)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(4, 2, 15)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(31, 7, 26)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(57, 0, 21)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(40, 5, 22)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(37, 7, 28)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(46, 2, 3)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(10, 8, 14)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(30, 6, 14)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(22, 2, 22)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(26, 6, 15)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(50, 3, 21)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv1,"(17, 3, 21)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(49, 16, 22)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(20, 17, 22)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(11, 14, 1)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(51, 12, 11)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(63, 16, 14)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(49, 12, 25)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(54, 3, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(27, 8, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(38, 9, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(19, 15, 23)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(41, 5, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(12, 17, 15)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(33, 2, 27)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(49, 16, 22)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(29, 2, 15)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(4, 12, 12)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(24, 11, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(20, 8, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(43, 17, 15)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(16, 15, 4)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(25, 0, 16)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(22, 7, 19)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(43, 17, 15)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(61, 2, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.conv2,"(25, 0, 16)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.shortcut.0,"(27, 0, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.shortcut.0,"(27, 0, 9)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E5a,0,element,layer3.shortcut.0,"(2, 0, 26)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv1,"(16, 0, 17)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv1,"(21, 2, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv1,"(28, 3, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv1,"(30, 3, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv1,"(2, 4, 8)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv2,"(12, 1, 25)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv2,"(14, 7, 24)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv2,"(4, 4, 21)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv2,"(11, 0, 15)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer2.conv2,"(24, 4, 7)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(58, 4, 8)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(62, 8, 17)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(13, 7, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(61, 0, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(28, 2, 31)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(10, 3, 0)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(16, 8, 6)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(56, 2, 19)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(45, 2, 21)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(63, 2, 1)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(37, 0, 12)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(19, 8, 1)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(46, 7, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(18, 7, 27)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(61, 5, 18)",1,False,0.005,False,0.005,False,0.005,False,0.795
+E6,1,element,layer3.conv1,"(23, 3, 12)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(59, 8, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(34, 8, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(32, 7, 29)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(61, 4, 30)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(54, 0, 13)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(20, 3, 23)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(41, 0, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv1,"(56, 5, 24)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(23, 7, 16)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(59, 8, 25)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(46, 8, 24)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(47, 8, 30)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(2, 2, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(26, 12, 26)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(37, 5, 27)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(38, 4, 25)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(19, 4, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(44, 2, 8)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(0, 12, 9)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(27, 6, 10)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(61, 8, 19)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(16, 0, 22)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(2, 5, 24)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(44, 15, 18)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(10, 3, 8)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(41, 17, 19)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(62, 6, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(37, 7, 29)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(38, 5, 5)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(1, 14, 30)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(57, 0, 12)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(26, 0, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.conv2,"(28, 9, 5)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6,1,element,layer3.shortcut.0,"(19, 0, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,conv1,"(2, 0, 14)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer1.conv1,"(2, 0, 16)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer1.conv2,"(15, 2, 14)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv1,"(9, 0, 0)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv1,"(5, 1, 20)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv1,"(12, 4, 5)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv1,"(17, 2, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(0, 2, 27)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(9, 0, 23)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(30, 8, 17)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(0, 1, 23)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(3, 0, 11)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(13, 0, 15)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(26, 8, 12)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.conv2,"(17, 8, 11)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.shortcut.0,"(26, 0, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer2.shortcut.0,"(1, 0, 3)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(56, 1, 4)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(39, 2, 26)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(22, 6, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(48, 5, 11)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(23, 6, 24)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(33, 6, 19)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv1,"(3, 7, 15)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(17, 3, 25)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(43, 6, 16)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(38, 16, 13)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(15, 15, 26)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(3, 8, 14)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(20, 17, 28)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(43, 7, 7)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(46, 11, 21)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(27, 6, 6)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(48, 15, 0)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(24, 16, 9)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(56, 8, 11)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(45, 2, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(46, 17, 12)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(50, 8, 16)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(18, 10, 13)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(44, 9, 2)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(10, 6, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(63, 2, 11)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(15, 14, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(32, 9, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(35, 11, 17)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(17, 9, 5)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(49, 10, 27)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(35, 14, 29)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(60, 15, 0)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(50, 8, 26)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(39, 17, 18)",0,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(0, 13, 26)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(1, 8, 28)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(58, 12, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(12, 4, 16)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(8, 10, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(63, 5, 19)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.conv2,"(52, 1, 11)",1,False,0.0,False,0.0,False,0.0,False,0.795
+E6a,1,element,layer3.shortcut.0,"(21, 0, 21)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S2,0,scale,layer3.conv2,"(49, 17)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv1,"(19, 8)",7,True,0.995,True,0.04,False,0.995,True,0.795
+S2,0,scale,layer2.shortcut.0,"(26, 0)",7,True,1.0,True,0.015,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(18, 7)",7,True,0.89,True,0.005,False,0.89,True,0.795
+S2,0,scale,layer3.conv2,"(44, 8)",7,True,1.0,True,0.025,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(6, 14)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(0, 7)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(56, 14)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(37, 1)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(59, 7)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(29, 11)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(2, 2)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer3.conv1,"(24, 0)",7,True,1.0,True,0.025,False,1.0,True,0.795
+S2,0,scale,layer2.conv2,"(4, 3)",7,True,0.995,True,0.03,False,0.995,True,0.795
+S2,0,scale,layer2.conv2,"(24, 7)",7,True,1.0,True,0.065,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(48, 15)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer2.conv1,"(3, 3)",7,True,0.45,False,0.09,False,0.45,False,0.795
+S2,0,scale,layer3.conv2,"(54, 6)",7,True,0.925,True,0.0,False,0.925,True,0.795
+S2,0,scale,layer2.conv1,"(8, 0)",7,True,1.0,True,0.015,False,1.0,True,0.795
+S2,0,scale,layer2.conv2,"(7, 4)",7,True,1.0,True,0.03,False,1.0,True,0.795
+S2,0,scale,layer3.conv1,"(6, 4)",7,True,0.975,True,0.005,False,0.975,True,0.795
+S2,0,scale,layer2.conv1,"(18, 0)",7,True,1.0,True,0.035,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(32, 13)",7,True,1.0,True,0.02,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(53, 8)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer2.conv1,"(2, 4)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(2, 3)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(16, 11)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(40, 17)",7,True,1.0,True,0.02,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(50, 1)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(2, 14)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(19, 1)",7,True,0.985,True,0.0,False,0.985,True,0.795
+S2,0,scale,layer3.conv1,"(31, 3)",7,True,1.0,True,0.03,False,1.0,True,0.795
+S2,0,scale,layer2.conv1,"(23, 2)",7,True,0.915,True,0.135,False,0.915,True,0.795
+S2,0,scale,layer3.conv1,"(38, 1)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv1,"(13, 7)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.shortcut.0,"(47, 0)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(59, 8)",7,True,1.0,True,0.02,False,1.0,True,0.795
+S2,0,scale,layer3.shortcut.0,"(2, 0)",7,True,0.985,True,0.005,False,0.985,True,0.795
+S2,0,scale,layer2.conv2,"(26, 6)",7,True,1.0,True,0.03,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(55, 7)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(31, 8)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer2.conv2,"(7, 2)",7,True,1.0,True,0.015,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(52, 16)",7,True,1.0,True,0.0,False,1.0,True,0.795
+S2,0,scale,layer2.conv2,"(8, 5)",7,True,0.98,True,0.12,False,0.98,True,0.795
+S2,0,scale,layer3.conv1,"(6, 5)",7,True,0.98,True,0.005,False,0.98,True,0.795
+S2,0,scale,layer3.conv2,"(33, 16)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(32, 8)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer3.conv1,"(52, 4)",7,True,0.81,True,0.07,False,0.81,True,0.795
+S2,0,scale,layer3.conv2,"(40, 8)",7,True,0.985,True,0.0,False,0.985,True,0.795
+S2,0,scale,layer3.conv1,"(46, 5)",7,True,1.0,True,0.02,False,1.0,True,0.795
+S2,0,scale,layer3.conv1,"(57, 1)",7,True,1.0,True,0.04,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(58, 9)",7,True,0.98,True,0.0,False,0.98,True,0.795
+S2,0,scale,layer2.conv1,"(1, 1)",7,True,1.0,True,0.04,False,0.995,True,0.795
+S2,0,scale,layer3.conv1,"(25, 4)",7,True,0.99,True,0.03,False,0.99,True,0.795
+S2,0,scale,layer2.conv1,"(9, 1)",7,True,1.0,True,0.035,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(5, 6)",7,True,0.995,True,0.005,False,0.995,True,0.795
+S2,0,scale,layer3.conv1,"(25, 1)",7,True,1.0,True,0.01,False,1.0,True,0.795
+S2,0,scale,layer2.conv1,"(3, 2)",7,True,1.0,True,0.055,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(6, 17)",7,True,1.0,True,0.005,False,1.0,True,0.795
+S2,0,scale,layer3.conv2,"(43, 17)",7,True,0.995,True,0.0,False,0.995,True,0.795
+S3,0,scale,layer3.conv1,"(45, 4)",3,True,0.855,False,0.005,False,0.855,False,0.795
+S3,0,scale,layer3.conv1,"(21, 7)",3,True,0.335,False,0.08,False,0.335,False,0.795
+S3,0,scale,layer3.conv1,"(29, 2)",3,True,0.88,False,0.03,False,0.88,False,0.795
+S3,0,scale,layer3.conv1,"(34, 4)",3,True,0.17,False,0.05,False,0.17,False,0.795
+S3,0,scale,layer3.conv1,"(18, 5)",3,True,0.68,False,0.02,False,0.68,False,0.795
+S3,0,scale,layer3.conv1,"(54, 0)",3,True,0.53,False,0.02,False,0.53,False,0.795
+S3,0,scale,layer3.conv1,"(37, 4)",3,True,0.625,False,0.005,False,0.625,False,0.795
+S3,0,scale,layer3.conv1,"(14, 1)",3,True,0.585,False,0.035,False,0.585,False,0.795
+S3,0,scale,layer3.conv1,"(42, 0)",3,True,0.5,False,0.01,False,0.5,False,0.795
+S3,0,scale,layer3.conv1,"(32, 1)",3,True,0.625,False,0.0,False,0.625,False,0.795
+S3,0,scale,layer3.conv1,"(61, 0)",3,True,0.435,False,0.03,False,0.435,False,0.795
+S3,0,scale,layer2.conv1,"(1, 3)",3,True,0.425,False,0.07,False,0.425,False,0.795
+S3,0,scale,layer3.conv1,"(40, 0)",3,True,0.835,False,0.025,False,0.835,False,0.795
+S3,0,scale,layer3.conv1,"(22, 1)",3,True,0.6,False,0.02,False,0.6,False,0.795
+S3,0,scale,layer2.conv1,"(20, 2)",3,True,0.35,False,0.115,False,0.35,False,0.795
+S3,0,scale,layer3.conv1,"(37, 2)",3,True,0.285,False,0.045,False,0.285,False,0.795
+S3,0,scale,layer3.conv1,"(5, 6)",3,True,0.745,False,0.015,False,0.745,False,0.795
+S3,0,scale,layer3.conv1,"(35, 6)",3,True,0.87,False,0.02,False,0.87,False,0.795
+S3,0,scale,layer2.conv1,"(22, 3)",3,True,0.86,False,0.01,False,0.86,False,0.795
+S3,0,scale,layer3.conv1,"(62, 1)",3,True,0.875,False,0.0,False,0.875,False,0.795
+S3,0,scale,layer3.conv1,"(59, 2)",3,True,0.91,False,0.04,False,0.91,False,0.795
+S3,0,scale,layer3.conv1,"(26, 2)",3,True,0.43,False,0.0,False,0.43,False,0.795
+S3,0,scale,layer3.conv1,"(9, 5)",3,True,0.93,False,0.03,False,0.93,False,0.795
+S3,0,scale,layer3.conv1,"(7, 7)",3,True,0.195,False,0.045,False,0.195,False,0.795
+S3,0,scale,layer3.conv1,"(36, 5)",3,True,0.06,False,0.055,False,0.06,False,0.795
+S3,0,scale,layer3.conv1,"(25, 1)",3,True,0.86,False,0.01,False,0.86,False,0.795
+S3,0,scale,layer3.conv1,"(35, 1)",3,True,0.86,False,0.01,False,0.86,False,0.795
+S3,0,scale,layer3.conv1,"(47, 6)",3,True,0.91,False,0.005,False,0.91,False,0.795
+S3,0,scale,layer3.conv1,"(46, 6)",3,True,0.2,False,0.075,False,0.2,False,0.795
+S3,0,scale,layer3.conv1,"(56, 3)",3,True,0.38,False,0.025,False,0.38,False,0.795
+S3,0,scale,layer3.conv1,"(40, 7)",3,True,0.925,False,0.02,False,0.925,False,0.795
+S3,0,scale,layer3.conv1,"(15, 8)",3,True,0.905,False,0.01,False,0.905,False,0.795
+S3,0,scale,layer3.conv1,"(49, 2)",3,True,0.895,False,0.01,False,0.895,False,0.795
+S3,0,scale,layer2.conv1,"(29, 0)",3,True,0.875,False,0.015,False,0.875,False,0.795
+S3,0,scale,layer2.conv1,"(27, 4)",3,True,0.905,False,0.01,False,0.905,False,0.795
+S3,0,scale,layer3.conv1,"(60, 8)",3,True,0.375,False,0.015,False,0.375,False,0.795
+S3,0,scale,layer3.conv1,"(22, 0)",3,True,0.05,False,0.04,False,0.05,False,0.795
+S3,0,scale,layer3.conv1,"(20, 5)",3,True,0.905,False,0.04,False,0.905,False,0.795
+S3,0,scale,layer3.conv1,"(39, 8)",3,True,0.35,False,0.015,False,0.35,False,0.795
+S3,0,scale,layer2.conv1,"(18, 3)",3,True,0.84,False,0.035,False,0.84,False,0.795
+S3,0,scale,layer3.conv1,"(7, 1)",3,True,0.885,False,0.005,False,0.885,False,0.795
+S3,0,scale,layer3.conv1,"(18, 0)",3,True,0.3,False,0.075,False,0.3,False,0.795
+S3,0,scale,layer2.shortcut.0,"(0, 0)",3,True,0.865,False,0.015,False,0.865,False,0.795
+S3,0,scale,layer2.conv1,"(14, 4)",3,True,0.895,False,0.01,False,0.895,False,0.795
+S3,0,scale,layer3.conv1,"(58, 8)",3,True,0.895,False,0.015,False,0.895,False,0.795
+S3,0,scale,layer2.conv1,"(24, 0)",3,True,0.11,False,0.065,False,0.11,False,0.795
+S3,0,scale,layer3.conv1,"(7, 5)",3,True,0.885,False,0.0,False,0.885,False,0.795
+S3,0,scale,layer3.conv1,"(61, 3)",3,True,0.89,False,0.015,False,0.89,False,0.795
+S3,0,scale,layer3.conv1,"(53, 1)",3,True,0.69,False,0.0,False,0.69,False,0.795
+S3,0,scale,layer3.conv1,"(32, 8)",3,True,0.58,False,0.005,False,0.58,False,0.795
+S3,0,scale,layer2.conv1,"(16, 4)",3,True,0.875,False,0.005,False,0.875,False,0.795
+S3,0,scale,layer3.conv1,"(13, 5)",3,True,0.905,False,0.01,False,0.905,False,0.795
+S3,0,scale,layer3.conv1,"(3, 1)",3,True,0.785,False,0.005,False,0.785,False,0.795
+S3,0,scale,layer3.conv1,"(47, 0)",3,True,0.63,False,0.08,False,0.63,False,0.795
+S3,0,scale,layer3.conv1,"(63, 5)",3,True,0.82,False,0.025,False,0.82,False,0.795
+S3,0,scale,layer3.conv1,"(23, 4)",3,True,0.735,False,0.02,False,0.735,False,0.795
+S3,0,scale,layer3.conv1,"(4, 6)",3,True,0.905,False,0.04,False,0.905,False,0.795
+S3,0,scale,layer3.conv1,"(59, 5)",3,True,0.51,False,0.01,False,0.51,False,0.795
+S3,0,scale,layer2.conv1,"(19, 2)",3,True,0.895,False,0.075,False,0.895,False,0.795
+S3,0,scale,layer3.conv1,"(40, 2)",3,True,0.835,False,0.015,False,0.835,False,0.795
+S4,0,scale,layer2.conv2,"(23, 2)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S4,0,scale,layer3.conv2,"(47, 3)",2,True,0.04,False,0.0,False,0.04,False,0.795
+S4,0,scale,layer3.conv1,"(33, 7)",0,True,0.0,False,0.035,False,0.0,False,0.795
+S4,0,scale,layer3.conv2,"(13, 6)",2,True,0.49,False,0.02,False,0.49,False,0.795
+S4,0,scale,layer3.conv2,"(8, 17)",2,True,0.05,False,0.0,False,0.05,False,0.795
+S4,0,scale,layer3.conv2,"(24, 15)",2,True,0.01,False,0.005,False,0.01,False,0.795
+S4,0,scale,layer3.conv2,"(52, 2)",1,False,0.025,False,0.025,False,0.025,False,0.795
+S4,0,scale,layer3.conv2,"(2, 12)",2,True,0.155,False,0.0,False,0.155,False,0.795
+S4,0,scale,layer3.conv2,"(7, 6)",2,True,0.015,False,0.0,False,0.015,False,0.795
+S4,0,scale,layer3.conv2,"(34, 10)",2,True,0.025,False,0.01,False,0.025,False,0.795
+S4,0,scale,layer3.conv2,"(4, 3)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S4,0,scale,layer3.conv2,"(22, 0)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S4,0,scale,layer3.conv2,"(5, 8)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S4,0,scale,layer3.conv2,"(16, 12)",2,True,0.055,False,0.0,False,0.055,False,0.795
+S4,0,scale,layer3.conv2,"(32, 14)",0,False,0.01,False,0.01,False,0.01,False,0.795
+S4,0,scale,layer3.conv2,"(4, 2)",2,True,0.04,False,0.0,False,0.04,False,0.795
+S4,0,scale,layer2.conv2,"(25, 1)",2,True,0.585,False,0.035,False,0.585,False,0.795
+S4,0,scale,layer3.conv2,"(1, 17)",1,False,0.015,False,0.015,False,0.015,False,0.795
+S4,0,scale,layer3.conv1,"(41, 2)",2,True,0.34,False,0.025,False,0.34,False,0.795
+S4,0,scale,layer3.conv2,"(46, 9)",1,False,0.025,False,0.025,False,0.025,False,0.795
+S4,0,scale,layer3.conv2,"(6, 15)",2,True,0.035,False,0.0,False,0.035,False,0.795
+S4,0,scale,layer3.conv2,"(45, 8)",2,True,0.31,False,0.0,False,0.31,False,0.795
+S4,0,scale,layer2.conv1,"(14, 3)",2,True,0.105,False,0.09,False,0.105,False,0.795
+S4,0,scale,layer3.conv2,"(30, 9)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S4,0,scale,layer3.conv2,"(27, 16)",1,False,0.105,False,0.105,False,0.105,False,0.795
+S4,0,scale,layer2.conv2,"(21, 2)",2,True,0.12,False,0.04,False,0.12,False,0.795
+S4,0,scale,layer2.conv2,"(16, 8)",2,True,0.2,False,0.145,False,0.2,False,0.795
+S4,0,scale,layer2.conv2,"(25, 7)",2,True,0.11,False,0.035,False,0.11,False,0.795
+S4,0,scale,layer2.conv2,"(25, 7)",1,False,0.06,False,0.06,False,0.06,False,0.795
+S4,0,scale,layer3.conv2,"(11, 5)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S4,0,scale,layer3.conv2,"(32, 7)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S4,0,scale,layer2.conv1,"(19, 1)",1,True,0.145,False,0.01,False,0.145,False,0.795
+S4,0,scale,layer3.conv2,"(43, 1)",2,True,0.235,False,0.005,False,0.235,False,0.795
+S4,0,scale,layer3.conv2,"(9, 17)",1,False,0.035,False,0.035,False,0.035,False,0.795
+S4,0,scale,layer3.conv1,"(47, 3)",2,True,0.61,False,0.01,False,0.61,False,0.795
+S4,0,scale,layer3.conv1,"(29, 0)",1,True,0.05,False,0.015,False,0.05,False,0.795
+S4,0,scale,layer3.conv2,"(62, 7)",2,True,0.185,False,0.005,False,0.185,False,0.795
+S4,0,scale,layer3.conv2,"(42, 9)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S4,0,scale,layer2.conv2,"(6, 0)",1,True,0.055,False,0.035,False,0.055,False,0.795
+S4,0,scale,layer3.conv2,"(24, 4)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S4,0,scale,layer3.shortcut.0,"(56, 0)",2,True,0.23,False,0.0,False,0.23,False,0.795
+S4,0,scale,layer3.conv2,"(40, 12)",2,True,0.035,False,0.005,False,0.035,False,0.795
+S4,0,scale,layer3.conv1,"(5, 1)",2,True,0.18,False,0.005,False,0.18,False,0.795
+S4,0,scale,layer3.conv2,"(9, 3)",1,False,0.025,False,0.025,False,0.025,False,0.795
+S4,0,scale,conv1,"(13, 0)",0,False,0.105,False,0.105,False,0.105,False,0.795
+S4,0,scale,layer3.conv2,"(50, 1)",2,True,0.185,False,0.005,False,0.185,False,0.795
+S4,0,scale,layer3.conv2,"(29, 3)",2,True,0.095,False,0.0,False,0.095,False,0.795
+S4,0,scale,layer2.conv1,"(27, 0)",2,True,0.645,False,0.045,False,0.645,False,0.795
+S4,0,scale,layer2.conv2,"(17, 4)",2,True,0.72,False,0.035,False,0.72,False,0.795
+S4,0,scale,layer3.conv2,"(15, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S4,0,scale,layer1.conv1,"(10, 2)",0,False,0.02,False,0.02,False,0.02,False,0.795
+S4,0,scale,layer3.conv2,"(30, 5)",1,False,0.065,False,0.065,False,0.065,False,0.795
+S4,0,scale,layer2.conv2,"(6, 3)",2,True,0.54,False,0.01,False,0.54,False,0.795
+S4,0,scale,layer2.conv1,"(26, 0)",2,True,0.62,False,0.02,False,0.62,False,0.795
+S4,0,scale,layer3.conv2,"(32, 6)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S4,0,scale,layer3.conv2,"(39, 5)",1,False,0.05,False,0.05,False,0.05,False,0.795
+S4,0,scale,layer2.conv2,"(7, 2)",1,False,0.08,False,0.08,False,0.08,False,0.795
+S4,0,scale,layer3.conv2,"(52, 12)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S4,0,scale,layer1.conv2,"(1, 0)",2,True,0.185,False,0.155,False,0.185,False,0.795
+S4,0,scale,layer2.conv2,"(24, 1)",1,False,0.155,False,0.155,False,0.155,False,0.795
+S5,1,scale,layer3.conv1,"(25, 3)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv1,"(11, 0)",1,False,0.03,False,0.03,False,0.03,False,0.795
+S5,1,scale,layer3.conv2,"(62, 1)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv1,"(15, 1)",1,False,0.03,False,0.03,False,0.03,False,0.795
+S5,1,scale,layer3.conv2,"(39, 17)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv2,"(51, 7)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(58, 0)",0,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer1.conv2,"(5, 3)",0,False,0.04,False,0.04,False,0.04,False,0.795
+S5,1,scale,layer3.conv2,"(35, 2)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv1,"(21, 0)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer2.conv1,"(26, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(0, 17)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(28, 8)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(10, 3)",1,False,0.035,False,0.035,False,0.035,False,0.795
+S5,1,scale,layer3.conv2,"(25, 2)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv1,"(57, 2)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv2,"(29, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(62, 5)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(23, 15)",1,False,0.02,False,0.02,False,0.02,False,0.795
+S5,1,scale,layer3.conv2,"(31, 13)",1,False,0.02,False,0.02,False,0.02,False,0.795
+S5,1,scale,layer3.conv2,"(26, 12)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(24, 2)",0,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer3.conv1,"(25, 1)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv2,"(14, 12)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer2.conv1,"(5, 4)",0,False,0.02,False,0.02,False,0.02,False,0.795
+S5,1,scale,layer3.conv1,"(58, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(10, 12)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(52, 14)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(13, 10)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer3.conv1,"(12, 5)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer3.conv2,"(52, 9)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(36, 7)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(1, 5)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv2,"(63, 10)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv1,"(5, 4)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(30, 6)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer3.conv1,"(53, 8)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer3.conv1,"(18, 5)",1,False,0.02,False,0.02,False,0.02,False,0.795
+S5,1,scale,layer3.conv1,"(46, 6)",0,False,0.02,False,0.02,False,0.02,False,0.795
+S5,1,scale,layer3.conv2,"(9, 4)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(33, 4)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer2.conv1,"(24, 4)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(3, 2)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(38, 9)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(8, 6)",1,False,0.065,False,0.065,False,0.065,False,0.795
+S5,1,scale,layer3.conv2,"(33, 4)",0,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer2.conv2,"(19, 0)",0,False,0.01,False,0.01,False,0.01,False,0.795
+S5,1,scale,layer3.conv1,"(30, 1)",0,False,0.035,False,0.035,False,0.035,False,0.795
+S5,1,scale,layer3.conv1,"(29, 5)",1,False,0.03,False,0.03,False,0.03,False,0.795
+S5,1,scale,layer3.conv1,"(63, 6)",0,False,0.015,False,0.015,False,0.015,False,0.795
+S5,1,scale,layer3.conv1,"(17, 3)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv1,"(63, 8)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(32, 4)",1,False,0.045,False,0.045,False,0.045,False,0.795
+S5,1,scale,layer3.conv2,"(3, 11)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(51, 8)",1,False,0.005,False,0.005,False,0.005,False,0.795
+S5,1,scale,layer3.conv1,"(14, 6)",0,False,0.025,False,0.025,False,0.025,False,0.795
+S5,1,scale,layer3.conv2,"(41, 4)",1,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer3.conv2,"(22, 3)",0,False,0.0,False,0.0,False,0.0,False,0.795
+S5,1,scale,layer1.conv1,"(3, 0)",0,False,0.1,False,0.1,False,0.1,False,0.795
+S5,1,scale,layer3.conv2,"(1, 12)",1,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv1,"(44, 2)",5,False,0.055,False,0.055,False,0.055,False,0.795
+S6,1,scale,layer2.shortcut.0,"(0, 0)",6,False,0.015,False,0.015,False,0.015,False,0.795
+S6,1,scale,layer3.conv2,"(20, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv2,"(5, 1)",4,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer2.conv2,"(9, 4)",4,False,0.035,False,0.035,False,0.035,False,0.795
+S6,1,scale,layer3.conv1,"(28, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv2,"(34, 3)",3,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(30, 12)",4,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv2,"(14, 13)",6,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv2,"(21, 17)",6,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.shortcut.0,"(12, 0)",5,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer1.conv2,"(5, 1)",3,False,0.055,False,0.055,False,0.055,False,0.795
+S6,1,scale,layer3.conv2,"(41, 3)",5,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer2.conv2,"(25, 6)",3,False,0.02,False,0.02,False,0.02,False,0.795
+S6,1,scale,layer2.conv2,"(17, 8)",6,False,0.015,False,0.015,False,0.015,False,0.795
+S6,1,scale,layer3.conv2,"(38, 9)",4,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv1,"(9, 6)",4,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer2.conv1,"(29, 4)",5,False,0.085,False,0.085,False,0.085,False,0.795
+S6,1,scale,layer2.conv1,"(22, 2)",6,False,0.04,False,0.04,False,0.04,False,0.795
+S6,1,scale,layer3.conv2,"(15, 8)",6,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(27, 1)",6,False,0.035,False,0.035,False,0.035,False,0.795
+S6,1,scale,layer3.conv2,"(39, 11)",6,False,0.03,False,0.03,False,0.03,False,0.795
+S6,1,scale,layer3.conv2,"(35, 0)",5,False,0.015,False,0.015,False,0.015,False,0.795
+S6,1,scale,layer2.conv1,"(17, 1)",6,False,0.075,False,0.075,False,0.075,False,0.795
+S6,1,scale,layer2.conv1,"(28, 3)",6,False,0.04,False,0.04,False,0.04,False,0.795
+S6,1,scale,layer3.conv1,"(34, 4)",6,False,0.05,False,0.05,False,0.05,False,0.795
+S6,1,scale,layer2.conv2,"(14, 1)",6,False,0.115,False,0.115,False,0.115,False,0.795
+S6,1,scale,layer3.conv2,"(54, 12)",3,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv1,"(0, 0)",5,False,0.065,False,0.065,False,0.065,False,0.795
+S6,1,scale,layer3.conv2,"(42, 17)",4,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv2,"(45, 12)",5,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(14, 7)",4,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,fc,"(4, 0)",4,False,0.05,False,0.05,False,0.05,False,0.795
+S6,1,scale,layer3.conv2,"(19, 10)",3,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv1,"(13, 8)",2,False,0.04,False,0.04,False,0.04,False,0.795
+S6,1,scale,layer1.conv2,"(13, 4)",3,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv1,"(62, 7)",2,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer2.conv2,"(1, 8)",5,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv2,"(41, 14)",4,False,0.055,False,0.055,False,0.055,False,0.795
+S6,1,scale,layer2.conv1,"(6, 4)",4,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv2,"(61, 10)",4,False,0.025,False,0.025,False,0.025,False,0.795
+S6,1,scale,layer3.conv2,"(45, 10)",3,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv2,"(36, 5)",3,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv1,"(46, 2)",5,False,0.05,False,0.05,False,0.05,False,0.795
+S6,1,scale,layer3.shortcut.0,"(30, 0)",3,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(35, 16)",5,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.shortcut.0,"(19, 0)",5,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv1,"(21, 8)",2,False,0.015,False,0.015,False,0.015,False,0.795
+S6,1,scale,layer3.conv2,"(1, 5)",3,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(44, 5)",3,False,0.025,False,0.025,False,0.025,False,0.795
+S6,1,scale,layer3.conv2,"(61, 6)",3,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(62, 8)",6,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv1,"(49, 2)",4,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv2,"(16, 11)",4,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv2,"(24, 10)",3,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer3.conv2,"(38, 17)",3,False,0.01,False,0.01,False,0.01,False,0.795
+S6,1,scale,layer2.conv2,"(21, 8)",3,False,0.1,False,0.1,False,0.1,False,0.795
+S6,1,scale,layer3.conv2,"(30, 6)",3,False,0.0,False,0.0,False,0.0,False,0.795
+S6,1,scale,layer3.conv2,"(29, 16)",5,False,0.005,False,0.005,False,0.005,False,0.795
+S6,1,scale,layer3.conv2,"(47, 6)",3,False,0.0,False,0.0,False,0.0,False,0.795

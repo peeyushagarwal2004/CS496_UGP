@@ -19,6 +19,10 @@ docs/*.toc
 docs/*.lof
 docs/*.lot
 texput.log
+docs/ugp_report/*.aux
+docs/ugp_report/*.log
+docs/ugp_report/*.out
+docs/ugp_report/*.toc
 study_guide/*.aux
 study_guide/*.log
 study_guide/*.out
