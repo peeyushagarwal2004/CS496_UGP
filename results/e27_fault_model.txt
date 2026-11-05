@@ -1,0 +1,249 @@
+## e3m2: 483,904 faults, rate 0.00878
+
+### 1. fault direction and stuck-at faults
+   site  0->1 rate (= stuck-at-1)  1->0 rate (= stuck-at-0)  share of damage from 0->1  bits holding 0
+element                   0.00053                   0.00056                    0.48502         0.43395
+  scale                   0.00716                   0.00054                    0.92977         0.36983
+    all                   0.00768                   0.00110                    0.87471         0.43134
+catastrophic cases that are 0->1 flips: 1.000 of 2,468 faults
+
+### 2. outcome classes
+                            n  fault_share  damage_share    rate
+outcome                                                         
+no prediction changed  431706      0.89213       0.00000 0.00000
+non-finite output        2436      0.00503       0.56240 0.00494
+silent corruption       49762      0.10283       0.43760 0.00384
+
+### 3. free checks and guards
+                                       check  faults flagged  damage flagged
+             D1 special element code on read         0.00000         0.00000
+D2a scale bit 7 set (all clean scales < 128)         0.00510         0.56529
+   D2b scale outside its tensor's clean band         0.03302         0.85694
+     D2c scale above its tensor's clean band         0.01127         0.79938
+  D3 no top-binade element left in the block         0.00214         0.00142
+                        D4 non-finite output         0.00503         0.56240
+                     D1 + D2b + D3 (at read)         0.03516         0.85836
+                            all of the above         0.03516         0.85836
+silent damage left after every check: rate 0.001244 (of 0.008785)
+
+guards: per-inference rate, and its silent part (outputs stay finite, so no output check sees it)
+  none                                               rate 0.008785 (  1.00x lower)   silent 0.003844
+  G2 scale above band -> erase block                 rate 0.002061 (  4.26x lower)   silent 0.002061
+
+### 4. held-out variance explained
+                            model  R2 all faults  R2 finite element faults
+                        site only          0.222                    -0.000
+            + case (the E25 tree)          0.909                     0.017
+                   + bit position          0.924                     0.019
+                          + layer          0.939                     0.190
+       + size of the weight error          0.943                     0.542
+  (size x input activity instead)          0.944                     0.666
+              + sign of the error          0.944                     0.697
+
+### 5. spread of damage inside each case
+                                  n   mean   zero    p50    p90    max
+case                                                                  
+scale:up_overflow              2468 0.9737 0.0000 1.0000 1.0000 1.0000
+scale:up_large                  595 0.7418 0.0000 0.8650 0.9100 0.9300
+scale:up_small                 4239 0.1460 0.0705 0.0600 0.4250 0.9300
+scale:erase                    9879 0.0236 0.2581 0.0100 0.0650 0.5150
+scale:down_small               2563 0.0110 0.4464 0.0050 0.0300 0.2000
+sign:sign:negate              77145 0.0030 0.8158 0.0000 0.0050 0.8350
+exponent:up:grow              79545 0.0017 0.8762 0.0000 0.0050 0.2950
+exponent:down:shrink         132401 0.0010 0.9215 0.0000 0.0000 0.5250
+mantissa:up:grow              80776 0.0002 0.9856 0.0000 0.0000 0.1900
+mantissa:down:shrink          72700 0.0001 0.9911 0.0000 0.0000 0.1450
+exponent:down:normal_to_sub   12619 0.0001 0.9895 0.0000 0.0000 0.0550
+exponent:up:sub_to_normal      3588 0.0001 0.9928 0.0000 0.0000 0.0400
+exponent:down:to_zero          3282 0.0001 0.9927 0.0000 0.0000 0.0300
+mantissa:up:from_zero           430 0.0000 1.0000 0.0000 0.0000 0.0000
+mantissa:down:to_zero           814 0.0000 1.0000 0.0000 0.0000 0.0000
+exponent:up:from_zero           645 0.0000 1.0000 0.0000 0.0000 0.0000
+sign:sign:masked                215 0.0000 1.0000 0.0000 0.0000 0.0000
+
+### 6. sign of the error (ReLU asymmetry), finite element flips
+fc (logits): upper half of error sizes, error>0 0.01172 vs error<0 0.01332 (0.88x)
+     error < 0  error > 0  ratio +/-         n
+mag                                           
+-6     0.00000    0.00000        NaN 249.00000
+-5     0.00017    0.00010    0.59113 383.00000
+-4     0.00095    0.00088    0.92501 593.00000
+-3     0.00418    0.00329    0.78613 689.00000
+-2     0.01066    0.00905    0.84855 799.00000
+-1     0.01737    0.01714    0.98701 650.00000
+ 0     0.02827    0.03317    1.17319 239.00000
+
+hidden conv (input >= 0): upper half of error sizes, error>0 0.00164 vs error<0 0.00147 (1.12x)
+     error < 0  error > 0  ratio +/-      n
+mag                                        
+-14    0.00000    0.00000        NaN   1135
+-13    0.00000    0.00000        NaN   3634
+-12    0.00000    0.00000        NaN   7963
+-11    0.00000    0.00000        NaN  15605
+-10    0.00000    0.00000        NaN  29775
+-9     0.00000    0.00000    0.00000  48582
+-8     0.00000    0.00000    0.96800  68947
+-7     0.00007    0.00004    0.59792  84878
+-6     0.00039    0.00032    0.82692  93645
+-5     0.00143    0.00146    1.02237  67427
+-4     0.00455    0.00501    1.10096  28306
+-3     0.01421    0.01580    1.11163   6410
+-2     0.04550    0.05465    1.20121    883
+
+stem (signed input): upper half of error sizes, error>0 0.03825 vs error<0 0.04094 (0.93x)
+     error < 0  error > 0  ratio +/-         n
+mag                                           
+-7     0.00000    0.00000        NaN 223.00000
+-6     0.00058    0.00031    0.53809 313.00000
+-5     0.00338    0.00290    0.85767 433.00000
+-4     0.01225    0.00961    0.78389 485.00000
+-3     0.02708    0.02345    0.86621 460.00000
+-2     0.05648    0.05500    0.97384 267.00000
+
+### 7. zero-input masking
+weights whose input channel is zero on all 200 images: 0 of 77,360
+
+### 8. protection order
+by site x bit: storage to protect for 50/80/90/95% of the damage: 0.51%, 2.04%, 20.07%, 36.05%
+           storage  damage  cum storage  cum damage
+site  bit                                          
+scale 7     0.0051  0.5653       0.0051      0.5653
+      2     0.0051  0.1184       0.0102      0.6837
+      3     0.0051  0.1141       0.0153      0.7978
+      1     0.0051  0.0279       0.0204      0.8257
+      4     0.0051  0.0138       0.0255      0.8394
+      5     0.0051  0.0138       0.0306      0.8532
+      6     0.0051  0.0138       0.0357      0.8669
+      0     0.0051  0.0093       0.0408      0.8762
+by site x bit x tensor: storage to protect for 50/80/90/95% of the damage: 0.50%, 1.26%, 4.37%, 11.55%
+
+
+## e4m3: 638,624 faults, rate 0.02356
+
+### 1. fault direction and stuck-at faults
+   site  0->1 rate (= stuck-at-1)  1->0 rate (= stuck-at-0)  share of damage from 0->1  bits holding 0
+element                   0.01367                   0.00217                    0.86283         0.39527
+  scale                   0.00722                   0.00049                    0.93597         0.40149
+    all                   0.02089                   0.00267                    0.88677         0.39546
+catastrophic cases that are 0->1 flips: 1.000 of 10,321 faults
+
+### 2. outcome classes
+                            n  fault_share  damage_share    rate
+outcome                                                         
+no prediction changed  372245      0.58289       0.00000 0.00000
+non-finite output       10288      0.01611       0.68147 0.01606
+silent corruption      256091      0.40100       0.31853 0.00750
+
+### 3. free checks and guards
+                                       check  faults flagged  damage flagged
+             D1 special element code on read         0.01230         0.52193
+D2a scale bit 7 set (all clean scales < 128)         0.00386         0.16047
+   D2b scale outside its tensor's clean band         0.02540         0.32149
+     D2c scale above its tensor's clean band         0.00974         0.30227
+  D3 no top-binade element left in the block         0.00321         0.00193
+                        D4 non-finite output         0.01611         0.68147
+                     D1 + D2b + D3 (at read)         0.04091         0.84535
+                            all of the above         0.04091         0.84535
+silent damage left after every check: rate 0.003644 (of 0.023560)
+
+guards: per-inference rate, and its silent part (outputs stay finite, so no output check sees it)
+  none                                               rate 0.023560 (  1.00x lower)   silent 0.007505
+  G2 scale above band -> erase block                 rate 0.016752 (  1.41x lower)   silent 0.004456
+  G1 special code -> 0 (bound: sign-flip damage)     rate 0.011398 (  2.07x lower)   silent 0.007639
+  G1 + G2 (bound)                                    rate 0.004590 (  5.13x lower)   silent 0.004590
+  G1 measured (E26 sample mean 0.0064)               rate 0.011343 (  2.08x lower)   silent 0.007584
+  G1 measured + G2                                   rate 0.004535 (  5.20x lower)   silent 0.004535
+
+### 4. held-out variance explained
+                            model  R2 all faults  R2 finite element faults
+                        site only          0.089                    -1.959
+            + case (the E25 tree)          0.974                     0.052
+                   + bit position          0.978                     0.059
+                          + layer          0.980                     0.211
+       + size of the weight error          0.981                     0.538
+  (size x input activity instead)          0.982                     0.638
+              + sign of the error          0.982                     0.661
+
+### 5. spread of damage inside each case
+                                  n   mean   zero    p50    p90    max
+case                                                                  
+exponent:up:to_special         4910 1.0000 0.0000 1.0000 1.0000 1.0000
+mantissa:up:to_special         2943 1.0000 0.0000 1.0000 1.0000 1.0000
+scale:up_overflow              2468 0.9783 0.0000 1.0000 1.0000 1.0000
+scale:up_large                 2462 0.7559 0.0000 0.8600 0.9150 0.9450
+scale:up_small                 2997 0.1115 0.0180 0.0400 0.3350 0.9150
+scale:erase                    9290 0.0292 0.0760 0.0200 0.0600 0.5700
+scale:down_small               2527 0.0173 0.1349 0.0150 0.0350 0.3250
+sign:sign:negate              77359 0.0073 0.4073 0.0050 0.0150 0.8600
+exponent:up:grow              79468 0.0055 0.4681 0.0050 0.0150 0.6450
+exponent:down:shrink         224207 0.0042 0.5361 0.0000 0.0100 0.7050
+mantissa:up:grow             120748 0.0015 0.7769 0.0000 0.0050 0.3450
+mantissa:down:shrink         108384 0.0012 0.8081 0.0000 0.0050 0.1250
+exponent:down:normal_to_sub     741 0.0001 0.9771 0.0000 0.0000 0.0100
+exponent:down:to_zero            78 0.0000 1.0000 0.0000 0.0000 0.0000
+exponent:up:sub_to_normal        32 0.0000 1.0000 0.0000 0.0000 0.0000
+mantissa:up:from_zero             3 0.0000 1.0000 0.0000 0.0000 0.0000
+mantissa:down:to_zero             2 0.0000 1.0000 0.0000 0.0000 0.0000
+exponent:up:from_zero             4 0.0000 1.0000 0.0000 0.0000 0.0000
+sign:sign:masked                  1 0.0000 1.0000 0.0000 0.0000 0.0000
+
+### 6. sign of the error (ReLU asymmetry), finite element flips
+fc (logits): upper half of error sizes, error>0 0.01048 vs error<0 0.01336 (0.78x)
+     error < 0  error > 0  ratio +/-          n
+mag                                            
+-6     0.00101    0.00124    1.23103  392.00000
+-5     0.00195    0.00177    0.90656  596.00000
+-4     0.00313    0.00277    0.88502  725.00000
+-3     0.00556    0.00513    0.92242  791.00000
+-2     0.00974    0.00866    0.88912 1034.00000
+-1     0.01614    0.01399    0.86665  804.00000
+ 0     0.02828    0.02816    0.99580  260.00000
+
+hidden conv (input >= 0): upper half of error sizes, error>0 0.00573 vs error<0 0.00535 (1.07x)
+     error < 0  error > 0  ratio +/-            n
+mag                                              
+-18    0.00000    0.00000        NaN    262.00000
+-17    0.00000    0.00000        NaN    502.00000
+-16    0.00000    0.00000        NaN    950.00000
+-15    0.00000    0.00000        NaN   1879.00000
+-14    0.00000    0.00000        NaN   3749.00000
+-13    0.00001    0.00001    2.00054   7355.00000
+-12    0.00008    0.00007    0.80055  14347.00000
+-11    0.00029    0.00026    0.88502  27695.00000
+-10    0.00056    0.00060    1.06363  48970.00000
+-9     0.00098    0.00108    1.10906  70428.00000
+-8     0.00163    0.00185    1.13327  86120.00000
+-7     0.00278    0.00300    1.07844  99450.00000
+-6     0.00415    0.00433    1.04379 112766.00000
+-5     0.00605    0.00639    1.05700  84922.00000
+-4     0.00989    0.01033    1.04414  34745.00000
+-3     0.01926    0.02200    1.14277   7046.00000
+-2     0.04809    0.06913    1.43756    933.00000
+
+stem (signed input): upper half of error sizes, error>0 0.03539 vs error<0 0.03906 (0.91x)
+     error < 0  error > 0  ratio +/-         n
+mag                                           
+-8     0.00473    0.00139    0.29468 251.00000
+-7     0.00649    0.00330    0.50818 375.00000
+-6     0.01009    0.00716    0.70959 428.00000
+-5     0.01559    0.01279    0.82091 519.00000
+-4     0.02254    0.02142    0.95035 625.00000
+-3     0.03637    0.03608    0.99204 539.00000
+-2     0.06587    0.05700    0.86535 273.00000
+
+### 7. zero-input masking
+weights whose input channel is zero on all 200 images: 0 of 77,360
+
+### 8. protection order
+by site x bit: storage to protect for 50/80/90/95% of the damage: 26.93%, 51.55%, 75.77%, 87.89%
+             storage  damage  cum storage  cum damage
+site    bit                                          
+scale   7     0.0039  0.1605       0.0039      0.1605
+        3     0.0039  0.1237       0.0077      0.2842
+        2     0.0039  0.0166       0.0116      0.3008
+        1     0.0039  0.0083       0.0155      0.3091
+element 4     0.1211  0.1721       0.1366      0.4812
+scale   6     0.0039  0.0049       0.1405      0.4861
+        4     0.0039  0.0049       0.1443      0.4909
+        5     0.0039  0.0049       0.1482      0.4958
+by site x bit x tensor: storage to protect for 50/80/90/95% of the damage: 14.92%, 48.75%, 65.43%, 77.29%
