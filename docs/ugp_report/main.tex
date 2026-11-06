@@ -20,7 +20,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning}
+\usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing}
 \usepackage{hyperref}
 
 \hypersetup{colorlinks=true, linkcolor=blue!70!black,
@@ -52,7 +52,6 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}{Proposition}
-\newtheorem{definition}{Definition}
 
 % ═════════════════════════════════════════════════════════════════════════════
 \begin{document}
@@ -60,9 +59,8 @@
 \begin{titlepage}
     \centering
     \vspace*{1.5cm}
-    {\LARGE\bfseries Which Bit Flips Matter?\\[0.4em]
-    A Complete Fault-Case Algorithm for\\[0.3em]
-    Microscaling (MX) Neural Networks}
+    {\LARGE\bfseries Reliability-Aware Fault Injection\\[0.4em]
+    for Microscaling-Based DNNs}
 
     \vspace{1.5cm}
     {\large\textit{Undergraduate Project (UGP) Final Report}}\\[0.3em]
@@ -89,31 +87,35 @@
 \newpage
 \begin{abstract}
 \noindent
-Microscaling (MX) formats store a block of 32 low-precision values together with one shared
-8-bit scale. They make inference cheaper, but they also change what a hardware bit flip
-does: a flip in an element changes one value, while a flip in the shared scale changes all 32.
-A fault-injection campaign tells you \emph{how often} such a network fails. It does not tell
-you \emph{which} flips cause the failures, or what would stop them.
+The adoption of microscaling formats in deep neural network (DNN) accelerators reduces the
+cost of low-precision inference, but their impact on DNN reliability under hardware faults
+remains largely unexplored. Unlike conventional floating-point representations, microscaling
+formats represent multiple values using a shared scale, making the effect of a bit fault
+dependent not only on the corrupted value but also on the scale and other values within the
+scaling block. We propose a reliability analysis methodology for microscaling-based DNNs that
+characterizes how faults in element values and shared scaling factors propagate through the
+network. The methodology evaluates fault sensitivity across different microscaling formats,
+block sizes, tensor types, and fault locations, and identifies the representation
+characteristics that make a model more vulnerable to faults. We conduct an extensive
+fault-injection study on representative CNN and Transformer models using weight and activation
+tensors. Our results show that reliability varies substantially across microscaling formats
+even when they provide comparable inference accuracy, and that faults affecting shared scaling
+information can have a significantly different impact from faults in individual elements.
 
-This project develops an algorithm that answers that question for every possible single-bit
-flip in an MX tensor. A flip becomes a wrong prediction only if five things happen in a row:
-the bit really changes, the stored number changes, nothing at read time notices, the datapath
-carries the error, and the top-1 answer moves. The algorithm follows this chain. At its core
-is a case tree that puts every flip into exactly one of 22 named cases (8 for the scale,
-14 for an element). This is checked exhaustively over every code, bit and scale byte of five
-formats.
-
-On two exhaustive ResNet8 campaigns (1.1 million injections), the case alone explains 91--97\%
-of the variance in damage. Three cases, together 1--2\% of all stored bits, cause more than
-half of all failures, and every one of these catastrophic flips is a $0\to1$ flip. Two guards
-that follow directly from the algorithm, and need no extra memory, cut the failure rate by
-$4.3\times$ (\fmt{e3m2}) and $5.2\times$ (\fmt{e4m3}). A new experiment then uses the
-algorithm as a sampling and protection plan on three networks that have no exhaustive
-campaign, including a 7-million-parameter RepVGG-A0 and a CIFAR-100 model. With about 1,000
-injections it reproduces the exhaustive failure rate of ResNet8 to within 0.2 standard errors,
-11--724$\times$ more precisely than uniform sampling of the same size. Its predictions hold on
-every network, and on RepVGG-A0 the same guards cut the failure rate by more than two orders of
-magnitude.
+The methodology has two parts: \texttt{mxfi}, a bit-accurate fault injector that flips real
+bits of element codes and shared scales, and a flip-case algorithm that follows a fault from
+the stored bit to the prediction and sorts every possible single-bit flip into one of 22 cases.
+It was applied to five element formats, four block sizes, weights and activations, and every
+bit and layer, on ResNet8, RepVGG-A0 and a vision Transformer, on CIFAR-10 and CIFAR-100. Two
+exhaustive campaigns (1.1 million injections) give exact ground truth. Formats with the same accuracy differ in
+vulnerability by up to three orders of magnitude, with \fmt{e3m2} $<$ \fmt{e4m3} $<$ \fmt{e5m2}
+on every network. A fault in a shared scale is always worse than a fault in an element,
+typically by $13\times$ to more than $1000\times$. The flip-case algorithm explains why: three
+cases, flips into NaN/Inf codes and scale overflows, are 1--2\% of stored bits but cause more
+than half of all failures, and every one of them is a $0\to1$ flip. Read-time guards that
+follow from this, and cost no memory, cut element damage by $29$--$4100\times$ on the larger
+models. Finally, using the case of each bit as a sampling plan recovers the exhaustive failure
+rate with about 1,000 injections instead of half a million.
 \end{abstract}
 
 \newpage
@@ -124,45 +126,58 @@ magnitude.
 \section{Introduction}
 % ═════════════════════════════════════════════════════════════════════════════
 
-Deep neural network (DNN) accelerators are moving to narrow number formats, because memory
-traffic and arithmetic both get cheaper as the bit width falls. A 4- to 8-bit number cannot
-cover the range of a whole weight tensor on its own. \emph{Microscaling} (MX) formats solve this
-by grouping values into blocks that share one scale factor~\cite{rouhani2023mx,ocp2023mx}. The
-OCP MX specification defines 8-, 6- and 4-bit variants, and they are now supported in commercial
+DNN accelerators are moving to narrow number formats, because memory traffic and arithmetic
+both get cheaper as the bit width falls. A 4- to 8-bit number cannot cover the range of a whole
+tensor on its own. \emph{Microscaling} (MX) formats solve this by grouping values into blocks
+that share one scale factor~\cite{rouhani2023mx,ocp2023mx}. The OCP MX specification defines
+8-, 6- and 4-bit variants (MXFP8, MXFP6, MXFP4), and they are now supported in commercial
 hardware.
 
 Hardware is not fault-free. Radiation strikes, voltage droop and ageing can flip a stored bit,
-and in a DNN such a flip can silently change a prediction. This is called silent data corruption
-(SDC). DNN reliability under bit flips has been studied for FP32 and integer
+and in a DNN such a flip can silently change a prediction (silent data corruption, SDC). DNN
+reliability under bit flips has been studied for FP32 and integer
 formats~\cite{li2017understanding,reagen2018ares,mahmoud2020pytorchfi}. Those studies assume
 that each value is its own word, so one flip changes one number. MX breaks that assumption: a
-flip in the shared scale changes every value in its block.
+flip in an element changes one value, but a flip in the shared scale changes every value in
+its block. How much this matters, and which properties of a format make a network fragile, had
+not been measured.
 
-The first part of this project (reported earlier) built \texttt{mxfi}, a bit-accurate fault
-injector for MX formats, and used it to measure how format, block size, tensor type and bit
-position affect the failure rate. That work showed \emph{that} formats with equal accuracy can
-differ greatly in reliability. It could not say exactly \emph{which} flips are responsible,
-because a campaign returns a single number. To protect a network, a designer needs the
-second answer, not the first.
+In this report, \emph{reliability} means how well a network keeps giving the right answer when
+the hardware corrupts a stored bit. It is measured as the probability that one fault changes
+one prediction (Section~\ref{sec:faultmodel}). It is different from accuracy, which is
+measured without faults, and from robustness to noisy or adversarial inputs: here the inputs
+are clean and the fault is in the stored numbers.
 
-\subsection{Research objective}
+\subsection{Objectives}
 
-\begin{quote}
-\textit{Can every single-bit flip in an MX network be sorted, before any injection, into a
-small set of cases that predicts its damage, explains why it happens, and tells us how to
-stop it?}
-\end{quote}
-
-\noindent The goals of this phase were:
-\begin{enumerate}
-    \item Design a complete and unambiguous classification of single-bit flips in MX tensors,
-          covering the scale and the element, and the hardware around them.
-    \item Measure each case exactly against exhaustive ground truth, and find out how much of
-          the damage the case explains.
-    \item Turn the algorithm into something usable: cheap checks and guards that remove the
-          dangerous cases, and a sampling plan that cuts the cost of a campaign.
-    \item Test whether the algorithm carries over to networks it was not built on.
+\begin{enumerate}[label=\textbf{O\arabic*}]
+    \item \textbf{Fault propagation:} characterise how faults in element values and in shared
+          scales propagate through the network, and quantify the difference.
+    \item \textbf{Formats:} measure fault sensitivity across MXFP8, MXFP6 and MXFP4, and test
+          whether reliability differs between formats of comparable accuracy.
+    \item \textbf{Block size:} find how the scale-sharing granularity trades storage against
+          reliability.
+    \item \textbf{Tensor type and fault location:} compare weights with activations, scale bits
+          with element bits, high-order with low-order bits, and layer with layer.
+    \item \textbf{Vulnerability drivers:} identify the representation characteristics that make
+          a model more vulnerable, and what would protect it.
 \end{enumerate}
+
+\subsection{Contributions}
+
+\begin{itemize}
+    \item \texttt{mxfi}, an open-source, bit-accurate fault injector for MX formats, validated
+          against two exhaustive campaigns (Section~\ref{sec:mxfi}).
+    \item A flip-case algorithm that traces a single-bit flip through five stages and sorts it
+          into one of 22 cases. It is complete by exhaustive check, and it predicts which flips
+          are catastrophic before any injection (Section~\ref{sec:cases}).
+    \item A characterisation along all four axes (format, block size, tensor type, fault
+          location) on a CNN, a re-parameterised CNN and a Transformer, on two datasets
+          (Section~\ref{sec:results}).
+    \item Two read-time guards that need no extra memory, and a case-guided campaign plan that
+          needs about a thousand injections per network (Sections~\ref{sec:drivers}
+          and~\ref{sec:e29}).
+\end{itemize}
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Background}
@@ -170,28 +185,28 @@ stop it?}
 
 \subsection{Microscaling formats}
 
-An MX block holds $K=32$ values. It is stored as one 8-bit shared exponent $X$ (the
-\emph{scale}) and $K$ narrow element codes $m_i$. The value of element $i$ is
+An MX block holds $K$ values ($K=32$ in the specification). It is stored as one 8-bit shared
+exponent $X$, the \emph{scale}, and $K$ narrow element codes $m_i$:
 \begin{equation}
     v_i = \mathrm{decode}(m_i)\cdot 2^{\,X-127}, \qquad i = 1,\dots,K.
     \label{eq:mx}
 \end{equation}
 The scale uses the E8M0 encoding: an unsigned power of two, with code 255 reserved for NaN.
-Each element is a small sign--exponent--mantissa number. The OCP rule sets
-$X = \lfloor \log_2 \max_i |v_i| \rfloor - e_{\max}$, so the largest value of every block lands
-in the top binade of the element format. Table~\ref{tab:formats} lists the element formats.
+Each element is a small sign--exponent--mantissa number (Table~\ref{tab:formats}). The OCP rule
+sets $X = \lfloor \log_2 \max_i |v_i| \rfloor - e_{\max}$, so the largest value of every block
+lands in the top binade of the element format.
 
 \begin{table}[H]
 \centering
-\caption{MX element formats. ``Special codes'' are bit patterns that decode to NaN or $\pm\infty$.}
+\caption{MX element formats. Only the 8-bit formats have special codes (NaN or $\pm\infty$).}
 \label{tab:formats}
 \small
 \begin{tabular}{llccl}
 \toprule
 \textbf{MX format} & \textbf{Element} & \textbf{Bits (S/E/M)} & \textbf{Largest value} & \textbf{Special codes} \\
 \midrule
-MXFP8 & \fmt{e4m3} & 1/4/3 & 448    & NaN at \texttt{S.1111.111} \\
-MXFP8 & \fmt{e5m2} & 1/5/2 & 57344  & $\pm\infty$, NaN (exp.\ \texttt{11111}) \\
+MXFP8 & \fmt{e4m3} & 1/4/3 & 448    & 2 (NaN) \\
+MXFP8 & \fmt{e5m2} & 1/5/2 & 57344  & 8 (2 Inf, 6 NaN) \\
 MXFP6 & \fmt{e3m2} & 1/3/2 & 28     & none \\
 MXFP6 & \fmt{e2m3} & 1/2/3 & 7.5    & none \\
 MXFP4 & \fmt{e2m1} & 1/2/1 & 6      & none \\
@@ -201,49 +216,144 @@ MXFP4 & \fmt{e2m1} & 1/2/1 & 6      & none \\
 
 \subsection{Two fault sites}
 
-A single-bit flip can land in one of two places:
+A single-bit flip can land in one of two places (Figure~\ref{fig:block}):
 \begin{itemize}
-    \item \textbf{Element flip.} One code $m_i$ changes, so one value changes.
-    \item \textbf{Scale flip.} Flipping bit $j$ of $X$ moves the exponent by exactly
-          $\Delta = \pm 2^j$, so all $K$ values in the block are multiplied by $2^{\Delta}$.
-          Bit 7 gives $\Delta = \pm 128$.
+    \item \textbf{Element fault.} One code $m_i$ changes, so one value changes. In \fmt{e4m3}
+          and \fmt{e5m2} the new code can be NaN or infinity.
+    \item \textbf{Scale fault.} Flipping bit $j$ of $X$ moves the exponent by exactly
+          $\Delta = \pm 2^j$, so all $K$ values are multiplied by $2^{\Delta}$. Bit 7 gives
+          $\Delta = \pm 128$, and a flip that produces $X=255$ turns the whole block into NaN.
 \end{itemize}
-Scale bits are only $8/(8+32w)$ of storage for a $w$-bit element (about 4\% for \fmt{e3m2}),
-but each one has a blast radius of 32 values.
+A block takes $8+Kw$ bits, of which only 8 are the scale (about 3\% for $K=32$, $w=8$). But
+if every bit is equally likely to flip, the expected number of corrupted \emph{values} is $8K$
+from scale faults and $Kw$ from element faults, a ratio of $8:w$. An 8-bit format gets about
+half of its corrupted values through the 3\% of storage that holds scales.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small,
+  cell/.style={draw, minimum width=7mm, minimum height=5.5mm, inner sep=0pt},
+  scl/.style={draw, minimum width=14mm, minimum height=5.5mm, inner sep=0pt}]
+  \node[anchor=east] at (-0.15,0) {element fault};
+  \node[scl, fill=gray!12] at (0.7,0) {$X$};
+  \node[cell] at (1.75,0) {$m_1$};
+  \node[cell] at (2.45,0) {$m_2$};
+  \node[cell, fill=red!35] at (3.15,0) {$m_3$};
+  \node[cell] at (3.85,0) {$m_4$};
+  \node at (4.55,0) {$\cdots$};
+  \node[cell] at (5.25,0) {$m_K$};
+  \node[anchor=west, align=left] at (5.8,0) {one value changes};
+  \node[anchor=east] at (-0.15,-1.1) {scale fault};
+  \node[scl, fill=red!35] at (0.7,-1.1) {$X$};
+  \node[cell, fill=orange!25] at (1.75,-1.1) {$m_1$};
+  \node[cell, fill=orange!25] at (2.45,-1.1) {$m_2$};
+  \node[cell, fill=orange!25] at (3.15,-1.1) {$m_3$};
+  \node[cell, fill=orange!25] at (3.85,-1.1) {$m_4$};
+  \node at (4.55,-1.1) {$\cdots$};
+  \node[cell, fill=orange!25] at (5.25,-1.1) {$m_K$};
+  \node[anchor=west, align=left] at (5.8,-1.1) {all $K$ values scaled by $2^{\pm2^{j}}$};
+  \draw[decorate, decoration={brace, amplitude=4pt}] (0.02,0.4) -- (1.36,0.4)
+    node[midway, above=4pt] {scale, 8 bits};
+  \draw[decorate, decoration={brace, amplitude=4pt}] (1.44,0.4) -- (5.6,0.4)
+    node[midway, above=4pt, xshift=4mm] {$K$ element codes, $w$ bits each};
+\end{tikzpicture}
+\caption{One MX block and its two fault sites. Red marks the flipped word, orange the values it changes.}
+\label{fig:block}
+\end{figure}
 
 \subsection{Related work and the gap}
 
 Fault-injection tools such as Ares~\cite{reagen2018ares} and PyTorchFI~\cite{mahmoud2020pytorchfi}
-inject random flips and report a failure rate. Statistical fault
-injection~\cite{leveugle2009sfi} and value-aware sampling such as TreeFI~\cite{treefi2026} reduce
-the number of injections needed to estimate that rate. Bit-flip attacks~\cite{rakin2019bfa,hong2019terminal}
-search for the few most damaging bits. None of these gives a \emph{complete, exact} map from a
-flip to its effect in MX formats, where the scale and the element interact, and where special
-codes, read-time checks and the datapath decide whether a flip is harmless or catastrophic.
-That map is what this phase builds.
+inject random flips and report a failure rate, and Li et al.~\cite{li2017understanding} showed
+that errors propagate differently by layer, data type and bit position. Statistical fault
+injection~\cite{leveugle2009sfi} and value-aware sampling such as TreeFI~\cite{treefi2026}
+reduce the number of injections needed. Bit-flip attacks~\cite{rakin2019bfa,hong2019terminal}
+search for the most damaging bits. All of these target FP32 or integer formats. None models a
+shared scale, and none gives an exact map from a flip to its effect in MX, where the scale, the
+element, special codes and the datapath together decide whether a flip is harmless or
+catastrophic.
 
-\subsection{Metric}
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Proposed Methodology}
+% ═════════════════════════════════════════════════════════════════════════════
 
-Each campaign runs a fixed set of 200 test images. For one fault $f$, the damage is the fraction of
-the 200 predictions that change from the fault-free (``golden'') quantised model:
+The methodology has two parts. The fault injector (Sections~\ref{sec:faultmodel}--\ref{sec:mxfi})
+measures how often faults cause failures. The flip-case algorithm (Section~\ref{sec:cases})
+explains which faults cause them and why, and turns that into protection and a cheaper
+campaign plan.
+
+\subsection{Fault model and metric}
+\label{sec:faultmodel}
+
+I use the standard single-bit-flip model on stored values: one bit of one element code, or of
+one scale byte, is inverted. Weight faults are \emph{persistent} (every inference reads the
+corrupted weight); activation faults are \emph{transient} (one inference). Unless stated
+otherwise, every stored bit is equally likely to flip.
+
+Each campaign runs a fixed, class-balanced set of 200 test images. For a fault $f$, the damage
+$d(f)$ is the fraction of predictions that change from the fault-free (``golden'') MX model,
+and the failure rate is its mean over faults:
 \begin{equation}
     d(f) = \frac{1}{200}\sum_{n=1}^{200} \mathbb{1}\!\left[\hat y_n^{(f)} \neq \hat y_n^{\text{golden}}\right],
     \qquad
     \text{rate} = \mathbb{E}_f\,[d(f)] .
 \end{equation}
-This is the \emph{per-inference} failure rate: the probability that a random fault changes a
-random prediction. An image whose output is NaN or $\infty$ counts as changed. The earlier phase
-showed that the more common ``did any image change'' metric depends heavily on which images are
-used, so it is not used here.
+This \emph{per-inference} rate is the probability that one fault corrupts one inference, and it
+is the only rate on which weights and activations can be compared. A NaN or $\infty$ output
+counts as changed. The common ``did any image change'' SDC rate is not used, because
+Section~\ref{sec:metric} shows it depends mostly on the chosen images.
 
-% ═════════════════════════════════════════════════════════════════════════════
-\section{Proposed Methodology: The Flip-Case Algorithm}
-% ═════════════════════════════════════════════════════════════════════════════
+\subsection{The \texttt{mxfi} fault injector}
+\label{sec:mxfi}
 
-\subsection{Overview}
+Three design choices keep the injection faithful to what an accelerator executes:
+\begin{enumerate}
+    \item \textbf{Deployment form.} Batch normalisation is folded into the convolution and
+          RepVGG branches are fused before quantisation, so nothing downstream can
+          re-normalise the damage.
+    \item \textbf{Code-domain injection.} Tensors are encoded into real MX bit patterns, the
+          fault is applied to the stored code, and the block is decoded afterwards. This is
+          what lets a scale fault change all $K$ values and an element fault land on a NaN code.
+    \item \textbf{Faithful special values.} As in the OCP conversion, a NaN anywhere in a block
+          makes the whole block NaN when activations are re-quantised. (An earlier version of
+          the codec mapped NaN to 0, which hid activation damage; it was fixed and all
+          activation results re-measured.)
+\end{enumerate}
 
-A bit flip becomes a wrong answer only if five things all happen (Figure~\ref{fig:chain}). The
-algorithm checks them in order, and each stage either stops the fault or passes it on.
+\begin{algorithm}[H]
+\caption{Weight fault-injection campaign}
+\label{alg:campaign}
+\begin{algorithmic}[1]
+\small
+\Require network $M$, format $F$, block size $K$, images $D$, budget $n$
+\State $M\gets\textsc{Deploy}(M)$ \Comment{fold batch norm, fuse branches}
+\ForAll{quantisable layers $\ell$}
+  \State split each row of $W_\ell$ into blocks of $K$; $X_\ell\gets$ OCP scales; $C_\ell\gets$ element codes
+  \State $W_\ell\gets\textsc{Decode}(X_\ell,C_\ell)$ \Comment{the network now holds MX values}
+\EndFor
+\State $\hat y\gets\arg\max M(D)$ \Comment{golden predictions}
+\For{$t=1$ to $n$}
+  \State draw fault $f=(\ell,\text{site},\text{index},b)$ over all stored bits
+  \State flip bit $b$ of $C_\ell[\text{index}]$ or $X_\ell[\text{index}]$; re-decode 1 or $K$ weights
+  \State $\hat y^{(f)}\gets\arg\max M(D)$; record $d(f)$ and non-finiteness; restore
+\EndFor
+\State \Return mean damage with confidence interval
+\end{algorithmic}
+\end{algorithm}
+
+Replacing the random draw in line 8 with an enumeration of every bit makes the campaign
+\emph{exhaustive}. MX fault spaces are small enough for this on ResNet8: 638,624 injections
+for \fmt{e4m3} and 483,904 for \fmt{e3m2}. These two campaigns are the ground truth used to
+validate the sampled campaigns and the flip-case algorithm. Activation faults are injected
+through forward hooks that quantise a layer's input, flip one bit of one image's encoding, and
+decode it.
+
+\subsection{The flip-case algorithm: how a fault propagates}
+\label{sec:cases}
+
+A campaign gives one number per configuration. To explain it, I trace a single flip through
+the chain in Figure~\ref{fig:chain}. A flip becomes a wrong prediction only if all five stages
+pass it on; a flip that stops at any stage causes no failure.
 
 \begin{figure}[H]
 \centering
@@ -258,24 +368,19 @@ algorithm checks them in order, and each stage either stops the fault or passes 
 \node[box, fill=red!12, right=0.22cm of s3] (s4) {\textbf{Stage 4}\\decision\\top-1\\changes?};
 \draw[arr] (s0) -- (s1); \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3); \draw[arr] (s3) -- (s4);
 \end{tikzpicture}
-\caption{The five-stage chain. A flip that stops at any stage causes no failure. Stage~1 is the
-case tree; stages 0, 2 and 3 describe the memory, the reader and the arithmetic around it.}
+\caption{The five-stage chain from a stored bit to a wrong prediction. A final stage adds the
+damage over all faults, weighted by the probability of each flip direction.}
 \label{fig:chain}
 \end{figure}
 
-\subsection{Stage 0: the fault model}
+\paragraph{Stage 0: fault model.} A transient flip can go $0\to1$ or $1\to0$; a stuck-at fault
+matters only when the stored bit differs from the stuck value. Memories are often asymmetric
+(DRAM charge loss is mostly $1\to0$), so each flip is weighted by the probability of its
+direction.
 
-A transient flip can go $0\to1$ or $1\to0$. A stuck-at fault only does something when the stored
-bit differs from the stuck value. Memory technologies are often asymmetric (for example, DRAM
-charge loss is mostly $1\to0$), so the algorithm weights each flip by the probability of its
-direction rather than assuming both are equally likely.
-
-\subsection{Stage 1: the case tree}
-
-This is the core of the algorithm. For a scale flip, $X' = X \oplus 2^j$ and
-$\Delta = X' - X$. For an element flip, $c' = c \oplus 2^b$ and the value moves from $v$ to
-$v'$. The cases are checked in the order of Algorithm~\ref{alg:cases}, and the first match wins.
-Tables~\ref{tab:scale} and~\ref{tab:element} give their meaning.
+\paragraph{Stage 1: the case tree.} This is the core of the algorithm (Algorithm~\ref{alg:cases}).
+For a scale flip, $X' = X \oplus 2^j$ and $\Delta = X'-X$; for an element flip, $c' = c\oplus
+2^b$. The first matching condition gives the case. Table~\ref{tab:cases} lists all 22 cases.
 
 \begin{algorithm}[H]
 \caption{Stage 1: the case of one single-bit flip}
@@ -284,24 +389,24 @@ Tables~\ref{tab:scale} and~\ref{tab:element} give their meaning.
 \small
 \If{the flip hits scale byte $X$, bit $j$}
     \State $X' \gets X \oplus 2^j$; \quad $\Delta \gets X' - X$ \Comment{block scaled by $2^{\Delta}$}
-    \If{$X' = 255$} \Return \textbf{S1} to NaN \Comment{whole block NaN}
-    \ElsIf{$X = 255$} \Return \textbf{S7} from NaN \Comment{only after an earlier fault}
-    \ElsIf{every element is $\pm 0$} \Return \textbf{S0} zero block \Comment{masked}
+    \If{$X' = 255$} \Return \textbf{S1} to NaN
+    \ElsIf{$X = 255$} \Return \textbf{S7} from NaN
+    \ElsIf{every element is $\pm 0$} \Return \textbf{S0} zero block
     \ElsIf{$\Delta = +128$ or block overflows FP32} \Return \textbf{S2} overflow
     \ElsIf{$\Delta \ge 8$} \Return \textbf{S3} grow $\ge 256\times$
     \ElsIf{$\Delta > 0$} \Return \textbf{S4} grow $2$--$16\times$
     \ElsIf{$\Delta \ge -2$} \Return \textbf{S5} shrink $2$--$4\times$
-    \Else\ \Return \textbf{S6} erase \Comment{shrink $\ge 16\times$}
+    \Else\ \Return \textbf{S6} erase
     \EndIf
 \Else \Comment{element code $c$, bit $b$}
     \State $c' \gets c \oplus 2^b$
     \If{$c$ is NaN/Inf} \Return \textbf{E7} from special
     \ElsIf{$c'$ is NaN/Inf} \Return \textbf{E1} to special
     \ElsIf{$b$ is the sign bit} \Return \textbf{E0} if $v = \pm 0$, else \textbf{E2} negate
-    \ElsIf{exponent bit set $0\to1$} \Return \textbf{E3a} from zero / \textbf{E3b} subnormal$\to$normal / \textbf{E3} grow
-    \ElsIf{exponent bit cleared} \Return \textbf{E4a} to zero / \textbf{E4b} normal$\to$subnormal / \textbf{E4} shrink
-    \ElsIf{mantissa bit set} \Return \textbf{E5a} from zero / \textbf{E5} grow
-    \Else\ \Return \textbf{E6a} to zero / \textbf{E6} shrink
+    \ElsIf{exponent bit set} \Return \textbf{E3} grow (\textbf{E3a} from zero, \textbf{E3b} subnormal$\to$normal)
+    \ElsIf{exponent bit cleared} \Return \textbf{E4} shrink (\textbf{E4a} to zero, \textbf{E4b} normal$\to$subnormal)
+    \ElsIf{mantissa bit set} \Return \textbf{E5} grow (\textbf{E5a} from zero)
+    \Else\ \Return \textbf{E6} shrink (\textbf{E6a} to zero)
     \EndIf
 \EndIf
 \end{algorithmic}
@@ -309,476 +414,543 @@ Tables~\ref{tab:scale} and~\ref{tab:element} give their meaning.
 
 \begin{table}[H]
 \centering
-\caption{Scale cases. $P_B$ is the block's partial sum in the next layer.}
-\label{tab:scale}
-\begin{tabular}{lll}
+\caption{The 22 cases. Cases marked $\dagger$ (S1, S2, E1) are \emph{catastrophic}: they create NaN or $\pm\infty$.}
+\label{tab:cases}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lll@{\hspace{1.2em}}lll}
 \toprule
-\textbf{Case} & \textbf{Condition} & \textbf{Effect} \\
+\multicolumn{3}{c}{\textbf{Scale byte $X$}} & \multicolumn{3}{c}{\textbf{Element code}} \\
+\textbf{Case} & \textbf{Condition} & \textbf{Effect} & \textbf{Case} & \textbf{Bit} & \textbf{Effect} \\
 \midrule
-S0 zero block   & all elements $\pm0$              & none (masked) \\
-S1 to NaN       & $X' = 255$                       & 32 NaNs \\
-S2 overflow     & $\Delta = +128$ or FP32 overflow & $\pm\infty$ when $|P_B|\,2^{\Delta}$ overflows \\
-S3 grow large   & $\Delta \ge 8$                   & block $\times 256$ or more \\
-S4 grow small   & $\Delta \in \{1,2,4\}$           & block $\times 2$, $\times 4$, $\times 16$ \\
-S5 shrink small & $\Delta \in \{-1,-2\}$           & block $\div 2$, $\div 4$ \\
-S6 erase        & $\Delta \le -4$                  & block $\div 16$ or more, nearly deleted \\
-S7 from NaN     & $X = 255$                        & only after an earlier fault \\
+S0 & all elements $\pm0$ & masked & E0 & sign of $\pm0$ & masked \\
+\textbf{S1}$^\dagger$ & $X'=255$ & 32 NaNs & \textbf{E1}$^\dagger$ & into NaN/Inf code & NaN or $\pm\infty$ \\
+\textbf{S2}$^\dagger$ & $\Delta=+128$ & $\pm\infty$ or huge & E2 & sign & $v\to-v$ \\
+S3 & $\Delta\ge8$ & $\times256$ or more & E3, E3a, E3b & exponent $0\to1$ & grows \\
+S4 & $\Delta\in\{1,2,4\}$ & $\times2$ to $\times16$ & E4, E4a, E4b & exponent $1\to0$ & shrinks \\
+S5 & $\Delta\in\{-1,-2\}$ & $\div2$, $\div4$ & E5, E5a & mantissa $0\to1$ & small growth \\
+S6 & $\Delta\le-4$ & $\div16$ or more & E6, E6a & mantissa $1\to0$ & small shrink \\
+S7 & $X=255$ & prior fault only & E7 & code already special & prior fault only \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
-\centering
-\caption{Element cases. Sub-cases mark a change of value class (zero, subnormal, normal).}
-\label{tab:element}
-\small
-\begin{tabular}{lll}
-\toprule
-\textbf{Case} & \textbf{Field / direction} & \textbf{Effect} \\
-\midrule
-E0 masked      & sign of $\pm 0$     & none \\
-E1 to special  & any bit, into NaN/Inf code & NaN or $\pm\infty$ weight \\
-E2 negate      & sign                & $v \to -v$, error $2|v|$ \\
-E3 / E3a / E3b & exponent $0\to1$    & grow $\times 2^{2^k}$ / from zero / sub.$\to$normal \\
-E4 / E4a / E4b & exponent $1\to0$    & shrink $\div 2^{2^k}$ / to zero / normal$\to$sub. \\
-E5 / E5a       & mantissa $0\to1$    & small growth / from zero \\
-E6 / E6a       & mantissa $1\to0$    & small shrink / to zero \\
-E7 from special& code already NaN/Inf & only after an earlier fault \\
-\bottomrule
-\end{tabular}
-\end{table}
+\paragraph{Worked examples.} On the ResNet8 used here the weight scales lie between 114 and
+120. Take $X = 118 = \texttt{0111\,0110}$:
+\begin{itemize}
+    \item bit 7 is 0; flipping it gives $X' = 246$, $\Delta = +128$, so the case is
+          \textbf{S2} (every value in the block is multiplied by $2^{128}$);
+    \item bit 3 is 0; flipping it gives $X' = 126$, $\Delta = +8$, so \textbf{S3} (block
+          $\times256$);
+    \item bit 4 is 1; flipping it gives $X' = 102$, $\Delta = -16$, so \textbf{S6} (block
+          divided by $2^{16}$, almost erased).
+\end{itemize}
+For an \fmt{e4m3} element (sign, 4 exponent bits, 3 mantissa bits, bias 7), the largest value
+$448$ is \texttt{0\,1111\,110}. Flipping its last bit gives \texttt{0\,1111\,111}, the NaN code,
+so the case is \textbf{E1}. The value $1.0$ is \texttt{0\,0111\,000}; flipping the top exponent
+bit gives \texttt{0\,1111\,000} $=2^{15-7}=256$, case \textbf{E3}; flipping the sign bit gives
+$-1.0$, case \textbf{E2}. The same flip position can therefore fall in different cases
+depending on the stored code, which is why the case is computed from (code, bit) and not from
+the bit position alone.
 
 \begin{theorem}[Completeness]
-For each of the five element formats, every pair (code, bit) of an element and every pair
-(byte $X \in \{0,\dots,255\}$, bit $j$) of a scale, for both zero and non-zero blocks, falls
-into exactly one case of Algorithm~\ref{alg:cases}.
+For each of the five element formats, every (code, bit) pair of an element and every
+(byte $X\in\{0,\dots,255\}$, bit $j$) pair of a scale, in zero and non-zero blocks, falls into
+exactly one case.
 \end{theorem}
 \begin{proof}[Argument and check]
-Inside each branch the conditions are tested in a fixed order and the last branch has no
-condition, so every flip gets a case and no flip gets two. Because the input space is finite,
-this was also checked by brute force: the test suite enumerates all codes, bits and scale
-bytes of all five formats and asserts that each lands in one valid case (38 tests, all passing).
+Each branch tests its conditions in a fixed order and ends with an unconditional case, so
+every flip gets exactly one case. The input space is finite, so this was also checked by brute
+force over all codes, bits and scale bytes of all five formats (38 unit tests, all passing).
 \end{proof}
-
-\noindent The case tree explains the \emph{catastrophic} flips. Call E1, S1 and S2 the
-catastrophic cases: they produce NaN or $\infty$ values.
 
 \begin{proposition}[Catastrophic flips are $0\to1$]
-Every flip in a catastrophic case sets a bit that was $0$.
+Every flip in case E1, S1 or S2 sets a bit that was $0$.
 \end{proposition}
 \begin{proof}
-NaN and Inf codes are runs of 1s: \texttt{S.1111.111} in \fmt{e4m3}, exponent \texttt{11111} in
-\fmt{e5m2}, and $255 = \texttt{11111111}$ for E8M0. A finite code has at least one 0 in that run,
-and a single flip can reach the all-ones pattern only by setting that 0. For S2, $\Delta > 0$, and
-$\Delta = X' - X = +2^j$ exactly when bit $j$ was 0.
+NaN and Inf codes are runs of 1s: \texttt{S.1111.111} in \fmt{e4m3}, exponent \texttt{11111}
+in \fmt{e5m2}, and $255=\texttt{11111111}$ for E8M0. A finite code has at least one 0 in that
+run, and one flip reaches the all-ones pattern only by setting that 0. For S2, $\Delta =
+X'-X = +2^j$ exactly when bit $j$ was 0.
 \end{proof}
 
-\noindent So a memory that mostly loses charge ($1\to0$) cannot produce a catastrophic flip at all,
-and a stuck-at-0 bit is almost harmless. Section~\ref{sec:direction} measures this.
+\paragraph{Stage 2: free read-time checks.} A clean OCP tensor obeys rules that can be checked
+when it is read, with no extra memory. \textbf{D1}: no element code is NaN/Inf; guard
+\textbf{G1} decodes such a code as 0, so an E1 fault only zeroes one weight. \textbf{D2}: every
+scale lies inside its tensor's clean band $[X_{\min},X_{\max}]$, known offline for weights;
+guard \textbf{G2} zeroes a block whose scale is above the band, so S1/S2/S3 become a mild
+erase. \textbf{D3}: every non-zero block has an element in the top binade.
 
-\subsection{Stage 2: free checks and guards}
+\paragraph{Stages 3--4: datapath and decision.} With IEEE arithmetic a NaN survives every
+operation, even $\mathrm{NaN}\cdot0$. A ReLU written as \texttt{x > 0 ? x : 0} turns NaN into
+0; $+\infty$ passes any ReLU. A finite error reaches the next layer as about $\delta\cdot a$
+for an element (weight error times input activation) and $(2^{\Delta}-1)P_B$ for a scale,
+where $P_B$ is the block's partial sum. The outcome is no change, a silent wrong answer, or a
+non-finite output.
 
-A clean OCP MX tensor obeys invariants that can be checked at read time with \emph{no extra
-memory}:
-\begin{itemize}
-    \item \textbf{D1:} no element code is NaN/Inf (a clean tensor never stores one). If one is
-          found, guard \textbf{G1} decodes it as 0, so E1 becomes ``one weight zeroed''.
-    \item \textbf{D2:} every scale lies inside the tensor's clean band $[X_{\min}, X_{\max}]$,
-          known offline for weights. If a scale is above the band, guard \textbf{G2} treats the
-          block as 0, so S1/S2/S3 become an S6-like erase.
-    \item \textbf{D3:} every non-zero block has an element in the top binade (the OCP rule
-          guarantees it). A block that lost it was hit by a fault.
-\end{itemize}
-
-\subsection{Stages 3--5: datapath, decision and use}
-
-Whether a NaN reaches the output depends on the hardware. With IEEE arithmetic NaN survives
-every operation, and $\mathrm{NaN}\cdot 0 = \mathrm{NaN}$, so even zero inputs do not mask it.
-A ReLU written as \texttt{x > 0 ? x : 0} turns NaN into 0, which erases one output channel
-instead. $+\infty$ passes any ReLU, $-\infty$ does not. A finite error reaching the next layer
-is about $\delta \cdot a$ for an element (weight error times input activation) and
-$(2^{\Delta}-1)\,P_B$ for a scale. At stage 4 the outcome is one of: no change, silent
-corruption, or a non-finite output that one \texttt{isfinite} check on the logits catches.
-Stage 5 adds up the damage over all faults, weighted by stage 0.
-
-\subsection{Using the algorithm to plan a campaign}
+\subsection{Using the cases to plan a campaign}
 \label{sec:stratified}
 
-Stage 1 needs no injection: the case of every stored bit can be counted exactly from the
-quantised weights. Element cases depend only on (code, bit), so a histogram of codes per tensor
-is enough. This makes the algorithm a sampling plan. Let stratum $h$ be the set of faults with
-case $c$ and direction (bit was 0 or 1), with exact size $N_h$ and weight $W_h = N_h/N$. Then
+Stage 1 needs no injection: the case of every stored bit can be counted from the quantised
+weights. This makes the algorithm a sampling plan. Let stratum $h$ hold the faults with one
+case and one direction, with exact size $N_h$ and weight $W_h=N_h/N$. Injecting $n_h$ faults
+per stratum gives
 \begin{equation}
     \widehat{\text{rate}} = \sum_h W_h\, \bar d_h, \qquad
-    \widehat{\mathrm{Var}} = \sum_h W_h^2\, \frac{s_h^2}{n_h}\left(1 - \frac{n_h}{N_h}\right),
+    \widehat{\mathrm{Var}} = \sum_h W_h^2\, \frac{s_h^2}{n_h}\left(1 - \frac{n_h}{N_h}\right).
 \end{equation}
-where $\bar d_h$ and $s_h^2$ are the mean and variance of the $n_h$ injected faults of stratum
-$h$. Masked cases (E0, S0) have damage exactly 0 and are not injected at all. Small strata are
-injected completely. The catastrophic strata, which hold most of the damage but very few faults,
-are no longer left to chance.
+Masked cases (E0, S0) have damage 0 and are skipped, and the rare catastrophic strata are no
+longer left to chance.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Experimental Setup}
 % ═════════════════════════════════════════════════════════════════════════════
 
-\subsection{Models and data}
-
 \begin{table}[H]
 \centering
-\caption{Networks. Accuracy is the MX-quantised accuracy on the 200 campaign images.}
+\caption{Networks, all trained from scratch. Accuracies are FP32 top-1. The ViT has the
+embedding width and head count of DeiT-Tiny, depth 6 and $4\times4$ patches.}
 \label{tab:models}
-\small
-\begin{tabular}{llrll}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrcc}
 \toprule
-\textbf{Network} & \textbf{Dataset} & \textbf{Parameters} & \textbf{Used in} & \textbf{Ground truth} \\
+\textbf{Network} & \textbf{Type} & \textbf{Params} & \textbf{CIFAR-10} & \textbf{CIFAR-100} \\
 \midrule
-ResNet8 (width 16)~\cite{he2016resnet,banbury2021mlperftiny} & CIFAR-10  & 78\,K  & E25--E29 & exhaustive \\
-ResNet8                   & CIFAR-100 & 85\,K  & E29 & sampled \\
-RepVGG-A0~\cite{ding2021repvgg} & CIFAR-10 & 7.0\,M & E28, E29 & sampled \\
+ResNet8~\cite{he2016resnet,banbury2021mlperftiny} & CNN & 78\,K & 87.0\% & 58\% (3 seeds) \\
+ResNet8 width sweep & CNN & 20--692\,K & 10 nets per width & -- \\
+RepVGG-A0~\cite{ding2021repvgg}, fused & re-param.\ CNN & 7.0\,M & 91.4--91.5\% (3 seeds) & 70--71\% (3 seeds) \\
+ViT~\cite{dosovitskiy2021vit,touvron2021deit} & Transformer & 2.7\,M & 80.4--81.9\% (3 seeds) & 47--49\% (3 seeds) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\noindent All weights of all convolutional and linear layers are quantised to MX with block size 32
-and the OCP scale rule. CIFAR-100 stands in for a harder task, since ImageNet was not available on
-the machines used. The two ResNet8 CIFAR-10 networks are the exact checkpoints on which the
-exhaustive campaigns were recorded (one for \fmt{e3m2}, one for \fmt{e4m3}).
-
-\subsection{Experiments}
+\begin{itemize}
+    \item \textbf{Representation axes:} formats \fmt{e4m3}, \fmt{e5m2}, \fmt{e3m2}, \fmt{e2m3},
+          \fmt{e2m1}; block sizes $K\in\{8,16,32,64\}$ (default 32); weights and activations;
+          every scale and element bit; every layer.
+    \item \textbf{Campaigns:} 200 test images per campaign; 3,000 sampled injections unless
+          stated. In total about 1.44 million sampled faults in 119 weight campaigns on
+          CIFAR-10, the two exhaustive campaigns (1.12 million), 390,000 multi-bit injections,
+          and further activation and CIFAR-100 campaigns.
+    \item \textbf{Datasets:} CIFAR-10 and CIFAR-100. ImageNet was not reachable from any
+          machine available, so CIFAR-100 (ten times the classes, smaller margins) stands in
+          for a harder task.
+    \item \textbf{Compute:} a 4-core laptop CPU, and an NVIDIA A100 server at IIT Kanpur for the
+          width sweep, CIFAR-100 and the exhaustive campaigns.
+\end{itemize}
 
 \begin{table}[H]
 \centering
-\caption{Experiments of this phase.}
+\caption{Experiments and the objectives they answer.}
 \label{tab:experiments}
-\begin{tabular}{p{1.1cm}p{13.2cm}}
+\small
+\begin{tabular}{p{2.3cm}p{8.8cm}l}
 \toprule
-\textbf{ID} & \textbf{What it does} \\
+\textbf{Experiments} & \textbf{What they measure} & \textbf{Objective} \\
 \midrule
-E25 & Labels every fault of the two exhaustive ResNet8 campaigns (483,904 faults for \fmt{e3m2},
-      638,624 for \fmt{e4m3}) with its case, so each case gets its exact damage. \\
-E26 & Re-injects the catastrophic cases under a NaN-zeroing ReLU and under guard G1. \\
-E27 & Stage 0 and 2: flip direction, checks D1--D3 and guards, held-out variance explained, protection order. \\
-E28 & Activations: case mix, scale-band checks, and how re-quantisation spreads an error (exact counting, no injection). \\
-E29 & \textbf{New:} the algorithm as a sampling and protection plan on three networks (Section~\ref{sec:e29}). \\
+E00--E02, E06 & accuracy, format campaigns, the two exhaustive campaigns & O2, validation \\
+E03 & block size, under the OCP and a non-clipping scale rule & O3 \\
+E04 & activation faults on all networks & O4 \\
+E08--E14, E16, E23 & format geometry, sensitivity and margins, read-side NaN guard & O5 \\
+E24 & every headline result repeated on CIFAR-100 & all \\
+E12, E15, E17--E22 & metric, severity measure, sampling, multi-bit faults & method \\
+E25--E28 & flip-case algorithm against the exhaustive campaigns & O1, O5 \\
+E29 & \textbf{new:} case-guided campaigns and guards on three networks & O1, O5 \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\noindent E25, E27 and E28 were re-run for this report and reproduced the earlier outputs exactly.
-E29 injects 60 faults per stratum on the ResNet8 networks and 25 on RepVGG-A0, and scores each
-fault three times: with no protection, with guards G1+G2, and with a NaN-zeroing ReLU. Everything ran on
-a 4-core laptop CPU, except the two exhaustive campaigns, which ran earlier on the IIT Kanpur GPU
-cluster.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Results and Analysis}
+\label{sec:results}
 % ═════════════════════════════════════════════════════════════════════════════
 
-\subsection{A few cases hold most of the damage}
+\subsection{Validating the injector}
+
+Under \fmt{e4m3}, the exhaustive ResNet8 campaign gives a true any-image SDC rate of 0.4171;
+an ordinary 3,000-injection campaign returned 0.4270 [0.4094, 0.4448], containing the truth.
+Under \fmt{e3m2} the exhaustive rate is 0.1079 and the sampled estimate 0.1070 [0.0964,
+0.1186]. The two exhaustive campaigns were recorded on two different trained copies of
+ResNet8, so they are used as two references, never as a comparison between formats.
+
+\subsection{O2: Equal accuracy does not mean equal reliability}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig/fig8_acc_vs_vuln.pdf}
+\caption{Accuracy against element-fault vulnerability (CIFAR-10, $K=32$). Formats within
+about one point of accuracy differ by up to three orders of magnitude.}
+\label{fig:accvuln}
+\end{figure}
+
+On the Transformer, \fmt{e5m2} and \fmt{e3m2} differ in accuracy by 0.01 points (81.74\% and
+81.73\%), yet one element fault in \fmt{e5m2} is about 2,000 times as likely to corrupt an
+inference (Figure~\ref{fig:accvuln}, Table~\ref{tab:formatres}). The order \fmt{e3m2} $<$
+\fmt{e4m3} $<$ \fmt{e5m2} holds on all eight CIFAR-10 configurations with disjoint 95\%
+intervals, and on all nine CIFAR-100 networks. Accuracy and bit width are not a guide to
+reliability.
+
+\begin{table}[H]
+\centering
+\caption{Per-inference rate of element faults ($K=32$, CIFAR-10, mean over seeds). Lower is better.}
+\label{tab:formatres}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Network} & \textbf{Seeds} & \fmt{e3m2} (6-bit) & \fmt{e4m3} (8-bit) & \fmt{e5m2} (8-bit) \\
+\midrule
+RepVGG-A0          & 3 & 0.00001 & 0.00688 & 0.05381 \\
+ViT                & 3 & 0.00003 & 0.01258 & 0.06897 \\
+ResNet8            & 1 & 0.00332 & 0.01699 & 0.07801 \\
+ResNet8, width 8   & 5 & 0.01003 & 0.02005 & 0.08143 \\
+ResNet8, width 48  & 4 & 0.00035 & 0.01302 & 0.07812 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{O1: Shared scales dominate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig/fig10_scale_vs_element.pdf}
+\caption{Per-inference damage of a scale fault (orange) and an element fault (blue). The scale
+is worse on every network, format and dataset.}
+\label{fig:scale}
+\end{figure}
+
+A scale fault is worse than an element fault on every architecture, format and dataset
+(Figure~\ref{fig:scale}). In the exhaustive ResNet8 \fmt{e4m3} campaign, 94.4\% of scale flips
+change at least one prediction, and a scale fault corrupts on average 49.9 of 200 inferences
+against 3.3 for an element fault ($15\times$). On the larger models the ratio reaches
+$10^3$--$10^4$ for \fmt{e3m2}. It is smallest for \fmt{e5m2} ($1.7$--$4.3\times$), whose element
+faults already destroy inferences through NaN codes. Scale faults also give non-finite outputs
+in 7--13\% of cases \emph{for every format}, including \fmt{e3m2}, because the scale has its own
+NaN code and its top bit is worth 128 exponent steps. The scale needs protection even when the
+element format has no special codes.
+
+\subsection{O1: How faults propagate, case by case}
+
+Labelling all 1.1 million exhaustive faults with their case (E25) shows where the damage comes
+from (Figure~\ref{fig:cases}). In \fmt{e3m2}, S2 scale overflows are 0.5\% of faults and cause
+57\% of all damage, with mean damage 0.97: almost every image fails. In \fmt{e4m3}, E1 flips
+into the NaN code are 1.2\% of faults and cause 52\% of damage, each with damage exactly 1.0.
+The common element cases (E2--E6) are 80--95\% of faults but only 9--16\% of damage.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{fig/case_damage.pdf}
-\caption{Share of total damage per case on the exhaustive ResNet8 campaigns (top 8 cases).
-Each bar is labelled with its share of damage and its share of all faults.}
+\caption{Share of total damage per case on the two exhaustive ResNet8 campaigns (top 8 cases),
+labelled with the share of damage and the share of faults.}
 \label{fig:cases}
 \end{figure}
 
-Figure~\ref{fig:cases} shows the main pattern. In \fmt{e3m2}, the S2 scale overflow is 0.5\% of
-all faults and causes 57\% of all damage (mean damage 0.97: almost every image fails). In
-\fmt{e4m3}, flips into a NaN code (E1) are 1.2\% of faults and cause 52\% of damage, with damage
-exactly 1.0 for every one of them. The common element cases (E2--E6) are 80--95\% of faults but
-only 9--16\% of damage.
+The case explains 91--97\% of the variance in damage (two-fold held-out $R^2$, against 9--22\%
+for the fault site alone). It does not explain small finite errors: within ordinary element
+flips it explains 2--5\%, and what matters there is the size of the error reaching the next
+layer, $|v'-v|\,2^{X-127}$ times the input activity, which raises it to 64--67\%.
 
-The case explains the catastrophic part almost completely, but not the small finite errors
-(Table~\ref{tab:r2}). Within ordinary element flips the case explains only 2--5\%; what matters
-there is the size of the error that reaches the next layer, $|v'-v|\cdot 2^{X-127}$ times the
-input activity. That raises the explained variance to 64--67\%.
+\paragraph{Direction.} As the proposition predicts, every catastrophic fault is a $0\to1$ flip
+(2,468 of 2,468 in \fmt{e3m2}; 10,321 of 10,321 in \fmt{e4m3}), and $0\to1$ flips cause
+87.5--88.7\% of all damage. The rate from $0\to1$ flips alone is $7.0$--$7.8\times$ the rate from
+$1\to0$ flips. A memory whose upsets are mostly $1\to0$ would therefore see about $7$--$8\times$
+fewer failures than the usual symmetric model assumes.
+
+\subsection{O3: Block size is a trade-off}
+
+Block size barely changes accuracy (about one point from $K=8$ to 64 on ResNet8), so it is a
+clean reliability axis, and the two fault sites move in opposite directions along it
+(Table~\ref{tab:block}). Larger blocks cut the scale's share of storage from 11.1\% to 1.7\%,
+so a scale is less likely to be hit, but each scale fault reaches more values and gets worse.
+Element faults become milder. Small blocks localise scale damage at the cost of storage; large
+blocks are safe if the few scale bytes are protected.
 
 \begin{table}[H]
 \centering
-\caption{Held-out variance of damage explained ($R^2$, two-fold), adding one factor at a time.}
-\label{tab:r2}
+\caption{Block size on ResNet8 (\fmt{e4m3}).}
+\label{tab:block}
+\small
 \begin{tabular}{lcccc}
 \toprule
-& \multicolumn{2}{c}{\textbf{All faults}} & \multicolumn{2}{c}{\textbf{Ordinary element flips}} \\
-\textbf{Model} & \fmt{e3m2} & \fmt{e4m3} & \fmt{e3m2} & \fmt{e4m3} \\
+ & $K=8$ & $K=16$ & $K=32$ & $K=64$ \\
 \midrule
-Site only (scale or element)   & 0.22 & 0.09 & 0.00 & -- \\
-+ case (Algorithm 1)           & \textbf{0.91} & \textbf{0.97} & 0.02 & 0.05 \\
-+ bit position and layer       & 0.94 & 0.98 & 0.19 & 0.21 \\
-+ error size $\times$ input activity & 0.94 & 0.98 & \textbf{0.67} & \textbf{0.64} \\
+Scale bits, share of storage            & 11.1\% & 5.9\% & 3.1\% & 1.7\% \\
+Scale fault, inferences corrupted (of 200) & 40.1 & 45.3 & 48.7 & 50.1 \\
+Element fault, per-inference rate        & 0.0241 & 0.0208 & 0.0159 & 0.0136 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Flip direction decides the risk}
-\label{sec:direction}
+\noindent The OCP rule can clip the block maximum, and smaller blocks have more maxima to clip,
+so it distorts block-size trends (element-side any-image SDC varied $2.2$--$7.3\times$ under the
+OCP rule against $1.04$--$1.5\times$ under a non-clipping rule). The trend above holds under both.
+
+\subsection{O4: Tensor type and fault location}
+
+\paragraph{Weights and activations.} Per inference, an element fault in a weight does
+$0.6$--$2.2\times$ the damage of one in an activation (Table~\ref{tab:act}); under \fmt{e4m3}
+the two are statistically indistinguishable. In both, about 1\% of faults land on a special code
+and destroy the inference, and scale faults dominate ($14\times$ element in activations,
+$11\times$ in weights, on ResNet8). The real difference is exposure: a weight fault persists
+across every inference until the memory is rewritten; an activation fault lives for one.
 
 \begin{table}[H]
 \centering
-\caption{Stage 0 on the exhaustive campaigns. ``0$\to$1 only'' is also the rate under stuck-at-1 faults.}
-\label{tab:direction}
-\begin{tabular}{lcc}
+\caption{Per-inference rate of element faults in weights and activations (CIFAR-10, $K=32$).}
+\label{tab:act}
+\small
+\begin{tabular}{llccc}
 \toprule
-& \fmt{e3m2} & \fmt{e4m3} \\
+\textbf{Network} & \textbf{Format} & \textbf{Weight} & \textbf{Activation [95\% CI]} & \textbf{Ratio} \\
 \midrule
-Stored bits that are 0                 & 43\%   & 40\% \\
-Damage caused by $0\to1$ flips         & 87.5\% & 88.7\% \\
-Rate, $0\to1$ flips only               & 0.00768 & 0.02089 \\
-Rate, $1\to0$ flips only               & 0.00110 & 0.00267 \\
-Ratio                                  & $7.0\times$ & $7.8\times$ \\
-Catastrophic faults that are $0\to1$   & 2,468 of 2,468 & 10,321 of 10,321 \\
+ResNet8   & \fmt{e4m3} & 0.0170 & 0.0122 [0.0077, 0.0182] & $1.4\times$ \\
+RepVGG-A0 & \fmt{e4m3} & 0.0048 & 0.0075 [0.0049, 0.0101] & $0.64\times$ \\
+ViT       & \fmt{e4m3} & 0.0122 & 0.0114 [0.0080, 0.0150] & $1.07\times$ \\
+ResNet8   & \fmt{e5m2} & 0.0780 & 0.0359 [0.0302, 0.0421] & $2.2\times$ \\
+ViT       & \fmt{e5m2} & 0.0659 & 0.0486 [0.0420, 0.0554] & $1.36\times$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-As Proposition~1 predicts, every catastrophic fault is a $0\to1$ flip. The failure rate is
-therefore not a property of the format alone: a memory whose upsets are mostly $1\to0$ would see
-about $7$--$8\times$ fewer failures than the usual symmetric fault model assumes.
+\paragraph{Bit position.} Figure~\ref{fig:perbit} gives the exhaustive damage per bit. Among
+faults that leave the output finite, the sign bit is the worst element bit. In total damage it
+ranks seventh of eight in \fmt{e4m3}, because most damage comes from flips into the NaN code,
+and a sign flip can never make one. In the scale, what matters is which bits are normally set:
+the scale bytes lie between 114 and 120, so bits 3 and 7 are almost always 0. Flipping bit 3
+multiplies the block by 256 (75\% of inferences corrupted) and bit 7 overflows it (98\%);
+flipping bits 4--6 shrinks it (3\%). Growing a block is catastrophic and shrinking it is mild,
+which is exactly the S2--S4 versus S5--S6 split of the case tree.
 
-\subsection{Free checks catch most of the damage}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig/fig1_per_bit.pdf}
+\caption{Exhaustive per-bit damage (ResNet8, \fmt{e4m3}, 638,624 injections), split by whether
+the output stayed finite.}
+\label{fig:perbit}
+\end{figure}
+
+\paragraph{Layer.} Vulnerability runs opposite to layer size. The 3,584-bit stem convolution is
+the most fragile layer (any-image SDC 0.853) and the 304,128-bit final convolution the most
+robust (0.289). A uniform campaign spends 48\% of its budget on the most robust layer and
+0.6\% on the most fragile; protection should follow vulnerability, not size.
+
+\subsection{O5: What makes a model vulnerable}
+\label{sec:drivers}
+
+\paragraph{Special codes.} Only formats with NaN/Inf codes can turn an element flip into a
+non-finite value, and nothing downstream absorbs a NaN. On the Transformer 94\% of \fmt{e5m2}
+element failures were non-finite, on RepVGG 92\%; no \fmt{e3m2} element fault produced one in
+any campaign. In \fmt{e4m3} only 1.27\% of element faults reach the NaN code, but they carry
+78\% of element damage on ResNet8.
+
+\paragraph{Capacity absorbs perturbations, not NaNs.} The width sweep isolates this
+(Figure~\ref{fig:capacity}). Across a $35\times$ range of parameters the non-finite rate stays
+flat, but the format with no special codes (\fmt{e3m2}) improves $25\times$, \fmt{e4m3} (2 codes)
+$1.5\times$, and \fmt{e5m2} (8 codes) not at all. The benefit of a bigger model falls in exact
+order of the number of special codes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.66\textwidth]{fig/fig2_capacity.pdf}
+\caption{Element-fault rate against parameter count for ResNet8 at five widths. Faint lines are
+single networks, bold lines means.}
+\label{fig:capacity}
+\end{figure}
+
+\paragraph{Margins, not mantissa width.} Among NaN-free formats, perturbation damage follows the
+network's sensitivity $s_i=|\partial m/\partial w_i|\cdot\mathrm{rms}/m$, where $m$ is the
+top-two logit margin ($r=+0.93$ across formats), not the mantissa width ($r=-0.25$).
+
+\paragraph{Free guards.} The stage-2 checks flag only 3.5--4.1\% of faults, but those faults
+carry 85\% of the damage (Table~\ref{tab:guards}). Guard G1 alone, tested on every network by
+injecting every element fault that lands on a special code, cuts element damage by at least
+$29\times$ and up to $4100\times$ on RepVGG and the Transformer, bringing \fmt{e5m2} down to the
+level of \fmt{e3m2}; on ResNet8 the cut is $3.9$--$53\times$, because a small network is also
+fragile to ordinary perturbations. The datapath matters as well: an E1 fault has damage 1.00
+when the ReLU passes NaN and 0.085 when it zeroes it, while S2 stays at 0.97--0.98 because it
+produces $+\infty$, which passes any ReLU; only the scale check stops it.
 
 \begin{table}[H]
 \centering
-\caption{Stage 2: share of damage flagged by each read-time check, and the rate after the guards.}
+\caption{Read-time checks and guards on the exhaustive ResNet8 campaigns: share of damage each
+check flags, and the failure rate with and without the guards.}
 \label{tab:guards}
 \small
 \begin{tabular}{lcc}
 \toprule
 & \fmt{e3m2} & \fmt{e4m3} \\
 \midrule
-D1 element code is NaN/Inf               & --     & 52.2\% \\
-D2 scale outside its tensor's clean band & 85.7\% & 32.1\% \\
-D3 block lost its top-binade element     & 0.1\%  & 0.2\% \\
-D1 + D2 + D3 together                    & 85.8\% & 84.5\% \\
+D1 element code is NaN/Inf                           & --     & 52.2\% \\
+D2 scale outside its clean band                      & 85.7\% & 32.1\% \\
+D1 + D2 + D3 together                                & 85.8\% & 84.5\% \\
 \midrule
-Rate, no guard                           & 0.00878 & 0.0236 \\
-Rate, G1 + G2                            & 0.00206 ($\mathbf{4.3\times}$ lower) & 0.00454 ($\mathbf{5.2\times}$ lower) \\
+Rate, no guard                                       & 0.00878 & 0.0236 \\
+Rate, G1 + G2                                        & 0.00206 ($4.3\times$ lower) & 0.00454 ($5.2\times$ lower) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The three checks flag only 3.5--4.1\% of faults, but those faults carry 85\% of the damage. The
-two guards cost no storage, only a comparison at read time. G1 alone cut the damage of an E1
-fault from 1.0 to 0.0064 (measured on 2,000 injected E1 faults).
+\subsection{A harder task: CIFAR-100}
 
-\subsection{The datapath can turn a catastrophic flip into a mild one}
+All networks were retrained on CIFAR-100 and every headline result replicates: formats matched
+in accuracy, the order \fmt{e3m2} $<$ \fmt{e4m3} $<$ \fmt{e5m2} on all nine networks, scale worse
+than element everywhere ($1.7$--$3600\times$), and NaN codes carrying 94--100\% of \fmt{e4m3} and
+\fmt{e5m2} element damage on the larger models. What changes is the floor. Smaller decision
+margins make the NaN-free formats $3$--$22\times$ more vulnerable, while \fmt{e4m3} and \fmt{e5m2}
+barely move, so the gap between formats narrows (on the Transformer, \fmt{e4m3}/\fmt{e3m2} falls
+from $461\times$ to $19\times$). The guard still cuts damage $13$--$1387\times$ on RepVGG and the
+Transformer.
 
-\begin{table}[H]
-\centering
-\caption{Stage 3: mean damage of the catastrophic cases under three datapaths (E26).}
-\label{tab:datapath}
-\small
-\begin{tabular}{lccc}
-\toprule
-& \textbf{ReLU passes} & \textbf{ReLU zeroes} & \\
-\textbf{Case} & \textbf{NaN} & \textbf{NaN} & \textbf{Read guard} \\
-\midrule
-E1 element $\to$ NaN, all layers & 1.00 & 0.085 & 0.0064 (G1) \\
-E1 element $\to$ NaN, final layer & 1.00 & 1.00 & 0.002--0.02 (G1) \\
-S2 scale $+128$, \fmt{e3m2} / \fmt{e4m3} & 0.98 / 0.98 & 0.97 / 0.97 & erased (G2) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The same E1 flip is catastrophic or mild depending on one detail of the ReLU. The S2 flip is not
-helped by the ReLU, because it usually produces $+\infty$, which passes any ReLU; only a scale
-check stops it.
-
-\subsection{Activations and re-quantisation}
-
-Activations differ from weights: 40--55\% of activation values are exactly 0, so a large share of
-flips are masked or only turn a 0 into a tiny value. In an all-MX pipeline every activation is
-re-quantised, and an error that grows one value raises its block's scale and can flush the other
-31 values to 0 (Table~\ref{tab:requant}). This reverses the NaN story: the formats without NaN
-codes are the ones whose errors spread.
-
-\begin{table}[H]
-\centering
-\caption{Share of non-zero neighbours flushed to 0 when the block maximum grows by $r$ (real ResNet8 activations).}
-\label{tab:requant}
-\begin{tabular}{lccccc}
-\toprule
-\textbf{Format} & $r=2$ & $r=4$ & $r=16$ & $r=256$ & $r=65536$ \\
-\midrule
-\fmt{e5m2} & 0 & 0 & 0 & 0 & 0 \\
-\fmt{e4m3} & 0 & 0 & 0.01\% & 0.1\% & 29\% \\
-\fmt{e3m2} & 0.5\% & 0.9\% & 3.9\% & 55\% & 100\% \\
-\fmt{e2m1} & 15\% & 29\% & 91\% & 100\% & 100\% \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{New experiment (E29): the algorithm on other networks}
+\subsection{New experiment E29: case-guided campaigns}
 \label{sec:e29}
 
-E25--E28 built the algorithm on one network. E29 asks two practical questions on networks that
-have no exhaustive campaign: (1) does the case-stratified estimate of Section~\ref{sec:stratified}
-give the right rate with far fewer injections, and (2) do the guards and the direction rule carry
-over?
-
-\paragraph{Estimation.} Table~\ref{tab:e29est} shows the case-stratified estimate. On the two ResNet8
-networks, where the exhaustive answer is known, about 1,000 injections give the exhaustive rate
-to within 0.2 standard errors. An exhaustive campaign needed 484--639 thousand. Compared with
-uniform sampling of the same size, the variance is $11$--$724\times$ smaller. Put another way, a
-uniform campaign would need that many times more injections for the same precision. The RepVGG-A0
-fault space has 44--58 million bits, so an exhaustive campaign is out of reach there. The algorithm
-needs 425--450 injections, and most of them only confirm that the ordinary cases do almost nothing.
+E29 applies the flip-case algorithm to networks without an exhaustive campaign: it plans the
+campaign with the estimator of Section~\ref{sec:stratified} (60 faults per stratum on ResNet8,
+25 on RepVGG-A0) and scores each fault with no protection, with G1+G2, and with a NaN-zeroing
+ReLU.
 
 \begin{table}[H]
 \centering
-\caption{E29 estimation. ``Faults'' is the exact size of the fault space, counted by the
-algorithm without injection. Rate is mean $\pm$ one standard error. Variance reduction is
-against a uniform campaign with the same number of injections.}
-\label{tab:e29est}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{llrrccr}
+\caption{E29. ``Faults'' is the exact fault-space size, counted without injection. Variance
+reduction is against a uniform campaign of the same size. ``Catastr.\ share'' is the share of
+faults / share of damage in cases E1, S1, S2; ``G1+G2'' is how much the guards cut the rate.}
+\label{tab:e29}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrcrcc}
 \toprule
-\textbf{Network} & \textbf{Fmt} & \textbf{Faults} & \textbf{Injected} & \textbf{Rate (E29)} & \textbf{Exhaustive} & \textbf{Var.\ red.} \\
+\textbf{Network} & \textbf{Fmt} & \textbf{Faults} & \textbf{Injected} & \textbf{Rate $\pm$ SE} & \textbf{Var.\ red.} & \textbf{Catastr.\ share} & \textbf{G1+G2} \\
 \midrule
-ResNet8, C-10  & \fmt{e3m2} & 483,904    & 1,020 & $0.00880 \pm 0.00038$ & 0.00878 & $41\times$ \\
-ResNet8, C-10  & \fmt{e4m3} & 638,624    & 881   & $0.02347 \pm 0.00043$ & 0.02356 & $108\times$ \\
-ResNet8, C-100 & \fmt{e3m2} & 519,904    & 1,020 & $0.0152 \pm 0.0008$   & --      & $11\times$ \\
-ResNet8, C-100 & \fmt{e4m3} & 686,144    & 862   & $0.0251 \pm 0.0005$   & --      & $75\times$ \\
-ResNet8, C-100 & \fmt{e5m2} & 686,144    & 724   & $0.0863 \pm 0.0007$   & --      & $199\times$ \\
-RepVGG-A0, C-10 & \fmt{e3m2} & 43,980,128 & 425   & $0.00494 \pm 0.00021^{*}$ & --  & $210\times^{*}$ \\
-RepVGG-A0, C-10 & \fmt{e4m3} & 58,053,504 & 450   & $0.01165 \pm 0.00018^{*}$ & --  & $724\times^{*}$ \\
+ResNet8, C-10  & \fmt{e3m2} & 483,904    & 1,020 & $0.00880 \pm 0.00038$ & $41\times$  & 0.5\% / 57\% & $4.1\times$ \\
+ResNet8, C-10  & \fmt{e4m3} & 638,624    & 881   & $0.02347 \pm 0.00043$ & $108\times$ & 1.6\% / 69\% & $5.0\times$ \\
+ResNet8, C-100 & \fmt{e3m2} & 519,904    & 1,020 & $0.0152 \pm 0.0008$   & $11\times$  & 0.5\% / 33\% & $1.9\times$ \\
+ResNet8, C-100 & \fmt{e4m3} & 686,144    & 862   & $0.0251 \pm 0.0005$   & $75\times$  & 1.6\% / 63\% & $4.1\times$ \\
+ResNet8, C-100 & \fmt{e5m2} & 686,144    & 724   & $0.0863 \pm 0.0007$   & $199\times$ & 7.6\% / 88\% & $12\times$ \\
+RepVGG-A0, C-10 & \fmt{e3m2} & 43,980,128 & 425  & $0.00494 \pm 0.00021$ & $210\times^{*}$ & 0.5\% / 88\% & $258\times^{*}$ \\
+RepVGG-A0, C-10 & \fmt{e4m3} & 58,053,504 & 450  & $0.01165 \pm 0.00018$ & $724\times^{*}$ & 1.2\% / 95\% & $1030\times^{*}$ \\
 \bottomrule
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{*}$ No injected ordinary element fault changed a prediction, so their variance
-is estimated as 0 and these two figures are optimistic.\par}
-\end{table}
-
-\paragraph{Predictions of the algorithm.} Table~\ref{tab:e29pred} checks what the algorithm
-predicts on the new networks.
-
-\begin{table}[H]
-\centering
-\caption{E29: the algorithm's predictions and its guards on every network. ``Catastrophic''
-means cases E1, S1 and S2.}
-\label{tab:e29pred}
-\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{llccccc}
-\toprule
-& & \textbf{Damage} & \textbf{Catastr.} & \textbf{Non-} & \textbf{G1+G2} & \textbf{NaN-zero} \\
-\textbf{Network} & \textbf{Fmt} & \textbf{from $0\to1$} & \textbf{faults/damage} & \textbf{finite} & \textbf{cut} & \textbf{ReLU cut} \\
-\midrule
-ResNet8, C-10   & \fmt{e3m2} & 89\%  & 0.5\% / 57\% & 56\% & $4.1\times$  & $1.0\times$ \\
-ResNet8, C-10   & \fmt{e4m3} & 88\%  & 1.6\% / 69\% & 69\% & $5.0\times$  & $1.9\times$ \\
-ResNet8, C-100  & \fmt{e3m2} & 77\%  & 0.5\% / 33\% & 33\% & $1.9\times$  & $1.0\times$ \\
-ResNet8, C-100  & \fmt{e4m3} & 86\%  & 1.6\% / 63\% & 63\% & $4.1\times$  & $1.5\times$ \\
-ResNet8, C-100  & \fmt{e5m2} & 95\%  & 7.6\% / 88\% & 88\% & $12\times$   & $1.9\times$ \\
-RepVGG-A0, C-10 & \fmt{e3m2} & 100\% & 0.5\% / 88\% & 8\%  & $258\times^{*}$  & $1.0\times$ \\
-RepVGG-A0, C-10 & \fmt{e4m3} & 100\% & 1.2\% / 95\% & 73\% & $1030\times^{*}$ & $3.0\times$ \\
-\bottomrule
-\end{tabular}
-
-\vspace{2pt}
-{\footnotesize $^{*}$ After the guards, no injected fault outside S3/S4 changed a prediction, so
-the remaining rate is below what 25 faults per stratum can resolve.\par}
+{\footnotesize $^{*}$ No injected ordinary fault changed a prediction, so these figures are
+optimistic: the remaining rate is below what 25 faults per stratum can resolve.\par}
 \end{table}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{fig/e29_guards.pdf}
-\caption{Per-inference failure rate on every network and format (log scale): with no protection,
-with the read guards G1+G2, and with a NaN-zeroing ReLU instead.}
+\caption{Per-inference failure rate in E29 (log scale): no protection, guards G1+G2, and a
+NaN-zeroing ReLU.}
 \label{fig:e29}
 \end{figure}
 
-\noindent The results confirm the algorithm on every network:
 \begin{itemize}
-    \item \textbf{Every catastrophic fault is $0\to1$}, in all 7 runs, as Proposition~1 says.
-          $0\to1$ flips cause 77--100\% of all damage.
-    \item \textbf{The catastrophic cases dominate, and more so on the larger network.} On
-          RepVGG-A0 they are 0.5--1.2\% of faults but 88--95\% of damage, and the ordinary element
-          cases did no measurable damage at all. A bigger network absorbs small errors, but not
-          NaN, $\infty$ or a $2^{128}$ scale.
-    \item \textbf{The guards carry over and help most where they are needed most.} G1+G2 cut the
-          rate $4$--$12\times$ on ResNet8 and by two to three orders of magnitude on RepVGG-A0. The
-          exception is ResNet8 on CIFAR-100 in \fmt{e3m2} ($1.9\times$). That network has low
-          decision margins (55\% accuracy), so ordinary finite errors cause a larger share of the
-          damage, and the guards do not target those.
-    \item \textbf{The ReLU only helps formats that have NaN codes.} It changes nothing for
-          \fmt{e3m2} (no NaN codes; S2 gives $+\infty$, which passes the ReLU), and helps
-          $1.5$--$3\times$ for \fmt{e4m3} and \fmt{e5m2}. This is exactly what stage~3 predicts.
-    \item \textbf{A catastrophic flip can be silent.} On RepVGG-A0 in \fmt{e3m2}, the S2 flips
-          damage 87\% of predictions, but only 8\% of them give a non-finite output. The weight
-          becomes huge but stays finite, because $|P_B|\,2^{128}$ does not overflow FP32 there
-          (the stage-3 rule). An \texttt{isfinite} check on the output misses these, but the scale
-          check D2 catches all of them.
+    \item \textbf{Cheap and accurate.} On ResNet8, about 1,000 injections give the exhaustive
+          rate within 0.2 standard errors (0.00880 vs 0.00878; 0.02347 vs 0.02356), where the
+          exhaustive campaigns needed 484--639 thousand. The variance is $11$--$724\times$
+          smaller than uniform sampling of the same size.
+    \item \textbf{The predictions carry over.} Every catastrophic fault was $0\to1$ in all 7
+          runs, and on RepVGG-A0 the catastrophic cases are 0.5--1.2\% of faults but 88--95\% of
+          damage: a bigger network absorbs small errors, not NaN, $\infty$ or a $2^{128}$ scale.
+    \item \textbf{The guards carry over.} G1+G2 cut the rate $4$--$12\times$ on ResNet8 (only
+          $1.9\times$ on the low-accuracy CIFAR-100 \fmt{e3m2} model, where ordinary errors
+          matter more) and by over $250\times$ on RepVGG-A0. The ReLU helps only formats with
+          NaN codes ($1.5$--$3\times$).
+    \item \textbf{Catastrophic can be silent.} On RepVGG-A0 \fmt{e3m2}, S2 flips damage 87\% of
+          predictions but only 8\% give a non-finite output, so an output NaN check misses
+          them. The scale check D2 catches all of them.
 \end{itemize}
 
-\subsection{Interpretation}
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Methodological Findings}
+\label{sec:metric}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\begin{itemize}
+    \item \textbf{The usual SDC metric hides real differences.} Replaying one fixed list of
+          1,500 faults against nine sets of 200 images, the ``any image changed'' rate moved by
+          up to $7\times$ its own confidence width and tracked each set's smallest margin
+          (Spearman $+0.80$ to $+0.93$). It called \fmt{e3m2} and \fmt{e4m3} equal and reversed
+          their order between image sets. Scored per inference, the same faults gave
+          $5.6$--$7.6\times$, stable across sets. Several early conclusions of this project were
+          artefacts of this metric and were withdrawn.
+    \item \textbf{Single-bit injection is enough.} Injecting every single- and double-bit
+          pattern of 2,000 words per format (390,000 injections), a double flip does
+          $1.04$--$1.55\times$ the damage of a single flip and changes no conclusion.
+    \item \textbf{Enumerate, do not learn.} Strata built from the exactly enumerated $|v'-v|$
+          of the MX code table cut variance $48$--$65\times$; TreeFI-style intervals learned
+          from a pilot never beat uniform sampling. The case strata of E29 go further because
+          they also separate the catastrophic cases.
+\end{itemize}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Design Guidance}
+% ═════════════════════════════════════════════════════════════════════════════
 
 \begin{enumerate}
-    \item \textbf{Most failures come from a tiny, exactly known set of bits.} The catastrophic
-          cases are 1--2\% of storage and are found by counting, not by injection.
-    \item \textbf{The case tree is enough for the catastrophic part, but not for small errors.}
-          For those, the size of the error reaching the next layer is what matters.
-    \item \textbf{Every catastrophic flip is $0\to1$.} The direction of memory upsets changes
-          the failure rate by $7$--$8\times$, so it belongs in the fault model.
-    \item \textbf{Protection should follow the case, not the bit position.} In \fmt{e3m2}, scale
-          bit 7 alone is 0.5\% of storage and 57\% of damage, so protecting a few bits works. In
-          \fmt{e4m3}, NaN damage is spread over every element bit and 27\% of storage is needed for
-          half the damage; the free guards G1+G2 do far better at zero storage cost.
-    \item \textbf{The algorithm is cheap to use and carries over.} Counting cases needs no
-          injection, and a campaign planned by case needs about a thousand injections instead of
-          hundreds of thousands. Its predictions held on a larger network and a harder dataset,
-          where the catastrophic cases matter even more.
+    \item \textbf{Protect the shared scale first.} It is 2--11\% of storage and a scale fault does
+          $13$ to over $1000\times$ the damage of an element fault. If only some scale bits can be
+          protected, protect those normally at 0, whose flips grow the block.
+    \item \textbf{Neutralise special codes.} Prefer element formats without NaN/Inf, or use guards
+          G1 and G2, which need only a comparator on the read path.
+    \item \textbf{Do not judge reliability by accuracy or bit width.} Equal-accuracy formats differ
+          by orders of magnitude.
+    \item \textbf{Treat block size as a trade-off.} Large blocks are safe only with protected scales.
+    \item \textbf{Model the flip direction and protect early layers.} $0\to1$ flips carry
+          almost all the risk, and the small stem layer is the most fragile.
+    \item \textbf{For campaigns:} report the per-inference rate, inject single-bit faults, and
+          stratify by case.
 \end{enumerate}
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section{Conclusion}
 % ═════════════════════════════════════════════════════════════════════════════
 
-This phase of the project turned a fault-injection study of MX networks into an algorithm that
-says, for every single-bit flip, what it will do and why. The algorithm follows a flip through
-five stages (fault model, encoding, read checks, datapath, decision), and its core case tree puts
-every flip into exactly one of 22 cases, which was verified by exhaustive enumeration over five
-formats.
+This project built and applied a reliability analysis methodology for microscaling-based DNNs:
+a bit-accurate fault injector, validated against 1.1 million exhaustive injections, and a
+flip-case algorithm that explains how each fault propagates. Across formats, block sizes,
+tensor types and fault locations, on CNN and Transformer models, the central hypothesis holds
+on every network: reliability varies by orders of magnitude between MX formats of equal
+accuracy, and faults in the shared scale behave very differently from faults in elements,
+typically $13\times$ to more than $1000\times$ worse.
 
-Measured against 1.1 million exhaustive injections, the case explains 91--97\% of the variance in
-damage. Three catastrophic cases, 1--2\% of all bits, cause more than half of all failures, and
-all of them are $0\to1$ flips. Two read-time guards that follow from the algorithm cut the
-failure rate $4.3$--$5.2\times$ with no extra memory, and a NaN-zeroing ReLU makes a NaN weight
-almost harmless.
-
-Used as a campaign plan, the algorithm reproduced the exhaustive ResNet8 rates with about 1,000
-injections. On a CIFAR-100 ResNet8 and a 7-million-parameter RepVGG-A0, every prediction held:
-all catastrophic flips were $0\to1$, the catastrophic cases carried 33--95\% of the damage, and
-the free guards cut the failure rate by $1.9\times$ to more than $250\times$. The practical
-message is simple: in an MX network, protect the few flips the algorithm names, mainly scale
-overflows and flips into NaN codes, and the rest matters far less.
+The cause is a small, exactly known set of flips. Flips into NaN/Inf codes and scale
+overflows are 1--2\% of stored bits but cause most failures, all of them are $0\to1$ flips, and
+model capacity cannot absorb them. Two read-time guards that cost no memory remove most of
+this damage, and a campaign planned by case measures a network with about a thousand
+injections instead of hundreds of thousands. In short: in an MX network, protect the scale and
+the few flips the algorithm names, and the rest matters far less.
 
 % ═════════════════════════════════════════════════════════════════════════════
-\section{Future Work}
+\section{Limitations and Future Work}
 % ═════════════════════════════════════════════════════════════════════════════
 
 \begin{itemize}
-    \item \textbf{Faults outside stored MX values.} Accumulators, partial sums, biases,
-          normalisation parameters and address logic are not covered yet.
-    \item \textbf{Accumulating faults.} Weight faults are persistent and can pile up between
-          reloads; only single faults and pairs within one word were measured.
-    \item \textbf{Other datapaths, measured end to end.} Saturating overflow, FP16
-          accumulation and a full MX activation pipeline are stated as rules here, not injected.
-    \item \textbf{Larger models and ImageNet.} DeiT and ImageNet were out of reach on the
-          available hardware. The stratified plan of Section~\ref{sec:stratified} is what would
-          make such a campaign affordable.
-    \item \textbf{Hardware validation} of the guards G1 and G2 on an FPGA or accelerator model.
+    \item \textbf{ImageNet and pretrained Transformers.} DeiT on ImageNet was planned but ImageNet
+          was not reachable. The Transformer here is a small ViT at DeiT-Tiny width trained on
+          CIFAR, and it reaches only 47--49\% on CIFAR-100. The narrowing gap on CIFAR-100
+          suggests absolute gaps on ImageNet-scale models may be smaller; the directions of the
+          effects are the more transferable result. A case-guided campaign makes this affordable.
+    \item \textbf{Fault model.} Only stored values are covered. Accumulators, partial sums,
+          biases, normalisation and control logic are not, and faults that pile up between
+          weight reloads were not measured.
+    \item \textbf{Hardware.} The guards were simulated in software; they should be validated on an
+          FPGA or accelerator model, together with other datapaths (saturating overflow, FP16
+          accumulation).
+    \item \textbf{Model scale.} The largest network has 7 million parameters; large language models
+          and MXINT8 were not studied.
 \end{itemize}
+
+\paragraph{Code and data.} The \texttt{mxfi} library, all experiment scripts, trained networks
+and raw campaign outputs are at \url{https://github.com/peeyushagarwal2004/CS496_UGP}.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \section*{Acknowledgements}
 \addcontentsline{toc}{section}{Acknowledgements}
 
 I thank my supervisor, \supervisor, for the problem statement and guidance throughout this
-project, and IIT Kanpur for access to its GPU cluster.
+project. I also thank Vishesh Mishra for guiding me throughout the project, and IIT Kanpur
+for access to its GPU cluster.
 
 % ═════════════════════════════════════════════════════════════════════════════
 \begin{thebibliography}{99}
@@ -831,6 +1003,15 @@ Benchmarks Track}, 2021.
 \bibitem{ding2021repvgg}
 X.~Ding, X.~Zhang, N.~Ma, J.~Han, G.~Ding, and J.~Sun, ``RepVGG: Making VGG-style ConvNets
 great again,'' in \emph{Proc. CVPR}, 2021.
+
+\bibitem{dosovitskiy2021vit}
+A.~Dosovitskiy et al., ``An image is worth 16x16 words: Transformers for image recognition
+at scale,'' in \emph{Proc. ICLR}, 2021.
+
+\bibitem{touvron2021deit}
+H.~Touvron, M.~Cord, M.~Douze, F.~Massa, A.~Sablayrolles, and H.~J\'egou, ``Training
+data-efficient image transformers \& distillation through attention,'' in \emph{Proc.
+ICML}, 2021.
 
 \end{thebibliography}
 
