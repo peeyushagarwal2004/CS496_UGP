@@ -20,6 +20,7 @@ from mxfi.cases import label
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
 OUT = ROOT / "docs" / "ugp_report" / "fig"
+PNG = ROOT / "docs" / "figures" / "png"   # copies shown in the README
 
 BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e3df"
@@ -58,6 +59,7 @@ def case_damage() -> None:
         ax.set_axisbelow(True)
     fig.tight_layout()
     fig.savefig(OUT / "case_damage.pdf")
+    fig.savefig(PNG / "case_damage.png", dpi=200)
     plt.close(fig)
 
 
@@ -90,11 +92,13 @@ def e29_guards() -> None:
     ax.legend(frameon=False, ncol=3, fontsize=7, loc="upper left")
     fig.tight_layout()
     fig.savefig(OUT / "e29_guards.pdf")
+    fig.savefig(PNG / "e29_guards.png", dpi=200)
     plt.close(fig)
 
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
+    PNG.mkdir(parents=True, exist_ok=True)
     case_damage()
     e29_guards()
     print("written", sorted(p.name for p in OUT.glob("*.pdf")))

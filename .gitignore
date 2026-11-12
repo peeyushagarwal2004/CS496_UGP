@@ -1,6 +1,21 @@
-# Everything the project produced is tracked: code, results, trained weights, the
-# CIFAR datasets, logs, and a mirror of the GPU cluster's outputs in cluster/.
-# Only regenerable environment and cache files are left out.
+# Tracked: the library, experiment scripts, tests, every trained network and raw
+# campaign output, the reports and figures, and a mirror of the GPU cluster's
+# networks and results in cluster/. Left out: anything that is downloaded,
+# regenerated, personal, or superseded.
+
+# CIFAR-10/100: torchvision downloads them into data/ on first use
+data/
+
+# run logs and the live STOP/lock control files of the sweep runners
+logs/
+cluster/logs/
+
+# superseded outputs (pre-NaN-fix activation campaigns), personal study notes,
+# and third-party papers
+cluster/archive/
+study_guide/
+papers/
+scripts/logs_wait_then_sweep.sh
 
 # Python environment: its torch binaries exceed GitHub's 100 MB file limit and
 # are platform-specific. Recreate it from requirements.txt instead.
@@ -23,14 +38,3 @@ docs/ugp_report/*.aux
 docs/ugp_report/*.log
 docs/ugp_report/*.out
 docs/ugp_report/*.toc
-study_guide/*.aux
-study_guide/*.log
-study_guide/*.out
-study_guide/*.toc
-study_guide/main.pdf
-
-# live control files for the sweep runners: a committed STOP would halt every
-# rerun after a clone, and a lock would block it
-logs/STOP*
-logs/sweep.lock
-cluster/logs/STOP*

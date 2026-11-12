@@ -11,7 +11,8 @@ repository-code: "https://github.com/peeyushagarwal2004/CS496_UGP"
 abstract: >-
   A fault-injection study of deep neural networks quantised to the OCP Microscaling
   (MX) formats, with mxfi, a bit-accurate library for injecting faults into MX
-  element codes and shared scales.
+  element codes and shared scales, and a flip-case algorithm that sorts every
+  single-bit flip into one of 22 cases and yields memory-free read-time guards.
 keywords:
   - microscaling
   - MXFP
