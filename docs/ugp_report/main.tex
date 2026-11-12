@@ -111,7 +111,7 @@ exhaustive campaigns (1.1 million injections) give exact ground truth. Formats w
 vulnerability by up to three orders of magnitude, with \fmt{e3m2} $<$ \fmt{e4m3} $<$ \fmt{e5m2}
 on every network. A fault in a shared scale is always worse than a fault in an element,
 typically by $13\times$ to more than $1000\times$. The flip-case algorithm explains why: three
-cases, flips into NaN/Inf codes and scale overflows, are 1--2\% of stored bits but cause more
+cases, flips into NaN/Inf codes and scale overflows, are under 2\% of stored bits but cause more
 than half of all failures, and every one of them is a $0\to1$ flip. Read-time guards that
 follow from this, and cost no memory, cut element damage by $29$--$4100\times$ on the larger
 models. Finally, using the case of each bit as a sampling plan recovers the exhaustive failure
@@ -193,8 +193,9 @@ exponent $X$, the \emph{scale}, and $K$ narrow element codes $m_i$:
 \end{equation}
 The scale uses the E8M0 encoding: an unsigned power of two, with code 255 reserved for NaN.
 Each element is a small sign--exponent--mantissa number (Table~\ref{tab:formats}). The OCP rule
-sets $X = \lfloor \log_2 \max_i |v_i| \rfloor - e_{\max}$, so the largest value of every block
-lands in the top binade of the element format.
+sets the unbiased shared exponent to $X - 127 = \lfloor \log_2 \max_i |v_i| \rfloor - e_{\max}$,
+where $e_{\max}$ is the exponent of the element format's largest normal value (8 for
+\fmt{e4m3}), so the largest value of every block lands in the top binade of the element format.
 
 \begin{table}[H]
 \centering
@@ -424,8 +425,8 @@ For a scale flip, $X' = X \oplus 2^j$ and $\Delta = X'-X$; for an element flip, 
 \textbf{Case} & \textbf{Condition} & \textbf{Effect} & \textbf{Case} & \textbf{Bit} & \textbf{Effect} \\
 \midrule
 S0 & all elements $\pm0$ & masked & E0 & sign of $\pm0$ & masked \\
-\textbf{S1}$^\dagger$ & $X'=255$ & 32 NaNs & \textbf{E1}$^\dagger$ & into NaN/Inf code & NaN or $\pm\infty$ \\
-\textbf{S2}$^\dagger$ & $\Delta=+128$ & $\pm\infty$ or huge & E2 & sign & $v\to-v$ \\
+\textbf{S1}$^\dagger$ & $X'=255$ & $K$ NaNs & \textbf{E1}$^\dagger$ & into NaN/Inf code & NaN or $\pm\infty$ \\
+\textbf{S2}$^\dagger$ & $\Delta=+128$ or overflow & $\pm\infty$ or huge & E2 & sign & $v\to-v$ \\
 S3 & $\Delta\ge8$ & $\times256$ or more & E3, E3a, E3b & exponent $0\to1$ & grows \\
 S4 & $\Delta\in\{1,2,4\}$ & $\times2$ to $\times16$ & E4, E4a, E4b & exponent $1\to0$ & shrinks \\
 S5 & $\Delta\in\{-1,-2\}$ & $\div2$, $\div4$ & E5, E5a & mantissa $0\to1$ & small growth \\
@@ -435,8 +436,8 @@ S7 & $X=255$ & prior fault only & E7 & code already special & prior fault only \
 \end{tabular}
 \end{table}
 
-\paragraph{Worked examples.} On the ResNet8 used here the weight scales lie between 114 and
-120. Take $X = 118 = \texttt{0111\,0110}$:
+\paragraph{Worked examples.} On the ResNet8 used for the exhaustive \fmt{e4m3} campaign the
+weight scales lie between 114 and 120. Take $X = 118 = \texttt{0111\,0110}$:
 \begin{itemize}
     \item bit 7 is 0; flipping it gives $X' = 246$, $\Delta = +128$, so the case is
           \textbf{S2} (every value in the block is multiplied by $2^{128}$);
@@ -470,8 +471,8 @@ Every flip in case E1, S1 or S2 sets a bit that was $0$.
 \begin{proof}
 NaN and Inf codes are runs of 1s: \texttt{S.1111.111} in \fmt{e4m3}, exponent \texttt{11111}
 in \fmt{e5m2}, and $255=\texttt{11111111}$ for E8M0. A finite code has at least one 0 in that
-run, and one flip reaches the all-ones pattern only by setting that 0. For S2, $\Delta =
-X'-X = +2^j$ exactly when bit $j$ was 0.
+run, and one flip reaches the all-ones pattern only by setting that 0. S2 needs the block to
+grow, $\Delta = X'-X > 0$, and $\Delta = +2^j$ exactly when bit $j$ was 0.
 \end{proof}
 
 \paragraph{Stage 2: free read-time checks.} A clean OCP tensor obeys rules that can be checked
@@ -556,7 +557,7 @@ E08--E14, E16, E23 & format geometry, sensitivity and margins, read-side NaN gua
 E24 & every headline result repeated on CIFAR-100 & all \\
 E12, E15, E17--E22 & metric, severity measure, sampling, multi-bit faults & method \\
 E25--E28 & flip-case algorithm against the exhaustive campaigns & O1, O5 \\
-E29 & \textbf{new:} case-guided campaigns and guards on three networks & O1, O5 \\
+E29 & case-guided campaigns and guards on three networks & O1, O5 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -593,7 +594,9 @@ reliability.
 
 \begin{table}[H]
 \centering
-\caption{Per-inference rate of element faults ($K=32$, CIFAR-10, mean over seeds). Lower is better.}
+\caption{Per-inference rate of element faults ($K=32$, CIFAR-10, mean over the seeds with a
+campaign). Lower is better. Five of the eight configurations are shown; widths 16, 24 and 32
+follow the same order.}
 \label{tab:formatres}
 \small
 \begin{tabular}{lcccc}
@@ -623,7 +626,8 @@ A scale fault is worse than an element fault on every architecture, format and d
 (Figure~\ref{fig:scale}). In the exhaustive ResNet8 \fmt{e4m3} campaign, 94.4\% of scale flips
 change at least one prediction, and a scale fault corrupts on average 49.9 of 200 inferences
 against 3.3 for an element fault ($15\times$). On the larger models the ratio reaches
-$10^3$--$10^4$ for \fmt{e3m2}. It is smallest for \fmt{e5m2} ($1.7$--$4.3\times$), whose element
+$10^3$--$10^4$ for \fmt{e3m2}; these are lower bounds, because the \fmt{e3m2} element rate
+there is close to zero. It is smallest for \fmt{e5m2} ($1.7$--$4.3\times$), whose element
 faults already destroy inferences through NaN codes. Scale faults also give non-finite outputs
 in 7--13\% of cases \emph{for every format}, including \fmt{e3m2}, because the scale has its own
 NaN code and its top bit is worth 128 exponent steps. The scale needs protection even when the
@@ -635,7 +639,8 @@ Labelling all 1.1 million exhaustive faults with their case (E25) shows where th
 from (Figure~\ref{fig:cases}). In \fmt{e3m2}, S2 scale overflows are 0.5\% of faults and cause
 57\% of all damage, with mean damage 0.97: almost every image fails. In \fmt{e4m3}, E1 flips
 into the NaN code are 1.2\% of faults and cause 52\% of damage, each with damage exactly 1.0.
-The common element cases (E2--E6) are 80--95\% of faults but only 9--16\% of damage.
+The ordinary element cases (E2--E6 and their sub-cases) are about 96\% of faults but only
+12--15\% of damage.
 
 \begin{figure}[H]
 \centering
@@ -696,7 +701,9 @@ across every inference until the memory is rewritten; an activation fault lives 
 
 \begin{table}[H]
 \centering
-\caption{Per-inference rate of element faults in weights and activations (CIFAR-10, $K=32$).}
+\caption{Per-inference rate of element faults in weights and activations (CIFAR-10, $K=32$,
+one network per row, so the weight column can differ from the seed means of
+Table~\ref{tab:formatres}).}
 \label{tab:act}
 \small
 \begin{tabular}{llccc}
@@ -716,7 +723,8 @@ ViT       & \fmt{e5m2} & 0.0659 & 0.0486 [0.0420, 0.0554] & $1.36\times$ \\
 faults that leave the output finite, the sign bit is the worst element bit. In total damage it
 ranks seventh of eight in \fmt{e4m3}, because most damage comes from flips into the NaN code,
 and a sign flip can never make one. In the scale, what matters is which bits are normally set:
-the scale bytes lie between 114 and 120, so bits 3 and 7 are almost always 0. Flipping bit 3
+the scale bytes lie between 114 and 120, so bits 4--6 are always 1 and bits 3 and 7 almost
+always 0. Flipping bit 3
 multiplies the block by 256 (75\% of inferences corrupted) and bit 7 overflows it (98\%);
 flipping bits 4--6 shrinks it (3\%). Growing a block is catastrophic and shrinking it is mild,
 which is exactly the S2--S4 versus S5--S6 split of the case tree.
@@ -832,7 +840,7 @@ RepVGG-A0, C-10 & \fmt{e4m3} & 58,053,504 & 450  & $0.01165 \pm 0.00018$ & $724\
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{*}$ No injected ordinary fault changed a prediction, so these figures are
+{\footnotesize $^{*}$ No injected ordinary element fault (E2--E6) changed a prediction, so these figures are
 optimistic: the remaining rate is below what 25 faults per stratum can resolve.\par}
 \end{table}
 
@@ -888,8 +896,9 @@ NaN-zeroing ReLU.}
 % ═════════════════════════════════════════════════════════════════════════════
 
 \begin{enumerate}
-    \item \textbf{Protect the shared scale first.} It is 2--11\% of storage and a scale fault does
-          $13$ to over $1000\times$ the damage of an element fault. If only some scale bits can be
+    \item \textbf{Protect the shared scale first.} It is 2--11\% of storage and a scale fault
+          typically does $13$ to over $1000\times$ the damage of an element fault (only
+          $1.7$--$4.3\times$ for \fmt{e5m2}, whose element faults are already NaN-dominated). If only some scale bits can be
           protected, protect those normally at 0, whose flips grow the block.
     \item \textbf{Neutralise special codes.} Prefer element formats without NaN/Inf, or use guards
           G1 and G2, which need only a comparator on the read path.
@@ -915,7 +924,7 @@ accuracy, and faults in the shared scale behave very differently from faults in 
 typically $13\times$ to more than $1000\times$ worse.
 
 The cause is a small, exactly known set of flips. Flips into NaN/Inf codes and scale
-overflows are 1--2\% of stored bits but cause most failures, all of them are $0\to1$ flips, and
+overflows are under 2\% of stored bits (in \fmt{e3m2} and \fmt{e4m3}) but cause most failures, all of them are $0\to1$ flips, and
 model capacity cannot absorb them. Two read-time guards that cost no memory remove most of
 this damage, and a campaign planned by case measures a network with about a thousand
 injections instead of hundreds of thousands. In short: in an MX network, protect the scale and
