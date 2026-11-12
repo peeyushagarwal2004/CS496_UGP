@@ -35,7 +35,7 @@ into cheap protection.
 | | |
 |---|---|
 | **2,000×** | On the vision Transformer, e5m2 and e3m2 have the same accuracy (81.74% vs 81.73%), yet one element fault in e5m2 is about 2,000 times as likely to corrupt a prediction. |
-| **13× to >1000×** | How much more damaging a shared-scale fault is than an element fault. On ResNet8 one scale fault corrupts 49.9 of 200 predictions on average; one element fault corrupts 3.3. |
+| **13× to >1000×** | How much more damaging a shared-scale fault is than an element fault (1.7–4.3× for e5m2, whose element faults are already NaN-dominated). On ResNet8 one scale fault corrupts 49.9 of 200 predictions on average; one element fault corrupts 3.3. |
 | **<2% → >50%** | Three of 22 flip cases (NaN/Inf codes and scale overflow) are under 2% of stored bits but cause more than half of all failures. Every one of them is a 0→1 flip. |
 | **29× to 4100×** | Reduction in element damage on the larger models from read-time guards that need no extra memory. |
 | **~1,000 vs 500,000** | Injections needed to recover the exact, exhaustive failure rate when the campaign is planned by flip case. |
@@ -162,7 +162,7 @@ Stage 1 is the core. Every possible single-bit flip falls into **exactly one of 
 |---|---|---|---|---|---|
 | S0 | all elements are ±0 | masked | E0 | sign of ±0 | masked |
 | **S1** † | X' = 255 | block becomes 32 NaNs | **E1** † | into a NaN/Inf code | NaN or ±∞ |
-| **S2** † | Δ = +128 | ±∞ or huge | E2 | sign bit | v → −v |
+| **S2** † | Δ = +128 or overflow | ±∞ or huge | E2 | sign bit | v → −v |
 | S3 | Δ ≥ +8 | ×256 or more | E3, E3a, E3b | exponent 0→1 | value grows |
 | S4 | Δ ∈ {1, 2, 4} | ×2 to ×16 | E4, E4a, E4b | exponent 1→0 | value shrinks |
 | S5 | Δ ∈ {−1, −2} | ÷2, ÷4 | E5, E5a | mantissa 0→1 | small growth |
@@ -230,7 +230,8 @@ choosing a format by accuracy or bit width alone would never show it.
 ![Scale against element faults](docs/figures/png/fig10_scale_vs_element.png)
 
 On every network, format and dataset, a scale fault is worse than an element fault, typically by
-13× to more than 1000×. In the exhaustive e3m2 campaign the scales are 4.1% of storage and carry
+13× to more than 1000×. The ratio is smallest for e5m2 (1.7–4.3×), because its element faults
+are already dominated by NaN codes. In the exhaustive e3m2 campaign the scales are 4.1% of storage and carry
 87.6% of all damage. Flips that grow a block are catastrophic; flips that shrink it are mild.
 
 ### 4.3 The flip-case algorithm names the dangerous bits
@@ -241,7 +242,8 @@ Joining all 1.1 million exhaustive faults with their cases:
 
 - In **e3m2**, case **S2** (scale overflow) is **0.5%** of faults and **57%** of damage.
 - In **e4m3**, case **E1** (flip into NaN) is **1.2%** of faults and **52%** of damage.
-- The ordinary flips (E2 to E6), which are most of all faults, cause only about a tenth.
+- The ordinary element flips (E2 to E6 and their sub-cases) are about 96% of faults but only
+  12–15% of damage.
 - **0→1 flips carry 87.5–88.7% of all damage.** A memory whose faults are mostly 1→0 (for
   example, charge loss) would see 7 to 8 times fewer failures than the usual symmetric model
   predicts.
@@ -305,7 +307,7 @@ every fault with no protection, with G1 + G2, and with a NaN-zeroing ReLU.
 | RepVGG-A0, C-10 | e3m2 | 43,980,128 | 425 | 0.00494 ± 0.00021 | 210×* | 0.5% / 88% | 258×* |
 | RepVGG-A0, C-10 | e4m3 | 58,053,504 | 450 | 0.01165 ± 0.00018 | 724×* | 1.2% / 95% | 1030×* |
 
-\* No injected ordinary fault changed a prediction, so these figures are optimistic.
+\* No injected ordinary element fault (E2–E6) changed a prediction, so these figures are optimistic.
 
 ![E29 guards](docs/figures/png/e29_guards.png)
 
